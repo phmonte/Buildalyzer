@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buildalyzer", "Buildalyzer\Buildalyzer.csproj", "{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer", "Buildalyzer\Buildalyzer.csproj", "{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworkTestApp", "FrameworkTestApp\FrameworkTestApp.csproj", "{4AEA4BB6-DC5C-4654-9800-1F22A864D4DA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworkTestApp", "FrameworkTestApp\FrameworkTestApp.csproj", "{03B68747-ED28-4628-B55C-0CA31F20500E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4AEA4BB6-DC5C-4654-9800-1F22A864D4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4AEA4BB6-DC5C-4654-9800-1F22A864D4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4AEA4BB6-DC5C-4654-9800-1F22A864D4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4AEA4BB6-DC5C-4654-9800-1F22A864D4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03B68747-ED28-4628-B55C-0CA31F20500E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03B68747-ED28-4628-B55C-0CA31F20500E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03B68747-ED28-4628-B55C-0CA31F20500E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03B68747-ED28-4628-B55C-0CA31F20500E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

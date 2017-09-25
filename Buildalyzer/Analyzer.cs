@@ -19,6 +19,7 @@ namespace Buildalyzer
             {
                 throw new ArgumentNullException(nameof(projectPath));
             }
+            projectPath = Path.GetFullPath(projectPath); // Normalize the path
             if (!File.Exists(projectPath))
             {
                 throw new ArgumentException($"The project file {projectPath} could not be found.");
@@ -29,7 +30,7 @@ namespace Buildalyzer
             projectDocument.Load(projectPath);
 
             // Get the paths
-            IPathHelper pathHelper = PathHelperFactory.GetPathHelper(projectDocument);
+            IPathHelper pathHelper = PathHelperFactory.GetPathHelper(projectPath, projectDocument);
 
             // Get global properties
             Dictionary<string, string> globalProperties = new Dictionary<string, string>
@@ -41,7 +42,6 @@ namespace Buildalyzer
             };
 
             // Set environment variables (for some strange reason, this is required for SDK-style projects)
-            // Kinda sucks that the simplest way to get MSBuild to resolve SDKs correctly is using environment variables, but there you go.
             Environment.SetEnvironmentVariable(
                 MsBuildProperties.MSBuildExtensionsPath,
                 globalProperties[MsBuildProperties.MSBuildExtensionsPath]);

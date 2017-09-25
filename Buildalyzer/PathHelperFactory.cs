@@ -8,7 +8,7 @@ namespace Buildalyzer
 {
     internal abstract class PathHelperFactory
     {
-        public static IPathHelper GetPathHelper(XmlDocument projectDocument)
+        public static IPathHelper GetPathHelper(string projectPath, XmlDocument projectDocument)
         {
             if (projectDocument.DocumentElement.HasAttribute("ToolsVersion"))
             {
@@ -16,7 +16,7 @@ namespace Buildalyzer
             }
             if (projectDocument.DocumentElement.HasAttribute("Sdk"))
             {
-                return new DotNetCorePathHelper();
+                return new DotNetCorePathHelper(projectPath);
             }
             throw new Exception("Unrecognized project file format");
         }

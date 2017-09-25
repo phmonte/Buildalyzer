@@ -12,7 +12,7 @@ namespace FrameworkTestApp
         static void Main(string[] args)
         {
             //Analyzer analyzer = new Analyzer(@"E:\Code\FluentFrontend\src\adapters\FluentFrontend.Adapter.Mvc\FluentFrontend.Adapter.Mvc.csproj");
-            Analyzer analyzer = new Analyzer(@"E:\Code\FluentFrontend\src\extensions\FluentFrontend.Element\FluentFrontend.Element.csproj");
+            Analyzer analyzer = new Analyzer(@"E:\Code\FluentFrontend\src\FluentFrontend\FluentFrontend.csproj");
         }
     }
 }

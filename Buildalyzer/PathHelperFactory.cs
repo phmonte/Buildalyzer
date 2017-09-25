@@ -8,17 +8,23 @@ namespace Buildalyzer
 {
     internal abstract class PathHelperFactory
     {
-        public static IPathHelper GetPathHelper(string projectPath, XmlDocument projectDocument)
+        public static IPathHelper GetPathHelper(string projectPath)
         {
-            if (projectDocument.DocumentElement.HasAttribute("ToolsVersion"))
+            using (XmlReader reader = XmlReader.Create(projectPath))
             {
-                return new DotNetFrameworkPathHelper();
+                if (reader.MoveToContent() == XmlNodeType.Element && reader.HasAttributes)
+                {
+                    if (reader.MoveToAttribute("ToolsVersion"))
+                    {
+                        return new DotNetFrameworkPathHelper();
+                    }
+                    if (reader.MoveToAttribute("Sdk"))
+                    {
+                        return new DotNetCorePathHelper(projectPath);
+                    }
+                }
+                throw new Exception("Unrecognized project file format");
             }
-            if (projectDocument.DocumentElement.HasAttribute("Sdk"))
-            {
-                return new DotNetCorePathHelper(projectPath);
-            }
-            throw new Exception("Unrecognized project file format");
         }
     }
 }

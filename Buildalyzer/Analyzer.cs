@@ -72,6 +72,7 @@ namespace Buildalyzer
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, pathHelper.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
 
+            // Create a logger to capture errors
             StringBuilder logBuilder = new StringBuilder();
             ConsoleLogger logger = new ConsoleLogger(LoggerVerbosity.Normal, x => logBuilder.Append(x), null, null);
             projectCollection.RegisterLogger(logger);
@@ -80,16 +81,20 @@ namespace Buildalyzer
             Project project = projectCollection.LoadProject(projectPath);
             if (project == null)
             {
-                throw new InvalidOperationException("Could not load project");
+                throw new ProjectException("Could not load project", logBuilder.ToString());
             }
 
             // Create an independent instance and build the project
             Copy copy = new Copy();
             Assembly.LoadFile(Path.GetFullPath(Path.Combine(pathHelper.RoslynTargetsPath, "Microsoft.Build.Tasks.CodeAnalysis.dll")));
             ProjectInstance projectInstance = project.CreateProjectInstance();
+            if (!projectInstance.Build("Clean", new ILogger[] { logger }))
+            {
+                throw new ProjectException("Could not clean project", logBuilder.ToString());
+            }
             if (!projectInstance.Build("Compile", new ILogger[] { logger }))
             {
-                throw new InvalidOperationException("Could not compile project");
+                throw new ProjectException("Could not compile project", logBuilder.ToString());
             }
 
             // Get the command line args

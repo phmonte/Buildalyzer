@@ -14,13 +14,16 @@ namespace Buildalyzer
             {
                 if (reader.MoveToContent() == XmlNodeType.Element && reader.HasAttributes)
                 {
+                    // Use the .NET Core SDK if this is either a SDK-style project or running on .NET Core
+                    if (reader.MoveToAttribute("Sdk")
+                        || System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                            .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new CorePathHelper(projectPath);
+                    }
                     if (reader.MoveToAttribute("ToolsVersion"))
                     {
-                        return new DotNetFrameworkPathHelper();
-                    }
-                    if (reader.MoveToAttribute("Sdk"))
-                    {
-                        return new DotNetCorePathHelper(projectPath);
+                        return new FrameworkPathHelper();
                     }
                 }
                 throw new InvalidOperationException("Unrecognized project file format");

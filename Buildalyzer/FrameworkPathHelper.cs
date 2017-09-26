@@ -5,14 +5,14 @@ using Microsoft.Build.Utilities;
 
 namespace Buildalyzer
 {
-    internal class DotNetFrameworkPathHelper : IPathHelper
+    internal class FrameworkPathHelper : IPathHelper
     {
         public string ToolsPath { get; }
         public string ExtensionsPath { get; }
         public string SDKsPath { get; }
         public string RoslynTargetsPath { get; }
 
-        public DotNetFrameworkPathHelper()
+        public FrameworkPathHelper()
         {
             ToolsPath = GetToolsPath();
             ExtensionsPath = Path.GetFullPath(Path.Combine(ToolsPath, @"..\..\"));

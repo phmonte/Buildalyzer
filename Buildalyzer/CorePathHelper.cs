@@ -9,7 +9,7 @@ namespace Buildalyzer
 {
     // Based on code from OmniSharp
     // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-    internal class DotNetCorePathHelper : IPathHelper
+    internal class CorePathHelper : IPathHelper
     {
         const string DOTNET_CLI_UI_LANGUAGE = nameof(DOTNET_CLI_UI_LANGUAGE);
 
@@ -18,7 +18,7 @@ namespace Buildalyzer
         public string SDKsPath { get; }
         public string RoslynTargetsPath { get; }
 
-        public DotNetCorePathHelper(string projectPath)
+        public CorePathHelper(string projectPath)
         {
             List<string> lines = GetInfo(projectPath);
             string basePath = ParseBasePath(lines);

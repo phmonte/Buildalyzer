@@ -10,17 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Buildalyzer.targets" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Buildalyzer.targets">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <PackagePath>build\</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.3.409" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.3.409" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.3.409" />

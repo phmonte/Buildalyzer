@@ -20,7 +20,18 @@ namespace Buildalyzer
     {
         public Project Project { get; }
 
-        public Analyzer(string projectPath)
+        public IReadOnlyList<string> SourceFiles { get; }
+
+        public IReadOnlyList<string> References { get; }
+
+        private Analyzer(Project project, IReadOnlyList<string> sourceFiles, IReadOnlyList<string> references)
+        {
+            Project = project;
+            SourceFiles = sourceFiles;
+            References = references;
+        }
+
+        public static Analyzer Analyze(string projectPath)
         {
             if (projectPath == null)
             {
@@ -66,15 +77,41 @@ namespace Buildalyzer
             projectCollection.RegisterLogger(logger);
 
             // Add the project (we can't reuse the XML because the path is used to calculate some properties)
-            Project = projectCollection.LoadProject(projectPath);
+            Project project = projectCollection.LoadProject(projectPath);
+            if (project == null)
+            {
+                throw new InvalidOperationException("Could not load project");
+            }
 
             // Create an independent instance and build the project
-            Copy copy = new Copy(); // Create a task instance to ensure the assembly is loaded
-            ProjectInstance projectInstance = Project.CreateProjectInstance();
+            Copy copy = new Copy();
+            Assembly.LoadFile(Path.GetFullPath(Path.Combine(pathHelper.RoslynTargetsPath, "Microsoft.Build.Tasks.CodeAnalysis.dll")));
+            ProjectInstance projectInstance = project.CreateProjectInstance();
             if (!projectInstance.Build("Compile", new ILogger[] { logger }))
             {
-                throw new Exception("Could not compile project");
+                throw new InvalidOperationException("Could not compile project");
             }
+
+            // Get the command line args
+            List<string> sourceFiles = new List<string>();
+            List<string> references = new List<string>();
+            foreach(ProjectItemInstance commandLineArg in projectInstance.Items.Where(x => x.ItemType == "CscCommandLineArgs"))
+            {
+                if (!commandLineArg.EvaluatedInclude.StartsWith("/"))
+                {
+                    sourceFiles.Add(
+                        Path.GetFullPath(
+                            Path.Combine(
+                                Path.GetDirectoryName(projectPath),
+                                commandLineArg.EvaluatedInclude)));
+                }
+                else if (commandLineArg.EvaluatedInclude.StartsWith("/reference:"))
+                {
+                    references.Add(commandLineArg.EvaluatedInclude.Substring(11));
+                }
+            }
+
+            return new Analyzer(project, sourceFiles, references);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Buildalyzer
                         return new DotNetCorePathHelper(projectPath);
                     }
                 }
-                throw new Exception("Unrecognized project file format");
+                throw new InvalidOperationException("Unrecognized project file format");
             }
         }
     }

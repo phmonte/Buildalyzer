@@ -31,7 +31,7 @@ namespace Buildalyzer
             }
             if (string.IsNullOrEmpty(toolsPath))
             {
-                throw new Exception("Could not locate the tools (msbuild.exe) path");
+                throw new InvalidOperationException("Could not locate the tools (msbuild.exe) path");
             }
             return Path.GetDirectoryName(toolsPath);
         }

@@ -44,23 +44,19 @@ namespace Buildalyzer
                     WorkingDirectory = Path.GetDirectoryName(projectPath),
                     CreateNoWindow = true,
                     UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
+                    RedirectStandardOutput = true
                 };
 
                 // Execute the process
                 using (Process process = Process.Start(startInfo))
                 {
+                    process.WaitForExit(1000);
                     List<string> lines = new List<string>();
-                    process.OutputDataReceived += (_, e) =>
+                    string line;
+                    while((line = process.StandardOutput.ReadLine()) != null)
                     {
-                        if (!string.IsNullOrWhiteSpace(e.Data))
-                        {
-                            lines.Add(e.Data);
-                        }
-                    };
-                    process.BeginOutputReadLine();
-                    process.WaitForExit();
+                        lines.Add(line);
+                    }
                     return lines;
                 }
             }
@@ -74,7 +70,7 @@ namespace Buildalyzer
         {
             if (lines == null || lines.Count == 0)
             {
-                throw new Exception("Could not get results from `dotnet --info` call");
+                throw new InvalidOperationException("Could not get results from `dotnet --info` call");
             }
 
             foreach (string line in lines)
@@ -87,7 +83,7 @@ namespace Buildalyzer
                 }
             }
 
-            throw new Exception("Could not locate base path in `dotnet --info` results");
+            throw new InvalidOperationException("Could not locate base path in `dotnet --info` results");
         }
     }
 }

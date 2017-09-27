@@ -1,6 +1,6 @@
 ﻿namespace Buildalyzer
 {
-    internal static class MsBuildProperties
+    public static class MsBuildProperties
     {
         // MSBuild Project Loading
         public const string MSBuildExtensionsPath = nameof(MSBuildExtensionsPath);

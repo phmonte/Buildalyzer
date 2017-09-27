@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Buildalyzer;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Execution;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
 
@@ -9,52 +14,69 @@ namespace NetCoreTests
     [TestFixture]
     public class NetCoreTestFixture
     {
-        [Test]
-        public void AnalyzesLegacyFrameworkProject()
+        private static string[] _projectFiles =
+        {
+            @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"SdkNetStandardProject\SdkNetStandardProject.csproj"
+        };
+
+        [TestCaseSource(nameof(_projectFiles))]
+        public void LoadsProject(string projectFile)
         {
             // Given
-            string projectPath = Path.GetFullPath(
-                Path.Combine(
-                    Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
-                    @"..\..\..\..\LegacyFrameworkProject\LegacyFrameworkProject.csproj"));
+            StringBuilder log = new StringBuilder();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            Analyzer analyzer = Analyzer.Analyze(projectPath);
+            Project project = analyzer.Load();
 
             // Then
-            analyzer.SourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+            project.ShouldNotBeNull(log.ToString());
         }
 
-        [Test]
-        public void AnalyzesSdkNetCoreProject()
+        [TestCaseSource(nameof(_projectFiles))]
+        public void CompilesProject(string projectFile)
         {
             // Given
-            string projectPath = Path.GetFullPath(
-                Path.Combine(
-                    Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
-                    @"..\..\..\..\SdkNetCoreProject\SdkNetCoreProject.csproj"));
+            StringBuilder log = new StringBuilder();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            Analyzer analyzer = Analyzer.Analyze(projectPath);
+            ProjectInstance projectInstance = analyzer.Compile();
 
             // Then
-            analyzer.SourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+            projectInstance.ShouldNotBeNull(log.ToString());
         }
 
-        [Test]
-        public void AnalyzesSdkNetStandardProject()
+        [TestCaseSource(nameof(_projectFiles))]
+        public void GetsSourceFiles(string projectFile)
         {
             // Given
+            StringBuilder log = new StringBuilder();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+
+            // When
+            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+
+            // Then
+            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+        }
+
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log)
+        {
             string projectPath = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
-                    @"..\..\..\..\SdkNetStandardProject\SdkNetStandardProject.csproj"));
-
-            // When
-            Analyzer analyzer = Analyzer.Analyze(projectPath);
-
-            // Then
-            analyzer.SourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+                    @"..\..\..\..\" + projectFile));
+            LoggerFactory loggerFactory = null;
+            if (log != null)
+            {
+                loggerFactory = new LoggerFactory();
+                loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
+            }
+            Analyzer analyzer = new Analyzer(loggerFactory);
+            return analyzer.GetProject(projectPath);
         }
     }
 }

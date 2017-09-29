@@ -16,7 +16,9 @@ namespace NetCoreTests
     {
         private static string[] _projectFiles =
         {
+            #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj"
         };
@@ -76,7 +78,7 @@ namespace NetCoreTests
                 loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
             }
             Analyzer analyzer = new Analyzer(loggerFactory);
-            return analyzer.GetProject(projectPath);
+            return analyzer.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }
     }
 }

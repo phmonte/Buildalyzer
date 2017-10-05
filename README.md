@@ -1,7 +1,10 @@
 # Buildalyzer
+
+![buildalyzer logo](./docs/buildalyzer.png)
+
 A little utility to perform design-time builds of .NET projects without having to think too hard about it:
 
-```
+```csharp
 Analyzer analyzer = new Analyzer();
 IReadOnlyList<string> sourceFiles = analyzer.GetProject(@"C:\MyCode\MyProject.csproj").GetSourceFiles();
 ```

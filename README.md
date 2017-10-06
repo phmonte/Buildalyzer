@@ -11,4 +11,18 @@ IReadOnlyList<string> sourceFiles = analyzer.GetProject(@"C:\MyCode\MyProject.cs
 
 Should work with any project type on any .NET runtime (file an issue if you hit a problem).
 
+
+## Installation
+
+Buildalyzer is [available on NuGet](https://www.nuget.org/packages/Buildalyzer/) and can be installed via the commands below:
+
+```
+$ Install-Package Buildalyzer
+```
+or via the .NET Core CLI:
+
+```
+$ dotnet add package Buildalyzer
+```
+
 More documentation coming soon.

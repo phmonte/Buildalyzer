@@ -18,6 +18,9 @@ namespace Buildalyzer
         private readonly Dictionary<string, string> _globalProperties;
         private readonly IPathHelper _pathHelper;
         private readonly ConsoleLogger _logger;
+
+        private Project _project = null;
+        private ProjectInstance _compiledProject = null;
         
         public string ProjectPath { get; }
 
@@ -27,9 +30,9 @@ namespace Buildalyzer
         /// </summary>
         public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;
 
-        public Project Project { get; private set; }
+        public Project Project => Load();
 
-        public ProjectInstance CompiledProject { get; private set; }
+        public ProjectInstance CompiledProject => Compile();
 
         internal ProjectAnalyzer(Analyzer analyzer, string projectPath)
         {
@@ -64,9 +67,9 @@ namespace Buildalyzer
 
         public Project Load()
         {
-            if (Project != null)
+            if (_project != null)
             {
-                return Project;
+                return _project;
             }
 
             // Create a project collection for each project since the toolset might change depending on the type of project
@@ -75,7 +78,7 @@ namespace Buildalyzer
             // Load the project
             using (new BuildEnvironment(GlobalProperties))
             {
-                Project = projectCollection.LoadProject(ProjectPath);
+                _project = projectCollection.LoadProject(ProjectPath);
                 return Project;
             }
         }
@@ -94,9 +97,9 @@ namespace Buildalyzer
 
         public ProjectInstance Compile()
         {
-            if (CompiledProject != null)
+            if (_compiledProject != null)
             {
-                return CompiledProject;
+                return _compiledProject;
             }
             Project project = Load();
             if (project == null)
@@ -107,7 +110,7 @@ namespace Buildalyzer
             // Compile the project
             using (new BuildEnvironment(GlobalProperties))
             {
-                ProjectInstance projectInstance = Project.CreateProjectInstance();
+                ProjectInstance projectInstance = project.CreateProjectInstance();
                 if (!projectInstance.Build("Clean", _logger == null ? null : new ILogger[] { _logger }))
                 {
                     return null;
@@ -116,8 +119,8 @@ namespace Buildalyzer
                 {
                     return null;
                 }
-                CompiledProject = projectInstance;
-                return CompiledProject;
+                _compiledProject = projectInstance;
+                return _compiledProject;
             }
         }
 
@@ -135,7 +138,7 @@ namespace Buildalyzer
 
         public void SetGlobalProperty(string key, string value)
         {
-            if (Project != null)
+            if (_project != null)
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }
@@ -144,7 +147,7 @@ namespace Buildalyzer
 
         public bool RemoveGlobalProperty(string key)
         {
-            if (Project != null)
+            if (_project != null)
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }

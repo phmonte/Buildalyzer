@@ -6,8 +6,11 @@
     <Authors>Dave Glick</Authors>
     <Company />
     <Product />
-    <Description />
-    <Version>0.1.0</Version>
+    <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. Should work with any project type on any .NET runtime.</Description>
+    <Version>0.1.1</Version>
+    <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/daveaglick/Buildalyzer/blob/master/LICENSE</PackageLicenseUrl>
   </PropertyGroup>
 
   <ItemGroup>

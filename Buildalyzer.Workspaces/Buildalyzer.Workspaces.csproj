@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Dave Glick</Authors>
     <Company>Dave Glick</Company>
-    <Description />
+    <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. This extension library adds support for creating a Roslyn workspace from Buildalyzer.</Description>
+    <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/daveaglick/Buildalyzer/blob/master/LICENSE</PackageLicenseUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

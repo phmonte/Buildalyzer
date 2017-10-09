@@ -12,6 +12,7 @@ namespace Buildalyzer
         {
             using (XmlReader reader = XmlReader.Create(projectPath))
             {
+                // Specifiec in root node
                 if (reader.MoveToContent() == XmlNodeType.Element && reader.HasAttributes)
                 {
                     // Use the .NET Core SDK if this is either a SDK-style project or running on .NET Core
@@ -24,6 +25,17 @@ namespace Buildalyzer
                     if (reader.MoveToAttribute("ToolsVersion"))
                     {
                         return new FrameworkPathHelper();
+                    }
+                }
+                // Specified as project import
+                if (reader.ReadToDescendant("Import"))
+                {
+                    // Use the .NET Core SDK if this is either a SDK-style project or running on .NET Core
+                    if (reader.MoveToAttribute("Sdk")
+                        || System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                            .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new CorePathHelper(projectPath);
                     }
                 }
                 throw new InvalidOperationException("Unrecognized project file format");

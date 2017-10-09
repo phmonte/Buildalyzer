@@ -21,7 +21,9 @@ namespace NetCoreTests
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
             #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"SdkNetStandardProject\SdkNetStandardProject.csproj"
+            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]

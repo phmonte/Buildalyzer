@@ -19,6 +19,7 @@ namespace FrameworkTests
         private static string[] _projectFiles =
         {
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj"
         };

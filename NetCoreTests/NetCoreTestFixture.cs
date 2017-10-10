@@ -18,6 +18,7 @@ namespace NetCoreTests
         {
             #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
             #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj"

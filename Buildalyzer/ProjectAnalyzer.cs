@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Logging;
@@ -15,6 +17,7 @@ namespace Buildalyzer
 {
     public class ProjectAnalyzer
     {
+        private readonly XDocument _projectDocument;
         private readonly Dictionary<string, string> _globalProperties;
         private readonly IPathHelper _pathHelper;
         private readonly ConsoleLogger _logger;
@@ -37,9 +40,10 @@ namespace Buildalyzer
         internal ProjectAnalyzer(Analyzer analyzer, string projectPath)
         {
             ProjectPath = projectPath;
+            _projectDocument = GetProjectDocument(projectPath);
 
             // Get the paths
-            _pathHelper = PathHelperFactory.GetPathHelper(projectPath);
+            _pathHelper = PathHelperFactory.GetPathHelper(projectPath, _projectDocument);
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
@@ -55,7 +59,9 @@ namespace Buildalyzer
                 { MsBuildProperties.DesignTimeBuild, "true" },
                 { MsBuildProperties.BuildProjectReferences, "false" },
                 { MsBuildProperties.SkipCompilerExecution, "true" },
-                { MsBuildProperties.ProvideCommandLineArgs, "true" }
+                { MsBuildProperties.ProvideCommandLineArgs, "true" },
+                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
+                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" }
             };
             
             // Create the logger
@@ -78,14 +84,44 @@ namespace Buildalyzer
             // Load the project
             using (new BuildEnvironment(GlobalProperties))
             {
-                _project = projectCollection.LoadProject(ProjectPath);
-                return Project;
+                using (XmlReader projectReader = _projectDocument.CreateReader())
+                {
+                    _project = projectCollection.LoadProject(projectReader);
+                    _project.FullPath = ProjectPath;
+                }
+                return _project;
             }
+        }
+
+        // Tweaks the project file a bit to ensure a succesfull build
+        private XDocument GetProjectDocument(string projectPath)
+        {
+            XDocument doc = XDocument.Load(projectPath);
+
+            // Add SkipGetTargetFrameworkProperties to every ProjectReference
+            foreach (XElement projectReference in
+                doc.Descendants().Where(x => x.Name.LocalName == "ProjectReference").ToArray())
+            {
+                projectReference.Add(
+                    new XElement(
+                        XName.Get("SkipGetTargetFrameworkProperties", projectReference.Name.NamespaceName),
+                        "true"));
+            }
+
+            // Removes all EnsureNuGetPackageBuildImports
+            foreach (XElement ensureNuGetPackageBuildImports in
+                doc.Descendants().Where(x => x.Name.LocalName == "Target" && x.Attribute("Name")?.Value == "EnsureNuGetPackageBuildImports").ToArray())
+            {
+                ensureNuGetPackageBuildImports.Remove();
+            }
+
+            return doc;
         }
 
         private ProjectCollection CreateProjectCollection()
         {            
             ProjectCollection projectCollection = new ProjectCollection(_globalProperties);
+            projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _pathHelper.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
             if (_logger != null)
@@ -133,7 +169,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetReferences() =>
             Compile()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && x.EvaluatedInclude.StartsWith("/reference:"))
-                .Select(x => x.EvaluatedInclude.Substring(11))
+                .Select(x => x.EvaluatedInclude.Substring(11).Trim('"'))
                 .ToList();
 
         public void SetGlobalProperty(string key, string value)

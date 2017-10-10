@@ -14,7 +14,7 @@ namespace Buildalyzer
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) =>
-            _stringBuilder.AppendLine(formatter(state, exception));
+            _stringBuilder.Append(formatter(state, exception));
 
         public bool IsEnabled(LogLevel logLevel) => true;
 

@@ -2,15 +2,16 @@
 using System.IO;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 using Microsoft.Build.Utilities;
 
 namespace Buildalyzer
 {
     internal abstract class PathHelperFactory
     {
-        public static IPathHelper GetPathHelper(string projectPath)
+        public static IPathHelper GetPathHelper(string projectPath, XDocument projectDocument)
         {
-            using (XmlReader reader = XmlReader.Create(projectPath))
+            using (XmlReader reader = projectDocument.CreateReader())
             {
                 if (reader.MoveToContent() == XmlNodeType.Element && reader.HasAttributes)
                 {

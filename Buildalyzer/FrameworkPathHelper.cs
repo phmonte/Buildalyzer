@@ -44,9 +44,7 @@ namespace Buildalyzer
             {
                 Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"),
                 Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"),
-                Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"),
-                Path.Combine(programFilesX86, @"MSBuild\14.0\Bin\MSBuild.exe"),
-                Path.Combine(programFilesX86, @"MSBuild\12.0\Bin\MSBuild.exe")
+                Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
             }
             .Where(File.Exists)
             .FirstOrDefault();

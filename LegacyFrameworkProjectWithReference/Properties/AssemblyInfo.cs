@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("LegacyFrameworkProject")]
+[assembly: AssemblyTitle("LegacyFrameworkProjectWithReference")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LegacyFrameworkProject")]
+[assembly: AssemblyProduct("LegacyFrameworkProjectWithReference")]
 [assembly: AssemblyCopyright("Copyright © Dave Glick")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("36ed2b9d-2fc2-4725-9bc2-53cabf113477")]
+[assembly: Guid("d1f5ad80-aded-4286-8fa4-3a8a6e818d34")]
 
 // Version information for an assembly consists of the following four values:
 //

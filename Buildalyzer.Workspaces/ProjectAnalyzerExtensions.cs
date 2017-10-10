@@ -23,7 +23,7 @@ namespace Buildalyzer.Workspaces
                 throw new ArgumentNullException(nameof(analyzer));
             }
             AdhocWorkspace workspace = new AdhocWorkspace();
-            AddProjectTo(analyzer, workspace);
+            AddToWorkspace(analyzer, workspace);
             return workspace;
         }
 
@@ -33,7 +33,7 @@ namespace Buildalyzer.Workspaces
         /// <param name="analyzer">The Buildalyzer project analyzer.</param>
         /// <param name="workspace">A Roslyn workspace.</param>
         /// <returns>The newly added Roslyn project.</returns>
-        public static Project AddProjectTo(this ProjectAnalyzer analyzer, AdhocWorkspace workspace)
+        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, AdhocWorkspace workspace)
         {
             if (analyzer == null)
             {
@@ -44,38 +44,41 @@ namespace Buildalyzer.Workspaces
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            ProjectId projectId = ProjectId.CreateNewId();
+
+            // Get documents
+            IEnumerable<DocumentInfo> documents = analyzer
+                .GetSourceFiles()
+                ?.Where(File.Exists)
+                .Select(x => DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId),
+                    Path.GetFileName(x),
+                    loader: TextLoader.From(
+                        TextAndVersion.Create(
+                            SourceText.From(File.ReadAllText(x)), VersionStamp.Create())),
+                    filePath: x))
+                ?? Array.Empty<DocumentInfo>();
+
             // Get metadata references
-            IEnumerable<MetadataReference> metadataReferences = analyzer.GetReferences().Select(x => MetadataReference.CreateFromFile(x));
+            IEnumerable<MetadataReference> metadataReferences = analyzer
+                .GetReferences()
+                ?.Where(File.Exists)
+                .Select(x => MetadataReference.CreateFromFile(x))
+                ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
 
             // Create the project
             string projectName = Path.GetFileNameWithoutExtension(analyzer.ProjectPath);
             string languageName = GetLanguageName(analyzer.ProjectPath);
             ProjectInfo projectInfo = ProjectInfo.Create(
-                ProjectId.CreateNewId(),
+                projectId,
                 VersionStamp.Create(),
                 projectName,
                 projectName,
                 languageName,
+                filePath: analyzer.ProjectPath,
+                documents: documents,
                 metadataReferences: metadataReferences);
             Project project = workspace.AddProject(projectInfo);
-
-            // Add the documents
-            foreach (string sourceFile in analyzer.GetSourceFiles())
-            {
-                using (Stream sourceStream = File.OpenRead(sourceFile))
-                {
-                    DocumentInfo documentInfo = DocumentInfo.Create(
-                        DocumentId.CreateNewId(project.Id),
-                        Path.GetFileName(sourceFile),
-                        loader: TextLoader.From(
-                            TextAndVersion.Create(
-                                SourceText.From(sourceStream),
-                                VersionStamp.Create(),
-                                sourceFile)),
-                        filePath: sourceFile);
-                    workspace.AddDocument(documentInfo);
-                }
-            }
 
             return project;
         }

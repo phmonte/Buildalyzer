@@ -13,5 +13,8 @@
         public const string BuildProjectReferences = nameof(BuildProjectReferences);
         public const string SkipCompilerExecution = nameof(SkipCompilerExecution);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
+
+        // Others
+        public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);
     }
 }

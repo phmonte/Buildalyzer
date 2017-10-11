@@ -99,18 +99,14 @@ namespace Buildalyzer
             XDocument doc = XDocument.Load(projectPath);
 
             // Add SkipGetTargetFrameworkProperties to every ProjectReference
-            foreach (XElement projectReference in
-                doc.Descendants().Where(x => x.Name.LocalName == "ProjectReference").ToArray())
+            foreach (XElement projectReference in doc.GetDescendants("ProjectReference").ToArray())
             {
-                projectReference.Add(
-                    new XElement(
-                        XName.Get("SkipGetTargetFrameworkProperties", projectReference.Name.NamespaceName),
-                        "true"));
+                projectReference.AddChildElement("SkipGetTargetFrameworkProperties", "true");
             }
 
             // Removes all EnsureNuGetPackageBuildImports
             foreach (XElement ensureNuGetPackageBuildImports in
-                doc.Descendants().Where(x => x.Name.LocalName == "Target" && x.Attribute("Name")?.Value == "EnsureNuGetPackageBuildImports").ToArray())
+                doc.Descendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
             {
                 ensureNuGetPackageBuildImports.Remove();
             }

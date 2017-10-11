@@ -21,7 +21,9 @@ namespace FrameworkTests
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"SdkNetStandardProject\SdkNetStandardProject.csproj"
+            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]

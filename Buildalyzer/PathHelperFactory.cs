@@ -11,36 +11,38 @@ namespace Buildalyzer
     {
         public static IPathHelper GetPathHelper(string projectPath, XDocument projectDocument)
         {
-            using (XmlReader reader = projectDocument.CreateReader())
+            // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
+            if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
             {
-                // Specifiec in root node
-                if (reader.MoveToContent() == XmlNodeType.Element && reader.HasAttributes)
-                {
-                    // Use the .NET Core SDK if this is either a SDK-style project or running on .NET Core
-                    if (reader.MoveToAttribute("Sdk")
-                        || System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                            .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return new CorePathHelper(projectPath);
-                    }
-                    if (reader.MoveToAttribute("ToolsVersion"))
-                    {
-                        return new FrameworkPathHelper();
-                    }
-                }
-                // Specified as project import
-                if (reader.ReadToDescendant("Import"))
-                {
-                    // Use the .NET Core SDK if this is either a SDK-style project or running on .NET Core
-                    if (reader.MoveToAttribute("Sdk")
-                        || System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                            .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return new CorePathHelper(projectPath);
-                    }
-                }
-                throw new InvalidOperationException("Unrecognized project file format");
+                return new CorePathHelper(projectPath);
             }
+
+            // Look at the project file to determine
+            XElement projectElement = projectDocument.GetDescendants("Project").FirstOrDefault();
+            if (projectElement != null)
+            {
+                // Use .NET Core SDK if a SDK attribute
+                if (projectElement.GetAttributeValue("Sdk") != null)
+                {
+                    return new CorePathHelper(projectPath);
+                }
+
+                // Use Framework tools if a ToolsVersion attribute
+                if (projectElement.GetAttributeValue("ToolsVersion") != null)
+                {
+                    return new FrameworkPathHelper();
+                }
+
+                // If no <Project> attribute, check for a SDK import
+                // See https://github.com/Microsoft/msbuild/issues/1493
+                if (projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null))
+                {
+                    return new CorePathHelper(projectPath);
+                }
+            }
+
+            throw new InvalidOperationException("Unrecognized project file format");
         }
     }
 }

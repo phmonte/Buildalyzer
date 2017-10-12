@@ -24,6 +24,8 @@ namespace Buildalyzer
 
         private Project _project = null;
         private ProjectInstance _compiledProject = null;
+
+        public AnalyzerManager Manager { get; }
         
         public string ProjectPath { get; }
 
@@ -37,8 +39,9 @@ namespace Buildalyzer
 
         public ProjectInstance CompiledProject => Compile();
 
-        internal ProjectAnalyzer(Analyzer analyzer, string projectPath)
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectPath)
         {
+            Manager = manager;
             ProjectPath = projectPath;
             _projectDocument = GetProjectDocument(projectPath);
 
@@ -52,7 +55,7 @@ namespace Buildalyzer
             // Set global properties
             _globalProperties = new Dictionary<string, string>
             {
-                { MsBuildProperties.SolutionDir, analyzer.SolutionDirectory ?? Path.GetDirectoryName(projectPath) },
+                { MsBuildProperties.SolutionDir, manager.SolutionDirectory ?? Path.GetDirectoryName(projectPath) },
                 { MsBuildProperties.MSBuildExtensionsPath, _pathHelper.ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, _pathHelper.SDKsPath },
                 { MsBuildProperties.RoslynTargetsPath, _pathHelper.RoslynTargetsPath },
@@ -65,9 +68,9 @@ namespace Buildalyzer
             };
             
             // Create the logger
-            if(analyzer.ProjectLogger != null)
+            if(manager.ProjectLogger != null)
             {
-                _logger = new ConsoleLogger(analyzer.LoggerVerbosity, x => LoggerExtensions.LogInformation(analyzer.ProjectLogger, x), null, null);
+                _logger = new ConsoleLogger(manager.LoggerVerbosity, x => LoggerExtensions.LogInformation(manager.ProjectLogger, x), null, null);
             }
         }
 
@@ -106,7 +109,7 @@ namespace Buildalyzer
 
             // Removes all EnsureNuGetPackageBuildImports
             foreach (XElement ensureNuGetPackageBuildImports in
-                doc.Descendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
+                doc.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
             {
                 ensureNuGetPackageBuildImports.Remove();
             }
@@ -166,6 +169,12 @@ namespace Buildalyzer
             Compile()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && x.EvaluatedInclude.StartsWith("/reference:"))
                 .Select(x => x.EvaluatedInclude.Substring(11).Trim('"'))
+                .ToList();
+
+        public IReadOnlyList<string> GetProjectReferences() =>
+            Compile()?.Items
+                .Where(x => x.ItemType == "ProjectReference")
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectPath), x.EvaluatedInclude)))
                 .ToList();
 
         public void SetGlobalProperty(string key, string value)

@@ -80,8 +80,8 @@ namespace FrameworkTests
                 loggerFactory = new LoggerFactory();
                 loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
             }
-            Analyzer analyzer = new Analyzer(loggerFactory);
-            return analyzer.GetProject(projectPath);
+            AnalyzerManager manager = new AnalyzerManager(loggerFactory);
+            return manager.GetProject(projectPath);
         }
     }
 }

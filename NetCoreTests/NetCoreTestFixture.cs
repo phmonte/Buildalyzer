@@ -80,8 +80,8 @@ namespace NetCoreTests
                 loggerFactory = new LoggerFactory();
                 loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
             }
-            Analyzer analyzer = new Analyzer(loggerFactory);
-            return analyzer.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
+            AnalyzerManager manager = new AnalyzerManager(loggerFactory);
+            return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }
     }
 }

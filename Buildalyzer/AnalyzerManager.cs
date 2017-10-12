@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
 {
-    public class Analyzer
+    public class AnalyzerManager
     {
         private readonly Dictionary<string, ProjectAnalyzer> _projects = new Dictionary<string, ProjectAnalyzer>();
 
@@ -20,12 +20,12 @@ namespace Buildalyzer
 
         public string SolutionDirectory { get; }
 
-        public Analyzer(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
             : this(null, loggerFactory, loggerVerbosity)
         {
         }
 
-        public Analyzer(string solutionDirectory, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);
@@ -33,7 +33,7 @@ namespace Buildalyzer
         }
 
         public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
-
+        
         public ProjectAnalyzer GetProject(string projectPath)
         {
             projectPath = ValidateProjectPath(projectPath);

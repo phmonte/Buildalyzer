@@ -1,0 +1,20 @@
+# 0.1.4
+
+- [Feature] Roslyn workspaces now correctly resolve project references
+
+# 0.1.3
+
+- [Feature] Support for SDK projects with `Import` elements (#1, #6, thanks @mholo65)
+
+# 0.1.2
+
+- Unreleased, no idea where this version went
+
+# 0.1.1
+
+- [Fix] Fixed tests when not running on Windows because .NET Framework is unavailable (thanks @JosephWoodward)
+- [Feature] Initial support for creating Roslyn workspaces
+
+# 0.1.0
+
+- Initial release

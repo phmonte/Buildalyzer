@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -40,6 +38,21 @@ namespace Buildalyzer.Workspaces.Tests
 
             // Then
             compilation.GetSymbolsWithName(x => x == "Class1").ShouldNotBeEmpty();
+        }
+        
+        [Test]
+        public void CreatesCompilationOptions()
+        {
+            // Given
+            StringBuilder log = new StringBuilder();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProject\SdkNetStandardProject.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace();
+            CompilationOptions compilationOptions = workspace.CurrentSolution.Projects.First().CompilationOptions;
+
+            // Then
+            compilationOptions.OutputKind.ShouldBe(OutputKind.DynamicallyLinkedLibrary);
         }
 
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log)

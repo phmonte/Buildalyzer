@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Buildalyzer.Workspaces
 {
@@ -92,8 +92,40 @@ namespace Buildalyzer.Workspaces
                 outputFilePath: analyzer.CompiledProject?.GetPropertyValue("TargetPath"),
                 documents: GetDocuments(analyzer, projectId),
                 projectReferences: GetExistingProjectReferences(analyzer, workspace),
-                metadataReferences: GetMetadataReferences(analyzer));
+                metadataReferences: GetMetadataReferences(analyzer),
+                compilationOptions: CreateCompilationOptions(analyzer.Project, languageName));
             return projectInfo;
+        }
+        
+        private static CompilationOptions CreateCompilationOptions(Microsoft.Build.Evaluation.Project project, string languageName)
+        {
+            var outputType = project.GetPropertyValue("OutputType");
+            OutputKind? kind = null;
+            switch (outputType)
+            {
+                case "Library":
+                    kind = OutputKind.DynamicallyLinkedLibrary;
+                    break;
+                case "Exe":
+                    kind = OutputKind.ConsoleApplication;
+                    break;
+                case "Module":
+                    kind = OutputKind.NetModule;
+                    break;
+                case "Winexe":
+                    kind = OutputKind.WindowsApplication;
+                    break;
+            }
+
+            if (kind.HasValue)
+            {
+                if (languageName == LanguageNames.CSharp)
+                    return new CSharpCompilationOptions(kind.Value);
+                if (languageName == LanguageNames.VisualBasic)
+                    return new VisualBasicCompilationOptions(kind.Value);    
+            }
+
+            return null;
         }
 
         private static IEnumerable<ProjectReference> GetExistingProjectReferences(ProjectAnalyzer analyzer, AdhocWorkspace workspace) =>

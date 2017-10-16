@@ -13,17 +13,18 @@ using Shouldly;
 
 namespace FrameworkTests
 {
+#if Is_Windows
     [TestFixture]
     public class FrameworkTestFixture
     {
         private static string[] _projectFiles =
         {
-            @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
-            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
-            @"SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
-            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
-            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+            @"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
+            @"projects\SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"projects\SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"projects\SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"projects\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -84,4 +85,5 @@ namespace FrameworkTests
             return manager.GetProject(projectPath);
         }
     }
+#endif
 }

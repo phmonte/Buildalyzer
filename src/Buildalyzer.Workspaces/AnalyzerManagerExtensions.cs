@@ -2,7 +2,7 @@
 
 namespace Buildalyzer.Workspaces
 {
-    public static class AnalyzerExtensions
+    public static class AnalyzerManagerExtensions
     {
         public static AdhocWorkspace GetWorkspace(this AnalyzerManager manager)
         {

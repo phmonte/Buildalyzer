@@ -20,12 +20,32 @@ namespace Buildalyzer
 
         public string SolutionDirectory { get; }
 
-        public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager()
+            : this(null, null, LoggerVerbosity.Normal)
+        {
+        }
+
+        public AnalyzerManager(ILoggerFactory loggerFactory)
+            : this(null, loggerFactory, LoggerVerbosity.Normal)
+        {
+        }
+
+        public AnalyzerManager(ILoggerFactory loggerFactory, LoggerVerbosity loggerVerbosity)
             : this(null, loggerFactory, loggerVerbosity)
         {
         }
 
-        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionDirectory)
+            : this(solutionDirectory, null, LoggerVerbosity.Normal)
+        {
+        }
+
+        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory)
+            : this(solutionDirectory, loggerFactory, LoggerVerbosity.Normal)
+        {
+        }
+
+        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory, LoggerVerbosity loggerVerbosity)
         {
             LoggerVerbosity = loggerVerbosity;
             SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);

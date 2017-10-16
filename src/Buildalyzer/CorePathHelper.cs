@@ -50,13 +50,13 @@ namespace Buildalyzer
                 // Execute the process
                 using (Process process = Process.Start(startInfo))
                 {
-                    process.WaitForExit(1000);
                     List<string> lines = new List<string>();
                     string line;
                     while((line = process.StandardOutput.ReadLine()) != null)
                     {
                         lines.Add(line);
                     }
+                    process.WaitForExit(1000);
                     return lines;
                 }
             }

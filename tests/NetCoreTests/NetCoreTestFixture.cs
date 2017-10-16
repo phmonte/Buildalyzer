@@ -16,14 +16,14 @@ namespace NetCoreTests
     {
         private static string[] _projectFiles =
         {
-            #if Is_Windows
-            @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
-            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
-            #endif
-            @"SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
-            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
-            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+#if Is_Windows
+            @"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
+#endif
+            @"projects\SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"projects\SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"projects\SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"projects\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]

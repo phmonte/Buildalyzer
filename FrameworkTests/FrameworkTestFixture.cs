@@ -10,7 +10,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
-
+#if Is_Windows
 namespace FrameworkTests
 {
     [TestFixture]
@@ -85,3 +85,4 @@ namespace FrameworkTests
         }
     }
 }
+#endif

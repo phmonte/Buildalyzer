@@ -3,29 +3,29 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer", "Buildalyzer\Buildalyzer.csproj", "{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer", "src\Buildalyzer\Buildalyzer.csproj", "{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProject", "LegacyFrameworkProject\LegacyFrameworkProject.csproj", "{36ED2B9D-2FC2-4725-9BC2-53CABF113477}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProject", "tests\LegacyFrameworkProject\LegacyFrameworkProject.csproj", "{36ED2B9D-2FC2-4725-9BC2-53CABF113477}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProject", "SdkNetCoreProject\SdkNetCoreProject.csproj", "{B48DBE6C-D6A6-4E2B-B100-A5CD4C5FB40B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProject", "tests\SdkNetCoreProject\SdkNetCoreProject.csproj", "{B48DBE6C-D6A6-4E2B-B100-A5CD4C5FB40B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProject", "SdkNetStandardProject\SdkNetStandardProject.csproj", "{B549548D-76F0-4F86-814F-458520C929FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProject", "tests\SdkNetStandardProject\SdkNetStandardProject.csproj", "{B549548D-76F0-4F86-814F-458520C929FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworkTests", "FrameworkTests\FrameworkTests.csproj", "{BA3504A1-C143-425E-96D4-1169F445B529}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrameworkTests", "tests\FrameworkTests\FrameworkTests.csproj", "{BA3504A1-C143-425E-96D4-1169F445B529}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreTests", "NetCoreTests\NetCoreTests.csproj", "{11007EEE-31E0-4E15-8C67-3B97F7D26519}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCoreTests", "tests\NetCoreTests\NetCoreTests.csproj", "{11007EEE-31E0-4E15-8C67-3B97F7D26519}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces", "Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj", "{CA595C2F-9EB8-4BEE-8AE7-8D8DF638EF24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces", "src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj", "{CA595C2F-9EB8-4BEE-8AE7-8D8DF638EF24}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces.Tests", "Buildalyzer.Workspaces.Tests\Buildalyzer.Workspaces.Tests.csproj", "{E2CAD798-ED8D-4CCA-8095-8393B32D79E2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces.Tests", "tests\Buildalyzer.Workspaces.Tests\Buildalyzer.Workspaces.Tests.csproj", "{E2CAD798-ED8D-4CCA-8095-8393B32D79E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectImport", "SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj", "{887BB9EF-0242-46C0-A5C7-C6526145EBA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectImport", "tests\SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj", "{887BB9EF-0242-46C0-A5C7-C6526145EBA8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProjectImport", "SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj", "{72E08358-C550-4EB1-B493-F145A319A9B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProjectImport", "tests\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj", "{72E08358-C550-4EB1-B493-F145A319A9B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProjectWithReference", "LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", "{D1F5AD80-ADED-4286-8FA4-3A8A6E818D34}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProjectWithReference", "tests\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", "{D1F5AD80-ADED-4286-8FA4-3A8A6E818D34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

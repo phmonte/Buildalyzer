@@ -50,7 +50,6 @@ namespace Buildalyzer
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
-            Assembly.LoadFrom(Path.GetFullPath(Path.Combine(_pathHelper.RoslynTargetsPath, "Microsoft.Build.Tasks.CodeAnalysis.dll")));
 
             // Set global properties
             _globalProperties = new Dictionary<string, string>

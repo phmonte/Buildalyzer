@@ -19,37 +19,34 @@ namespace Buildalyzer
         internal LoggerVerbosity LoggerVerbosity { get; }
 
         public string SolutionDirectory { get; }
-
-        public AnalyzerManager()
-            : this(null, null, LoggerVerbosity.Normal)
-        {
-        }
-
-        public AnalyzerManager(ILoggerFactory loggerFactory)
-            : this(null, loggerFactory, LoggerVerbosity.Normal)
-        {
-        }
-
-        public AnalyzerManager(ILoggerFactory loggerFactory, LoggerVerbosity loggerVerbosity)
+        
+        public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
             : this(null, loggerFactory, loggerVerbosity)
         {
         }
 
-        public AnalyzerManager(string solutionDirectory)
-            : this(solutionDirectory, null, LoggerVerbosity.Normal)
+        public AnalyzerManager(StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+            : this(null, logBuilder, loggerVerbosity)
         {
         }
 
-        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory)
-            : this(solutionDirectory, loggerFactory, LoggerVerbosity.Normal)
-        {
-        }
-
-        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory, LoggerVerbosity loggerVerbosity)
+        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);
             ProjectLogger = loggerFactory?.CreateLogger<ProjectAnalyzer>();
+        }
+
+        public AnalyzerManager(string solutionDirectory, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        {
+            LoggerVerbosity = loggerVerbosity;
+            SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);
+            if (logBuilder != null)
+            {
+                LoggerFactory loggerFactory = new LoggerFactory();
+                loggerFactory.AddProvider(new StringBuilderLoggerProvider(logBuilder));
+                ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
+            }
         }
 
         public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;

@@ -74,13 +74,7 @@ namespace NetCoreTests
                 Path.Combine(
                     Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
                     @"..\..\..\..\" + projectFile));
-            LoggerFactory loggerFactory = null;
-            if (log != null)
-            {
-                loggerFactory = new LoggerFactory();
-                loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
-            }
-            AnalyzerManager manager = new AnalyzerManager(loggerFactory);
+            AnalyzerManager manager = new AnalyzerManager(log);
             return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }
     }

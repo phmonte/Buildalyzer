@@ -23,23 +23,38 @@ namespace AppTests
             @"projects\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
+#if DEBUG
+        private static string OutputPath = @"bin\Debug";
+#else
+        private static string OutputPath = @"bin\Release";
+#endif
+
+
 #if Is_Windows
         [TestCaseSource(nameof(_projectFiles))]
-        public void X86FrameworkAppRuns(string projectFile) =>
-            RunApp(Path.Combine(TestContext.CurrentContext.TestDirectory, "X86FrameworkApp.exe"), $"\"\"\"{GetProjectFilePath(projectFile)}\"\"\"");
+        public void X86FrameworkApp(string projectFile)
+        {
+            string fileName = $@"{GetProjectFilePath(@"apps\X86FrameworkApp")}\{OutputPath}\X86FrameworkApp.exe";
+            string arguments = $"\"{GetProjectFilePath(projectFile)}\"";
+            RunApp(fileName, arguments);
+        }
 
         [TestCaseSource(nameof(_projectFiles))]
-        public void X64FrameworkAppRuns(string projectFile) =>
-            RunApp(Path.Combine(TestContext.CurrentContext.TestDirectory, "X64FrameworkApp.exe"), $"\"\"\"{GetProjectFilePath(projectFile)}\"\"\"");
+        public void X64FrameworkApp(string projectFile)
+        {
+            string fileName = $@"{GetProjectFilePath(@"apps\X64FrameworkApp")}\{OutputPath}\X64FrameworkApp.exe";
+            string arguments = $"\"{GetProjectFilePath(projectFile)}\"";
+            RunApp(fileName, arguments);
+        }
 #endif
         
         [TestCaseSource(nameof(_projectFiles))]
-        public void X86CoreAppRuns(string projectFile) =>
+        public void X86CoreApp(string projectFile) =>
             RunApp("dotnet", $"run --project \"{GetProjectFilePath(@"apps\X86CoreApp")}\" \"{GetProjectFilePath(projectFile)}\"");
 
         [TestCaseSource(nameof(_projectFiles))]
-        public void X64CoreAppRuns(string projectFile) =>
-            RunApp("dotnet", $"run --project \"{GetProjectFilePath(@"apps\X86CoreApp")}\" \"{GetProjectFilePath(projectFile)}\"");
+        public void X64CoreApp(string projectFile) =>
+            RunApp("dotnet", $"run --project \"{GetProjectFilePath(@"apps\X64CoreApp")}\" \"{GetProjectFilePath(projectFile)}\"");
 
         private string GetProjectFilePath(string projectFile) => 
             Path.GetFullPath(
@@ -52,28 +67,28 @@ namespace AppTests
             // Given
             ProcessStartInfo startInfo = new ProcessStartInfo(fileName, arguments)
             {
+                WorkingDirectory = Path.GetDirectoryName(fileName),
                 CreateNoWindow = true,
                 UseShellExecute = false,
-                RedirectStandardOutput = true
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
 
             // When
-            List<string> lines = new List<string>();
+            string output;
+            string error;
             int exitCode;
             using (Process process = Process.Start(startInfo))
             {
-                string line;
-                while ((line = process.StandardOutput.ReadLine()) != null)
-                {
-                    lines.Add(line);
-                }
+                output = process.StandardOutput.ReadToEnd();
+                error = process.StandardError.ReadToEnd();
                 process.WaitForExit(1000);
                 exitCode = process.ExitCode;
             }
 
             // Then
-            exitCode.ShouldBe(0);
-            lines.ShouldContain(x => x.Contains("Class1.cs"));
+            exitCode.ShouldBe(0, error);
+            output.ShouldContain("Class1.cs", error);
         }
     }
 }

@@ -75,13 +75,7 @@ namespace FrameworkTests
                 Path.Combine(
                     Path.GetDirectoryName(typeof(FrameworkTestFixture).Assembly.Location),
                     @"..\..\..\" + projectFile));
-            LoggerFactory loggerFactory = null;
-            if (log != null)
-            {
-                loggerFactory = new LoggerFactory();
-                loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
-            }
-            AnalyzerManager manager = new AnalyzerManager(loggerFactory);
+            AnalyzerManager manager = new AnalyzerManager(log);
             return manager.GetProject(projectPath);
         }
     }

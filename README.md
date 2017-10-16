@@ -118,3 +118,28 @@ Project roslynProject = analyzer.AddToWorkspace(workspace);
 ```
 
 In both cases, Buildalyzer will attempt to resolve project references within the Roslyn workspace so the Roslyn projects will correctly reference each other.
+
+## Troubleshooting
+
+### Check The Build Log
+
+If something isn't working, try passing a `StringBuilder` or `ILoggerFactory` into the `AnalyzerManager`. The log output after you call `ProjectAnalyzer.Load()` or `ProjectAnalyzer.Compile()` is often very helpful in tracking down problems.
+
+### Microsoft.Build.Tasks.CodeAnalysis and Microsoft.Build.Framework Mismatch
+
+If you see an error like this when using Buildalyzer from a .NET Framework project:
+
+```
+Target CoreCompile:
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\Roslyn\Microsoft.CSharp.Core.targets(84,5): error MSB4127: The "Csc" task could not be instantiated from the assembly "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\Roslyn\Microsoft.Build.Tasks.CodeAnalysis.dll". Please verify the task assembly has been built using the same version of the Microsoft.Build.Framework assembly as the one installed on your computer and that your host application is not missing a binding redirect for Microsoft.Build.Framework. Unable to cast object of type 'Microsoft.CodeAnalysis.BuildTasks.Csc' to type 'Microsoft.Build.Framework.ITask'.
+```
+
+You might need to add the following binding redirect to your `app.config` file:
+
+```xml
+<dependentAssembly>
+    <assemblyIdentity name="Microsoft.Build.Framework" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+    <bindingRedirect oldVersion="0.0.0.0-99.9.9.9" newVersion="15.1.0.0" />
+</dependentAssembly>
+```
+

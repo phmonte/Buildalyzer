@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Buildalyzer;
 
@@ -11,9 +13,16 @@ namespace X64FrameworkApp
     {
         static void Main(string[] args)
         {
-            AnalyzerManager manager = new AnalyzerManager();
+            StringBuilder log = new StringBuilder();
+            AnalyzerManager manager = new AnalyzerManager(log);
             ProjectAnalyzer project = manager.GetProject(args[0]);
-            foreach (string sourceFile in project.GetSourceFiles())
+            IReadOnlyList<string> sourceFiles = project.GetSourceFiles();
+            if(sourceFiles == null)
+            {
+                Console.Error.Write(log);
+                return;
+            }
+            foreach (string sourceFile in sourceFiles)
             {
                 Console.WriteLine(sourceFile);
             }

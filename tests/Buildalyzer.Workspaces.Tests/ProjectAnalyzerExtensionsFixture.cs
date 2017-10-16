@@ -63,13 +63,7 @@ namespace Buildalyzer.Workspaces.Tests
                 Path.Combine(
                     Path.GetDirectoryName(typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
                     @"..\..\..\..\" + projectFile));
-            LoggerFactory loggerFactory = null;
-            if (log != null)
-            {
-                loggerFactory = new LoggerFactory();
-                loggerFactory.AddProvider(new StringBuilderLoggerProvider(log));
-            }
-            AnalyzerManager manager = new AnalyzerManager(loggerFactory);
+            AnalyzerManager manager = new AnalyzerManager(log);
             return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }
     }

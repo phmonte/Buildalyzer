@@ -65,30 +65,35 @@ namespace AppTests
         private void RunApp(string fileName, string arguments)
         {
             // Given
-            ProcessStartInfo startInfo = new ProcessStartInfo(fileName, arguments)
-            {
-                WorkingDirectory = Path.GetDirectoryName(fileName),
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
+            StringBuilder output = new StringBuilder();
+            StringBuilder error = new StringBuilder();
+            Process process = new Process();
+            process.StartInfo.FileName = fileName;
+            process.StartInfo.Arguments = arguments;
+            process.StartInfo.WorkingDirectory = Path.GetDirectoryName(fileName);
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.OutputDataReceived += (s, e) => output.AppendLine(e.Data);
+            process.ErrorDataReceived += (s, e) => error.AppendLine(e.Data);
 
             // When
-            string output;
-            string error;
-            int exitCode;
-            using (Process process = Process.Start(startInfo))
-            {
-                output = process.StandardOutput.ReadToEnd();
-                error = process.StandardError.ReadToEnd();
-                process.WaitForExit(1000);
-                exitCode = process.ExitCode;
-            }
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+            int exitCode = process.ExitCode;
+            process.Close();
 
             // Then
-            exitCode.ShouldBe(0, error);
-            output.ShouldContain("Class1.cs", error);
+            exitCode.ShouldBe(0, error.ToString());
+            output.ToString().ShouldContain("Class1.cs", error.ToString());
+        }
+
+        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

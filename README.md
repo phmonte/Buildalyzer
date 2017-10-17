@@ -127,7 +127,7 @@ If something isn't working, try passing a `StringBuilder` or `ILoggerFactory` in
 
 ### Microsoft.Build.Tasks.CodeAnalysis and Microsoft.Build.Framework Mismatch
 
-If you see an error like this when using Buildalyzer from a .NET Framework project:
+If you see an error like this in the MSBuild log when using Buildalyzer from a .NET Framework project:
 
 ```
 Target CoreCompile:
@@ -143,3 +143,19 @@ You might need to add the following binding redirect to your `app.config` file:
 </dependentAssembly>
 ```
 
+### MSB6003 due to System.IO.FileSystem
+
+If you see an error like this in the MSBuild log when using Buildalyzer from a .NET Framework project:
+
+```
+C:\Program Files\dotnet\sdk\2.0.2\Roslyn\Microsoft.CSharp.Core.targets(84,5): error MSB6003: The specified task executable "csc.exe" could not be run. Could not load file or assembly 'System.IO.FileSystem, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' or one of its dependencies. The system cannot find the file specified.
+```
+
+You might need to add the following binding redirect to your `app.config` file:
+
+```xml
+<dependentAssembly>
+    <assemblyIdentity name="System.IO.FileSystem" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+    <bindingRedirect oldVersion="0.0.0.0-4.0.3.0" newVersion="4.0.3.0" />
+</dependentAssembly>
+```

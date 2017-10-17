@@ -38,27 +38,24 @@ namespace Buildalyzer
             try
             {
                 // Create the process info
-                ProcessStartInfo startInfo = new ProcessStartInfo("dotnet", "--info")
-                {
-                    // global.json may change the version, so need to set working directory
-                    WorkingDirectory = Path.GetDirectoryName(projectPath),
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
-                };
+                Process process = new Process();
+                process.StartInfo.FileName = "dotnet";
+                process.StartInfo.Arguments = "--info";
+                process.StartInfo.WorkingDirectory = Path.GetDirectoryName(projectPath); // global.json may change the version, so need to set working directory
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.UseShellExecute = false;
+
+                // Capture output
+                List<string> lines = new List<string>();
+                process.StartInfo.RedirectStandardOutput = true;
+                process.OutputDataReceived += (s, e) => lines.Add(e.Data);
 
                 // Execute the process
-                using (Process process = Process.Start(startInfo))
-                {
-                    List<string> lines = new List<string>();
-                    string line;
-                    while((line = process.StandardOutput.ReadLine()) != null)
-                    {
-                        lines.Add(line);
-                    }
-                    process.WaitForExit(1000);
-                    return lines;
-                }
+                process.Start();
+                process.BeginOutputReadLine();
+                process.WaitForExit();
+                process.Close();
+                return lines;
             }
             finally
             {

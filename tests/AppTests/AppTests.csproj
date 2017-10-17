@@ -11,13 +11,6 @@
     <PackageReference Include="Shouldly" Version="2.8.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\apps\X64CoreApp\X64CoreApp.csproj" />
-    <ProjectReference Include="..\apps\X64FrameworkApp\X64FrameworkApp.csproj" />
-    <ProjectReference Include="..\apps\X86CoreApp\X86CoreApp.csproj" />
-    <ProjectReference Include="..\apps\X86FrameworkApp\X86FrameworkApp.csproj" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <DefineConstants>Is_Windows</DefineConstants>
   </PropertyGroup>

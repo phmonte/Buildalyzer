@@ -12,12 +12,15 @@ IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
 It should work with these project types and .NET runtimes:
 
-|                                   | **Host Runtimes**  |                    |
-|-----------------------------------|--------------------|--------------------|
-| **Project Types**                 | .NET Framework     | .NET Core          |
-| Legacy (`ToolsVersion` attribute) | :heavy_check_mark: | :heavy_check_mark: |
-| SDK-style (`SDK` attribute)       | :heavy_check_mark: | :heavy_check_mark: |
-| SDK-style (SDK `Import` element)    | :heavy_check_mark: | :heavy_check_mark: |
+|                                   | **Host Runtimes**    |                    |
+|-----------------------------------|----------------------|--------------------|
+| **Project Types**                 | .NET Framework       | .NET Core <sub>1</sub> |
+| Legacy (`ToolsVersion` attribute) | :heavy_check_mark:   | :heavy_check_mark: |
+| SDK-style (`SDK` attribute)       | :heavy_check_mark: <sub>2</sub> | :heavy_check_mark: |
+| SDK-style (SDK `Import` element)  | :heavy_check_mark: <sub>2</sub> | :heavy_check_mark: |
+
+1. You must have the [.NET Core SDK](https://www.microsoft.com/net/download/core) installed and in your path environment variable to build and analyze SDK-style projects.
+2. You must have a .NET Core SDK installed that matches the architecture of the .NET Framework host application. For example, if the host application is x86 then the .NET Core x86 SDK must be installed.
 
 Combinations that aren't displayed here are untested, but might work anyway. Give it a try and report back.
 

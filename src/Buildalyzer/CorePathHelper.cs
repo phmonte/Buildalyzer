@@ -20,7 +20,14 @@ namespace Buildalyzer
 
         public CorePathHelper(string projectPath)
         {
+            // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
             List<string> lines = GetInfo(projectPath);
+            int retry = 0;
+            do
+            {
+                lines = GetInfo(projectPath);
+                retry++;
+            } while ((lines == null || lines.Count == 0) && retry < 5);
             string basePath = ParseBasePath(lines);
             ToolsPath = basePath;
             ExtensionsPath = basePath;
@@ -53,7 +60,16 @@ namespace Buildalyzer
                 // Execute the process
                 process.Start();
                 process.BeginOutputReadLine();
-                process.WaitForExit();
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+                while (!process.HasExited)
+                {
+                    if(sw.ElapsedMilliseconds > 1000)
+                    {
+                        break;
+                    }
+                }
+                sw.Stop();
                 process.Close();
                 return lines;
             }
@@ -76,7 +92,28 @@ namespace Buildalyzer
                 if (colonIndex >= 0 
                     && line.Substring(0, colonIndex).Trim().Equals("Base Path", StringComparison.OrdinalIgnoreCase))
                 {
-                    return line.Substring(colonIndex + 1).Trim();
+                    string basePath = line.Substring(colonIndex + 1).Trim();
+
+                    // Make sure the base path matches the runtime architecture if on Windows
+                    // Note that this only works for the default installation locations under "Program Files"
+                    if(basePath.Contains(@"\Program Files\") && !Environment.Is64BitProcess)
+                    {
+                        string newBasePath = basePath.Replace(@"\Program Files\", @"\Program Files (x86)\");
+                        if(Directory.Exists(newBasePath))
+                        {
+                            basePath = newBasePath;
+                        }
+                    }
+                    else if(basePath.Contains(@"\Program Files (x86)\") && Environment.Is64BitProcess)
+                    {
+                        string newBasePath = basePath.Replace(@"\Program Files (x86)\", @"\Program Files\");
+                        if (Directory.Exists(newBasePath))
+                        {
+                            basePath = newBasePath;
+                        }
+                    }
+
+                    return basePath;
                 }
             }
 

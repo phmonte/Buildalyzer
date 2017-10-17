@@ -7,12 +7,16 @@ using System.Text;
 using System.Xml;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.Build.Construction;
+using System.Linq;
 
 namespace Buildalyzer
 {
     public class AnalyzerManager
     {
         private readonly Dictionary<string, ProjectAnalyzer> _projects = new Dictionary<string, ProjectAnalyzer>();
+
+        public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
 
         internal ILogger<ProjectAnalyzer> ProjectLogger { get; }
 
@@ -30,30 +34,49 @@ namespace Buildalyzer
         {
         }
 
-        public AnalyzerManager(string solutionDirectory, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionPath, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
-            SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);
             ProjectLogger = loggerFactory?.CreateLogger<ProjectAnalyzer>();
+
+            if (solutionPath != null)
+            {
+                solutionPath = ValidatePath(solutionPath);
+                SolutionDirectory = Path.GetDirectoryName(solutionPath);
+                GetProjectsInSolution(solutionPath);
+            }
         }
 
-        public AnalyzerManager(string solutionDirectory, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionPath, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
-            SolutionDirectory = solutionDirectory == null ? null : Path.GetFullPath(solutionDirectory);
             if (logBuilder != null)
             {
                 LoggerFactory loggerFactory = new LoggerFactory();
                 loggerFactory.AddProvider(new StringBuilderLoggerProvider(logBuilder));
                 ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
             }
+
+            if (solutionPath != null)
+            {
+                solutionPath = ValidatePath(solutionPath);
+                SolutionDirectory = Path.GetDirectoryName(solutionPath);
+                GetProjectsInSolution(solutionPath);
+            }
         }
 
-        public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
+        private void GetProjectsInSolution(string solutionPath)
+        {
+            SolutionFile solution = SolutionFile.Parse(solutionPath);
+            foreach(ProjectInSolution project in solution.ProjectsInOrder)
+            {
+                GetProject(project.AbsolutePath);
+            }
+        }
         
         public ProjectAnalyzer GetProject(string projectPath)
         {
-            projectPath = ValidateProjectPath(projectPath);
+            projectPath = ValidatePath(projectPath);
             if (_projects.TryGetValue(projectPath, out ProjectAnalyzer project))
             {
                 return project;
@@ -63,18 +86,19 @@ namespace Buildalyzer
             return project;
         }
 
-        private static string ValidateProjectPath(string projectPath)
+
+        private static string ValidatePath(string path)
         {
-            if (projectPath == null)
+            if (path == null)
             {
-                throw new ArgumentNullException(nameof(projectPath));
+                throw new ArgumentNullException(nameof(path));
             }
-            projectPath = Path.GetFullPath(projectPath); // Normalize the path
-            if (!File.Exists(projectPath))
+            path = Path.GetFullPath(path); // Normalize the path
+            if (!File.Exists(path))
             {
-                throw new ArgumentException($"The project file {projectPath} could not be found.");
+                throw new ArgumentException($"The path {path} could not be found.");
             }
-            return projectPath;
+            return path;
         }
     }
 }

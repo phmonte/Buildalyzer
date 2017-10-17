@@ -8,6 +8,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
+using System.Linq;
 
 namespace NetCoreTests
 {
@@ -17,13 +18,13 @@ namespace NetCoreTests
         private static string[] _projectFiles =
         {
 #if Is_Windows
-            @"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj",
-            @"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
+            @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
 #endif
-            @"projects\SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"projects\SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
-            @"projects\SdkNetStandardProject\SdkNetStandardProject.csproj",
-            @"projects\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+            @"SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -68,14 +69,26 @@ namespace NetCoreTests
             sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log)
+        [Test]
+        public void GetsProjectsInSolution()
         {
-            string projectPath = Path.GetFullPath(
+            // Given
+            StringBuilder log = new StringBuilder();
+
+            // When
+            AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"), log);
+
+            // Then
+            manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true);
+        }
+
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log) =>
+            new AnalyzerManager(log).GetProject(GetProjectPath(projectFile));
+
+        private string GetProjectPath(string file) =>
+            Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
-                    @"..\..\..\..\" + projectFile));
-            AnalyzerManager manager = new AnalyzerManager(log);
-            return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
-        }
+                    @"..\..\..\..\projects\" + file));
     }
 }

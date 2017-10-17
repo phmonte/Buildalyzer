@@ -65,6 +65,8 @@ AnalyzerManager manager = new AnalyzerManager();
 ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
 ```
 
+You can add all projects in a solution to the `AnalyzerManager` by passing the solution path as the first argument of the `AnalyzerManager` constructor. This will parse the solution file and execute `GetProject()` for each of the projects that it finds.
+
 Calling `GetProject()` again for the same project path will return the existing `ProjectAnalyzer`. You can iterate all the existing project analyzers with the `IReadOnlyDictionary<string, ProjectAnalyzer>` property `AnalyzerManager.Projects`.
 
 Once you have a `ProjectAnalyzer` for an MSBuild project, you can trigger loading that project, which parses the project and reads targets and properties, by calling `Load()`. This will return the MSBuild `Project` instance for the project.

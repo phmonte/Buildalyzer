@@ -19,12 +19,12 @@ namespace FrameworkTests
     {
         private static string[] _projectFiles =
         {
-            @"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj",
-            @"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
-            @"projects\SdkNetCoreProject\SdkNetCoreProject.csproj",
-            @"projects\SdkNetStandardProject\SdkNetStandardProject.csproj",
-            @"projects\SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
-            @"projects\SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+            @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
+            @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
+            @"SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"SdkNetStandardProject\SdkNetStandardProject.csproj",
+            @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -69,15 +69,27 @@ namespace FrameworkTests
             sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log)
+        [Test]
+        public void GetsProjectsInSolution()
         {
-            string projectPath = Path.GetFullPath(
+            // Given
+            StringBuilder log = new StringBuilder();
+
+            // When
+            AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"), log);
+
+            // Then
+            manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true);
+        }
+
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log) => 
+            new AnalyzerManager(log).GetProject(GetProjectPath(projectFile));
+
+        private string GetProjectPath(string file) =>
+            Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(FrameworkTestFixture).Assembly.Location),
-                    @"..\..\..\" + projectFile));
-            AnalyzerManager manager = new AnalyzerManager(log);
-            return manager.GetProject(projectPath);
-        }
+                    @"..\..\..\projects\" + file));
     }
 #endif
 }

@@ -1,3 +1,10 @@
+# 0.1.5
+
+- [Feature] Support for loading an entire solution into `AnalyzerManager` (#13)
+- [Feature] Chooses the correct SDK folder depending on architecture of the host application (#10)
+- [Feature] More test fixes for non-Windows platforms (#9, thanks @JosephWoodward)
+- [Feature] Roslyn workspace reflects the correct `OutputKind` of the project (#8, thanks @JosephWoodward)
+
 # 0.1.4
 
 - [Feature] Roslyn workspaces now correctly resolve project references

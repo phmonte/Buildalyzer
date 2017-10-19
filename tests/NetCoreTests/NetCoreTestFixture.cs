@@ -81,14 +81,28 @@ namespace NetCoreTests
             // Then
             manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true);
         }
+        
+        [Test]
+        public void IgnoreSolutionItemsThatAreNotProjects()
+        {
+            // Given / When
+            var manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
+            
+            // Then
+            manager.Projects.Any(x => x.Value.ProjectPath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
+        }
 
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log) =>
             new AnalyzerManager(log).GetProject(GetProjectPath(projectFile));
 
-        private string GetProjectPath(string file) =>
-            Path.GetFullPath(
+        private static string GetProjectPath(string file)
+        {
+            var path = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
                     @"..\..\..\..\projects\" + file));
+
+            return path.Replace('\\', Path.DirectorySeparatorChar);
+        }
     }
 }

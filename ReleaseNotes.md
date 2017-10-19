@@ -1,3 +1,7 @@
+# 0.1.6
+
+- [Fix] Ensures only projects are added when loading a solution (#14, #15, thanks @JosephWoodward)
+
 # 0.1.5
 
 - [Feature] Support for loading an entire solution into `AnalyzerManager` (#13)

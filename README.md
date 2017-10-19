@@ -164,3 +164,6 @@ You might need to add the following binding redirect to your `app.config` file:
     <bindingRedirect oldVersion="0.0.0.0-4.0.3.0" newVersion="4.0.3.0" />
 </dependentAssembly>
 ```
+
+---
+This project is maintained by Dave Glick ([@daveaglick](https://github.com/daveaglick)), Joseph Woodward ([@JosephWoodward](https://github.com/JosephWoodward)), and [other awesome contributors](https://github.com/daveaglick/Buildalyzer/graphs/contributors).

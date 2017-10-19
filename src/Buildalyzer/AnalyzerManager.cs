@@ -67,15 +67,25 @@ namespace Buildalyzer
 
         private void GetProjectsInSolution(string solutionPath)
         {
+            var supportedType = new[]
+            {
+                SolutionProjectType.KnownToBeMSBuildFormat,
+                SolutionProjectType.WebProject
+            };
+
             SolutionFile solution = SolutionFile.Parse(solutionPath);
             foreach(ProjectInSolution project in solution.ProjectsInOrder)
             {
+                if (!supportedType.Contains(project.ProjectType))
+                    continue;
                 GetProject(project.AbsolutePath);
             }
         }
         
         public ProjectAnalyzer GetProject(string projectPath)
         {
+            // Normalise as .sln uses backslash regardless of OS the sln is created on
+            projectPath = projectPath.Replace('\\', Path.DirectorySeparatorChar);
             projectPath = ValidatePath(projectPath);
             if (_projects.TryGetValue(projectPath, out ProjectAnalyzer project))
             {

@@ -107,7 +107,7 @@ using Buildalyzer.Workspaces;
 
 AnalyzerManager manager = new AnalyzerManager();
 ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
-AdhocWorkspace workspace = projectAnalyzer.GetWorkspace();
+AdhocWorkspace workspace = analyzer.GetWorkspace();
 ```
 
 You can also create your own workspace and add Buildalyzer projects to it:

@@ -83,7 +83,7 @@ You can also access the MSBuild `Project` or `ProjectInstance` objects for the p
 
 **`ProjectAnalyzer.GetReferences()`** - Returns an `IReadOnlyList<string>` with the full path of all resolved references in the project.
 
-**`ProjectAnalyzer.GetProjectReferences()`** - Returns an `IReadOnlyList<string>` with the full path of the priject file for all resolved project references in the project.
+**`ProjectAnalyzer.GetProjectReferences()`** - Returns an `IReadOnlyList<string>` with the full path of the project file for all resolved project references in the project.
 
 These methods trigger compilation if it hasn't already been performed and will return `null` if the compilation fails.
 

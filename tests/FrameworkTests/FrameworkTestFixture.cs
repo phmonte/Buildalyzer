@@ -24,7 +24,8 @@ namespace FrameworkTests
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
-            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
+            @"SdkFrameworkProject\SdkFrameworkProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]

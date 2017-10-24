@@ -22,9 +22,24 @@ namespace Buildalyzer
             XElement projectElement = projectDocument.GetDescendants("Project").FirstOrDefault();
             if (projectElement != null)
             {
-                // Use .NET Core SDK if a SDK attribute
-                if (projectElement.GetAttributeValue("Sdk") != null)
+                // Does this project use the SDK?
+                // Check for an SDK attribute on the project element
+                // If no <Project> attribute, check for a SDK import (see https://github.com/Microsoft/msbuild/issues/1493)
+                if (projectElement.GetAttributeValue("Sdk") != null
+                    || projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null))
                 {
+                    // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
+                    // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+                    string targetFramework = projectElement.GetDescendants("TargetFramework").FirstOrDefault()?.Value;
+                    if(targetFramework != null
+                        && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                        && targetFramework.Length > 3
+                        && char.IsDigit(targetFramework[4]))
+                    {
+                        return new FrameworkPathHelper();
+                    }
+
+                    // Otherwise use the .NET Core SDK
                     return new CorePathHelper(projectPath);
                 }
 
@@ -32,13 +47,6 @@ namespace Buildalyzer
                 if (projectElement.GetAttributeValue("ToolsVersion") != null)
                 {
                     return new FrameworkPathHelper();
-                }
-
-                // If no <Project> attribute, check for a SDK import
-                // See https://github.com/Microsoft/msbuild/issues/1493
-                if (projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null))
-                {
-                    return new CorePathHelper(projectPath);
                 }
             }
 

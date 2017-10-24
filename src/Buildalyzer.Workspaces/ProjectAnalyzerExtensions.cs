@@ -17,15 +17,16 @@ namespace Buildalyzer.Workspaces
         /// Gets a Roslyn workspace for the analyzed project.
         /// </summary>
         /// <param name="analyzer">The Buildalyzer project analyzer.</param>
+        /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
         /// <returns>A Roslyn workspace.</returns>
-        public static AdhocWorkspace GetWorkspace(this ProjectAnalyzer analyzer)
+        public static AdhocWorkspace GetWorkspace(this ProjectAnalyzer analyzer, bool addProjectReferences = false)
         {
             if (analyzer == null)
             {
                 throw new ArgumentNullException(nameof(analyzer));
             }
             AdhocWorkspace workspace = new AdhocWorkspace();
-            AddToWorkspace(analyzer, workspace);
+            AddToWorkspace(analyzer, workspace, addProjectReferences);
             return workspace;
         }
 
@@ -34,8 +35,9 @@ namespace Buildalyzer.Workspaces
         /// </summary>
         /// <param name="analyzer">The Buildalyzer project analyzer.</param>
         /// <param name="workspace">A Roslyn workspace.</param>
+        /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
         /// <returns>The newly added Roslyn project.</returns>
-        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, AdhocWorkspace workspace)
+        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, AdhocWorkspace workspace, bool addProjectReferences = false)
         {
             if (analyzer == null)
             {
@@ -74,6 +76,19 @@ namespace Buildalyzer.Workspaces
             if (!workspace.TryApplyChanges(solution))
             {
                 throw new InvalidOperationException("Could not apply workspace solution changes");
+            }
+
+            // Add any project references not already added
+            if(addProjectReferences)
+            {
+                foreach(ProjectAnalyzer referencedAnalyzer in GetReferencedAnalyzerProjects(analyzer))
+                {
+                    // Check if the workspace contains the project inside the loop since adding one might also add this one due to transitive references
+                    if(!workspace.CurrentSolution.Projects.Any(x => x.FilePath == referencedAnalyzer.ProjectPath))
+                    {
+                        AddToWorkspace(referencedAnalyzer, workspace, addProjectReferences);
+                    }
+                }
             }
 
             // Find and return this project
@@ -140,6 +155,12 @@ namespace Buildalyzer.Workspaces
                 .Where(x => x != null)
                 .Select(x => new ProjectReference(x.Id))
             ?? Array.Empty<ProjectReference>();
+
+        private static IEnumerable<ProjectAnalyzer> GetReferencedAnalyzerProjects(ProjectAnalyzer analyzer) =>
+            analyzer.GetProjectReferences()
+                    ?.Select(x => analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
+                    .Where(x => x != null)
+            ?? Array.Empty<ProjectAnalyzer>();
 
         private static IEnumerable<DocumentInfo> GetDocuments(ProjectAnalyzer analyzer, ProjectId projectId) => 
             analyzer

@@ -57,13 +57,32 @@ namespace Buildalyzer.Workspaces.Tests
             compilationOptions.OutputKind.ShouldBe(OutputKind.DynamicallyLinkedLibrary);
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log)
+        [TestCase(false, 1)]
+        [TestCase(true, 2)]
+        public void AddsProjectReferences(bool addProjectReferences, int totalProjects)
+        {
+            // Given
+            StringBuilder log = new StringBuilder();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
+            GetProjectAnalyzer(@"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj", log, analyzer.Manager);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
+
+            // Then
+            workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects);
+        }
+
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log, AnalyzerManager manager = null)
         {
             string projectPath = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
                     @"..\..\..\..\" + projectFile));
-            AnalyzerManager manager = new AnalyzerManager(log);
+            if (manager == null)
+            {
+                manager = new AnalyzerManager(log);
+            }
             return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }
     }

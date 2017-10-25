@@ -30,8 +30,8 @@ namespace Buildalyzer
         {
         }
 
-        public AnalyzerManager(StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
-            : this(null, logBuilder, loggerVerbosity)
+        public AnalyzerManager(TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+            : this(null, logWriter, loggerVerbosity)
         {
         }
 
@@ -48,13 +48,13 @@ namespace Buildalyzer
             }
         }
 
-        public AnalyzerManager(string solutionFilePath, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionFilePath, TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
-            if (logBuilder != null)
+            if (logWriter != null)
             {
-                LoggerFactory loggerFactory = new LoggerFactory();
-                loggerFactory.AddProvider(new StringBuilderLoggerProvider(logBuilder));
+                LoggerFactory loggerFactory = new LoggerFactory();                
+                loggerFactory.AddProvider(new TextWriterLoggerProvider(logWriter));
                 ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
             }
 

@@ -17,21 +17,21 @@ namespace Buildalyzer.Workspaces.Tests
         public void LoadsWorkspace()
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
             
             // When
             Workspace workspace = analyzer.GetWorkspace();
 
             // Then
-            workspace.CurrentSolution.Projects.First().Documents.ShouldContain(x => x.Name == "Class1.cs");
+            workspace.CurrentSolution.Projects.First().Documents.ShouldContain(x => x.Name == "Class1.cs", log.ToString());
         }
 
         [Test]
         public void SupportsCompilation()
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
@@ -39,14 +39,14 @@ namespace Buildalyzer.Workspaces.Tests
             Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
 
             // Then
-            compilation.GetSymbolsWithName(x => x == "Class1").ShouldNotBeEmpty();
+            compilation.GetSymbolsWithName(x => x == "Class1").ShouldNotBeEmpty(log.ToString());
         }
 
         [Test]
         public void CreatesCompilationOptions()
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
@@ -54,7 +54,7 @@ namespace Buildalyzer.Workspaces.Tests
             CompilationOptions compilationOptions = workspace.CurrentSolution.Projects.First().CompilationOptions;
 
             // Then
-            compilationOptions.OutputKind.ShouldBe(OutputKind.DynamicallyLinkedLibrary);
+            compilationOptions.OutputKind.ShouldBe(OutputKind.DynamicallyLinkedLibrary, log.ToString());
         }
 
         [TestCase(false, 1)]
@@ -62,7 +62,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void AddsProjectReferences(bool addProjectReferences, int totalProjects)
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
             GetProjectAnalyzer(@"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj", log, analyzer.Manager);
 
@@ -70,10 +70,10 @@ namespace Buildalyzer.Workspaces.Tests
             Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
 
             // Then
-            workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects);
+            workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log, AnalyzerManager manager = null)
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             string projectPath = Path.GetFullPath(
                 Path.Combine(

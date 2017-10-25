@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace Buildalyzer
 {
-    internal class StringBuilderLogger : ILogger
+    internal class TextWriterLogger : ILogger
     {
-        private readonly StringBuilder _stringBuilder;
+        private readonly TextWriter _textWriter;
 
-        public StringBuilderLogger(StringBuilder stringBuilder)
+        public TextWriterLogger(TextWriter textWriter)
         {
-            _stringBuilder = stringBuilder;
+            _textWriter = textWriter;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter) =>
-            _stringBuilder.Append(formatter(state, exception));
+            _textWriter.Write(formatter(state, exception));
 
         public bool IsEnabled(LogLevel logLevel) => true;
 

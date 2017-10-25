@@ -33,7 +33,7 @@ namespace NetCoreTests
         public void LoadsProject(string projectFile)
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
@@ -47,7 +47,7 @@ namespace NetCoreTests
         public void CompilesProject(string projectFile)
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
@@ -61,21 +61,21 @@ namespace NetCoreTests
         public void GetsSourceFiles(string projectFile)
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
-            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"), log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
         public void GetsVirtualProjectSourceFiles(string projectFile)
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
             projectFile = GetProjectPath(projectFile);
             XDocument projectDocument = XDocument.Load(projectFile);
             projectFile = projectFile.Replace(".csproj", "Virtual.csproj");
@@ -85,33 +85,33 @@ namespace NetCoreTests
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
-            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"), log.ToString());
         }
 
         [Test]
         public void GetsProjectsInSolution()
         {
             // Given
-            StringBuilder log = new StringBuilder();
+            StringWriter log = new StringWriter();
 
             // When
             AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"), log);
 
             // Then
-            manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true);
+            manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true, log.ToString());
         }
         
         [Test]
         public void IgnoreSolutionItemsThatAreNotProjects()
         {
             // Given / When
-            var manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
+            AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
             
             // Then
             manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log) =>
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
             new AnalyzerManager(log).GetProject(GetProjectPath(projectFile));
 
         private static string GetProjectPath(string file)

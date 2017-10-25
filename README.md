@@ -128,7 +128,7 @@ In both cases, Buildalyzer will attempt to resolve project references within the
 
 ### Check The Build Log
 
-If something isn't working, try passing a `StringBuilder` or `ILoggerFactory` into the `AnalyzerManager`. The log output after you call `ProjectAnalyzer.Load()` or `ProjectAnalyzer.Compile()` is often very helpful in tracking down problems.
+If something isn't working, try passing a `TextWriter` or `ILoggerFactory` into the `AnalyzerManager`. The log output after you call `ProjectAnalyzer.Load()` or `ProjectAnalyzer.Compile()` is often very helpful in tracking down problems.
 
 ### Microsoft.Build.Tasks.CodeAnalysis and Microsoft.Build.Framework Mismatch
 

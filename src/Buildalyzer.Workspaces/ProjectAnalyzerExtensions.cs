@@ -64,7 +64,7 @@ namespace Buildalyzer.Workspaces
             {
                 if (!existingProject.Id.Equals(projectId)
                     && analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
-                    && (existingAnalyzer.GetProjectReferences()?.Contains(analyzer.ProjectPath) ?? false))
+                    && (existingAnalyzer.GetProjectReferences()?.Contains(analyzer.ProjectFilePath) ?? false))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);
@@ -84,7 +84,7 @@ namespace Buildalyzer.Workspaces
                 foreach(ProjectAnalyzer referencedAnalyzer in GetReferencedAnalyzerProjects(analyzer))
                 {
                     // Check if the workspace contains the project inside the loop since adding one might also add this one due to transitive references
-                    if(!workspace.CurrentSolution.Projects.Any(x => x.FilePath == referencedAnalyzer.ProjectPath))
+                    if(!workspace.CurrentSolution.Projects.Any(x => x.FilePath == referencedAnalyzer.ProjectFilePath))
                     {
                         AddToWorkspace(referencedAnalyzer, workspace, addProjectReferences);
                     }
@@ -97,15 +97,15 @@ namespace Buildalyzer.Workspaces
 
         private static ProjectInfo GetProjectInfo(ProjectAnalyzer analyzer, AdhocWorkspace workspace, ProjectId projectId)
         {
-            string projectName = Path.GetFileNameWithoutExtension(analyzer.ProjectPath);
-            string languageName = GetLanguageName(analyzer.ProjectPath);
+            string projectName = Path.GetFileNameWithoutExtension(analyzer.ProjectFilePath);
+            string languageName = GetLanguageName(analyzer.ProjectFilePath);
             ProjectInfo projectInfo = ProjectInfo.Create(
                 projectId,
                 VersionStamp.Create(),
                 projectName,
                 projectName,
                 languageName,
-                filePath: analyzer.ProjectPath,
+                filePath: analyzer.ProjectFilePath,
                 outputFilePath: analyzer.CompiledProject?.GetPropertyValue("TargetPath"),
                 documents: GetDocuments(analyzer, projectId),
                 projectReferences: GetExistingProjectReferences(analyzer, workspace),

@@ -10,6 +10,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
+using System.Xml.Linq;
 
 namespace FrameworkTests
 {
@@ -62,6 +63,23 @@ namespace FrameworkTests
             // Given
             StringBuilder log = new StringBuilder();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+
+            // When
+            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+
+            // Then
+            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+        }
+
+        [TestCaseSource(nameof(_projectFiles))]
+        public void GetsVirtualProjectSourceFiles(string projectFile)
+        {
+            // Given
+            StringBuilder log = new StringBuilder();
+            projectFile = GetProjectPath(projectFile);
+            XDocument projectDocument = XDocument.Load(projectFile);
+            projectFile = projectFile.Replace(".csproj", "Virtual.csproj");
+            ProjectAnalyzer analyzer = new AnalyzerManager(log).GetProject(projectFile, projectDocument);
 
             // When
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace NetCoreTests
 {
@@ -70,6 +71,23 @@ namespace NetCoreTests
             sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
         }
 
+        [TestCaseSource(nameof(_projectFiles))]
+        public void GetsVirtualProjectSourceFiles(string projectFile)
+        {
+            // Given
+            StringBuilder log = new StringBuilder();
+            projectFile = GetProjectPath(projectFile);
+            XDocument projectDocument = XDocument.Load(projectFile);
+            projectFile = projectFile.Replace(".csproj", "Virtual.csproj");
+            ProjectAnalyzer analyzer = new AnalyzerManager(log).GetProject(projectFile, projectDocument);
+
+            // When
+            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+
+            // Then
+            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"));
+        }
+
         [Test]
         public void GetsProjectsInSolution()
         {
@@ -90,7 +108,7 @@ namespace NetCoreTests
             var manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
             
             // Then
-            manager.Projects.Any(x => x.Value.ProjectPath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
+            manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringBuilder log) =>

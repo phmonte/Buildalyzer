@@ -27,7 +27,7 @@ namespace Buildalyzer
 
         public AnalyzerManager Manager { get; }
         
-        public string ProjectPath { get; }
+        public string ProjectFilePath { get; }
 
         /// <summary>
         /// The global properties for MSBuild. By default, each project
@@ -39,14 +39,19 @@ namespace Buildalyzer
 
         public ProjectInstance CompiledProject => Compile();
 
-        internal ProjectAnalyzer(AnalyzerManager manager, string projectPath)
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath)
+            : this(manager, projectFilePath, XDocument.Load(projectFilePath))
+        {
+        }
+
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument)
         {
             Manager = manager;
-            ProjectPath = projectPath;
-            _projectDocument = GetProjectDocument(projectPath);
+            ProjectFilePath = projectFilePath;
+            _projectDocument = TweakProjectDocument(projectDocument);
 
             // Get the paths
-            _pathHelper = PathHelperFactory.GetPathHelper(projectPath, _projectDocument);
+            _pathHelper = PathHelperFactory.GetPathHelper(projectFilePath, _projectDocument);
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
@@ -54,7 +59,7 @@ namespace Buildalyzer
             // Set global properties
             _globalProperties = new Dictionary<string, string>
             {
-                { MsBuildProperties.SolutionDir, manager.SolutionDirectory ?? Path.GetDirectoryName(projectPath) },
+                { MsBuildProperties.SolutionDir, manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath) },
                 { MsBuildProperties.MSBuildExtensionsPath, _pathHelper.ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, _pathHelper.SDKsPath },
                 { MsBuildProperties.RoslynTargetsPath, _pathHelper.RoslynTargetsPath },
@@ -89,31 +94,29 @@ namespace Buildalyzer
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
                     _project = projectCollection.LoadProject(projectReader);
-                    _project.FullPath = ProjectPath;
+                    _project.FullPath = ProjectFilePath;
                 }
                 return _project;
             }
         }
 
         // Tweaks the project file a bit to ensure a succesfull build
-        private XDocument GetProjectDocument(string projectPath)
+        private static XDocument TweakProjectDocument(XDocument projectDocument)
         {
-            XDocument doc = XDocument.Load(projectPath);
-
             // Add SkipGetTargetFrameworkProperties to every ProjectReference
-            foreach (XElement projectReference in doc.GetDescendants("ProjectReference").ToArray())
+            foreach (XElement projectReference in projectDocument.GetDescendants("ProjectReference").ToArray())
             {
                 projectReference.AddChildElement("SkipGetTargetFrameworkProperties", "true");
             }
 
             // Removes all EnsureNuGetPackageBuildImports
             foreach (XElement ensureNuGetPackageBuildImports in
-                doc.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
+                projectDocument.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
             {
                 ensureNuGetPackageBuildImports.Remove();
             }
 
-            return doc;
+            return projectDocument;
         }
 
         private ProjectCollection CreateProjectCollection()
@@ -161,7 +164,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetSourceFiles() => 
             Compile()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectPath), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.EvaluatedInclude)))
                 .ToList();
 
         public IReadOnlyList<string> GetReferences() =>
@@ -173,7 +176,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetProjectReferences() =>
             Compile()?.Items
                 .Where(x => x.ItemType == "ProjectReference")
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectPath), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.EvaluatedInclude)))
                 .ToList();
 
         public void SetGlobalProperty(string key, string value)

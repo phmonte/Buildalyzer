@@ -9,6 +9,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.Build.Construction;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace Buildalyzer
 {
@@ -34,20 +35,20 @@ namespace Buildalyzer
         {
         }
 
-        public AnalyzerManager(string solutionPath, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionFilePath, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             ProjectLogger = loggerFactory?.CreateLogger<ProjectAnalyzer>();
 
-            if (solutionPath != null)
+            if (solutionFilePath != null)
             {
-                solutionPath = ValidatePath(solutionPath);
-                SolutionDirectory = Path.GetDirectoryName(solutionPath);
-                GetProjectsInSolution(solutionPath);
+                solutionFilePath = ValidatePath(solutionFilePath, true);
+                SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
+                GetProjectsInSolution(solutionFilePath);
             }
         }
 
-        public AnalyzerManager(string solutionPath, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionFilePath, StringBuilder logBuilder, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             if (logBuilder != null)
@@ -57,15 +58,15 @@ namespace Buildalyzer
                 ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
             }
 
-            if (solutionPath != null)
+            if (solutionFilePath != null)
             {
-                solutionPath = ValidatePath(solutionPath);
-                SolutionDirectory = Path.GetDirectoryName(solutionPath);
-                GetProjectsInSolution(solutionPath);
+                solutionFilePath = ValidatePath(solutionFilePath, true);
+                SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
+                GetProjectsInSolution(solutionFilePath);
             }
         }
 
-        private void GetProjectsInSolution(string solutionPath)
+        private void GetProjectsInSolution(string solutionFilePath)
         {
             var supportedType = new[]
             {
@@ -73,7 +74,7 @@ namespace Buildalyzer
                 SolutionProjectType.WebProject
             };
 
-            SolutionFile solution = SolutionFile.Parse(solutionPath);
+            SolutionFile solution = SolutionFile.Parse(solutionFilePath);
             foreach(ProjectInSolution project in solution.ProjectsInOrder)
             {
                 if (!supportedType.Contains(project.ProjectType))
@@ -82,29 +83,56 @@ namespace Buildalyzer
             }
         }
         
-        public ProjectAnalyzer GetProject(string projectPath)
+        public ProjectAnalyzer GetProject(string projectFilePath)
         {
-            // Normalise as .sln uses backslash regardless of OS the sln is created on
-            projectPath = projectPath.Replace('\\', Path.DirectorySeparatorChar);
-            projectPath = ValidatePath(projectPath);
-            if (_projects.TryGetValue(projectPath, out ProjectAnalyzer project))
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            // Normalize as .sln uses backslash regardless of OS the sln is created on
+            projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
+            projectFilePath = ValidatePath(projectFilePath, true);
+            if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
             {
                 return project;
             }
-            project = new ProjectAnalyzer(this, projectPath);
-            _projects.Add(projectPath, project);
+            project = new ProjectAnalyzer(this, projectFilePath);
+            _projects.Add(projectFilePath, project);
             return project;
         }
 
+        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+            if (projectDocument == null)
+            {
+                throw new ArgumentNullException(nameof(projectDocument));
+            }
 
-        private static string ValidatePath(string path)
+            // Normalize as .sln uses backslash regardless of OS the sln is created on
+            projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
+            projectFilePath = ValidatePath(projectFilePath, false);
+            if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
+            {
+                return project;
+            }
+            project = new ProjectAnalyzer(this, projectFilePath, projectDocument);
+            _projects.Add(projectFilePath, project);
+            return project;
+        }
+
+        private static string ValidatePath(string path, bool checkExists)
         {
             if (path == null)
             {
                 throw new ArgumentNullException(nameof(path));
             }
             path = Path.GetFullPath(path); // Normalize the path
-            if (!File.Exists(path))
+            if (checkExists && !File.Exists(path))
             {
                 throw new ArgumentException($"The path {path} could not be found.");
             }

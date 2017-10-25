@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Build.Construction;
 using System.Linq;
 using System.Xml.Linq;
+using Buildalyzer.Logging;
 
 namespace Buildalyzer
 {

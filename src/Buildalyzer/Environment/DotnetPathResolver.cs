@@ -1,46 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
-namespace Buildalyzer
+namespace Buildalyzer.Environment
 {
-    // Based on code from OmniSharp
-    // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-    internal class CorePathHelper : IPathHelper
+    internal static class DotnetPathResolver
     {
         const string DOTNET_CLI_UI_LANGUAGE = nameof(DOTNET_CLI_UI_LANGUAGE);
 
-        public string ToolsPath { get; }
-        public string ExtensionsPath { get; }
-        public string SDKsPath { get; }
-        public string RoslynTargetsPath { get; }
+        private static readonly object BasePathLock = new object();
+        private static string BasePath = null;
 
-        public CorePathHelper(string projectPath)
+        public static string ResolvePath(string projectPath)
         {
-            // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
-            List<string> lines = GetInfo(projectPath);
-            int retry = 0;
-            do
+            lock(BasePathLock)
             {
-                lines = GetInfo(projectPath);
-                retry++;
-            } while ((lines == null || lines.Count == 0) && retry < 5);
-            string basePath = ParseBasePath(lines);
-            ToolsPath = basePath;
-            ExtensionsPath = basePath;
-            SDKsPath = Path.Combine(basePath, "Sdks");
-            RoslynTargetsPath = Path.Combine(basePath, "Roslyn");
+                if(BasePath != null)
+                {
+                    return BasePath;
+                }
+
+                // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
+                List<string> lines = GetInfo(projectPath);
+                int retry = 0;
+                do
+                {
+                    lines = GetInfo(projectPath);
+                    retry++;
+                } while ((lines == null || lines.Count == 0) && retry < 5);
+                BasePath = ParseBasePath(lines);
+
+                return BasePath;
+            }
         }
 
         private static List<string> GetInfo(string projectPath)
         {
             // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
             // running 'dotnet --info'. Otherwise, we may get localized results.
-            string originalCliLanguage = Environment.GetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE);
-            Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, "en-US");
+            string originalCliLanguage = System.Environment.GetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE);
+            System.Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, "en-US");
 
             try
             {
@@ -64,7 +64,7 @@ namespace Buildalyzer
                 sw.Start();
                 while (!process.HasExited)
                 {
-                    if(sw.ElapsedMilliseconds > 1000)
+                    if (sw.ElapsedMilliseconds > 1000)
                     {
                         break;
                     }
@@ -75,7 +75,7 @@ namespace Buildalyzer
             }
             finally
             {
-                Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, originalCliLanguage);
+                System.Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, originalCliLanguage);
             }
         }
 
@@ -89,22 +89,22 @@ namespace Buildalyzer
             foreach (string line in lines)
             {
                 int colonIndex = line.IndexOf(':');
-                if (colonIndex >= 0 
+                if (colonIndex >= 0
                     && line.Substring(0, colonIndex).Trim().Equals("Base Path", StringComparison.OrdinalIgnoreCase))
                 {
                     string basePath = line.Substring(colonIndex + 1).Trim();
 
                     // Make sure the base path matches the runtime architecture if on Windows
                     // Note that this only works for the default installation locations under "Program Files"
-                    if(basePath.Contains(@"\Program Files\") && !Environment.Is64BitProcess)
+                    if (basePath.Contains(@"\Program Files\") && !System.Environment.Is64BitProcess)
                     {
                         string newBasePath = basePath.Replace(@"\Program Files\", @"\Program Files (x86)\");
-                        if(Directory.Exists(newBasePath))
+                        if (Directory.Exists(newBasePath))
                         {
                             basePath = newBasePath;
                         }
                     }
-                    else if(basePath.Contains(@"\Program Files (x86)\") && Environment.Is64BitProcess)
+                    else if (basePath.Contains(@"\Program Files (x86)\") && System.Environment.Is64BitProcess)
                     {
                         string newBasePath = basePath.Replace(@"\Program Files (x86)\", @"\Program Files\");
                         if (Directory.Exists(newBasePath))

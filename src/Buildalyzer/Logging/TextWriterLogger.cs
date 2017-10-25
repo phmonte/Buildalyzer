@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using System.IO;
 
-namespace Buildalyzer
+namespace Buildalyzer.Logging
 {
     internal class TextWriterLogger : ILogger
     {

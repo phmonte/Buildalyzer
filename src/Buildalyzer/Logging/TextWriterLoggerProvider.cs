@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.IO;
 
-namespace Buildalyzer
+namespace Buildalyzer.Logging
 {
     public class TextWriterLoggerProvider : ILoggerProvider
     {

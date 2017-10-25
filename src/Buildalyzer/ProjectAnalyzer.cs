@@ -12,6 +12,7 @@ using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
 using ILogger = Microsoft.Build.Framework.ILogger;
 using LoggerExtensions = Microsoft.Extensions.Logging.LoggerExtensions;
+using Buildalyzer.Environment;
 
 namespace Buildalyzer
 {
@@ -19,7 +20,7 @@ namespace Buildalyzer
     {
         private readonly XDocument _projectDocument;
         private readonly Dictionary<string, string> _globalProperties;
-        private readonly IPathHelper _pathHelper;
+        private readonly BuildEnvironment _buildEnvironment;
         private readonly ConsoleLogger _logger;
 
         private Project _project = null;
@@ -51,25 +52,14 @@ namespace Buildalyzer
             _projectDocument = TweakProjectDocument(projectDocument);
 
             // Get the paths
-            _pathHelper = PathHelperFactory.GetPathHelper(projectFilePath, _projectDocument);
+            _buildEnvironment = EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectDocument);
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
 
             // Set global properties
-            _globalProperties = new Dictionary<string, string>
-            {
-                { MsBuildProperties.SolutionDir, manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath) },
-                { MsBuildProperties.MSBuildExtensionsPath, _pathHelper.ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, _pathHelper.SDKsPath },
-                { MsBuildProperties.RoslynTargetsPath, _pathHelper.RoslynTargetsPath },
-                { MsBuildProperties.DesignTimeBuild, "true" },
-                { MsBuildProperties.BuildProjectReferences, "false" },
-                { MsBuildProperties.SkipCompilerExecution, "true" },
-                { MsBuildProperties.ProvideCommandLineArgs, "true" },
-                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
-                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" }
-            };
+            string solutionDir = manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath);
+            _globalProperties = _buildEnvironment.GetGlobalProperties(solutionDir);
             
             // Create the logger
             if(manager.ProjectLogger != null)
@@ -89,14 +79,19 @@ namespace Buildalyzer
             ProjectCollection projectCollection = CreateProjectCollection();
 
             // Load the project
-            using (new BuildEnvironment(GlobalProperties))
-            {
+            _buildEnvironment.SetEnvironmentVars(GlobalProperties);
+            try
+            { 
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
                     _project = projectCollection.LoadProject(projectReader);
                     _project.FullPath = ProjectFilePath;
                 }
                 return _project;
+            }
+            finally
+            {
+                _buildEnvironment.UnsetEnvironmentVars();
             }
         }
 
@@ -123,7 +118,7 @@ namespace Buildalyzer
         {            
             ProjectCollection projectCollection = new ProjectCollection(_globalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
-            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _pathHelper.ToolsPath, projectCollection, string.Empty));
+            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.GetToolsPath(), projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
             if (_logger != null)
             {
@@ -143,9 +138,10 @@ namespace Buildalyzer
             {
                 return null;
             }
-            
+
             // Compile the project
-            using (new BuildEnvironment(GlobalProperties))
+            _buildEnvironment.SetEnvironmentVars(GlobalProperties);
+            try
             {
                 ProjectInstance projectInstance = project.CreateProjectInstance();
                 if (!projectInstance.Build("Clean", _logger == null ? null : new ILogger[] { _logger }))
@@ -158,6 +154,10 @@ namespace Buildalyzer
                 }
                 _compiledProject = projectInstance;
                 return _compiledProject;
+            }
+            finally
+            {
+                _buildEnvironment.UnsetEnvironmentVars();
             }
         }
 

@@ -5,17 +5,17 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Build.Utilities;
 
-namespace Buildalyzer
+namespace Buildalyzer.Environment
 {
-    internal abstract class PathHelperFactory
+    internal abstract class EnvironmentFactory
     {
-        public static IPathHelper GetPathHelper(string projectPath, XDocument projectDocument)
+        public static BuildEnvironment GetBuildEnvironment(string projectPath, XDocument projectDocument)
         {
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
             if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
                 .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
             {
-                return new CorePathHelper(projectPath);
+                return new CoreEnvironment(projectPath);
             }
 
             // Look at the project file to determine
@@ -36,17 +36,17 @@ namespace Buildalyzer
                         && targetFramework.Length > 3
                         && char.IsDigit(targetFramework[4]))
                     {
-                        return new FrameworkPathHelper();
+                        return new FrameworkEnvironment(projectPath, true);
                     }
 
                     // Otherwise use the .NET Core SDK
-                    return new CorePathHelper(projectPath);
+                    return new CoreEnvironment(projectPath);
                 }
 
                 // Use Framework tools if a ToolsVersion attribute
                 if (projectElement.GetAttributeValue("ToolsVersion") != null)
                 {
-                    return new FrameworkPathHelper();
+                    return new FrameworkEnvironment(projectPath, false);
                 }
             }
 

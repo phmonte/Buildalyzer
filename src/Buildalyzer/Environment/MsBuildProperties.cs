@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer
+﻿namespace Buildalyzer.Environment
 {
     public static class MsBuildProperties
     {

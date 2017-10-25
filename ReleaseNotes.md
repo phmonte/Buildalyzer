@@ -1,3 +1,11 @@
+# 0.2.0
+
+- **[Breaking Change]** [Refactoring] Changed the `StringBuilder` logging arguments to take a `TextWriter` instead (#24)
+- **[Breaking Change]** [Refactoring] Renamed `ProjectAnalyzer.ProjectPath` to `ProjectAnalyzer.ProjectFilePath` (and related method arguments) to make it clear this should be a file path
+- [Feature] Allows passing a `XDocument` as a virtual project file (#19)
+- [Feature] Adds an option to add known project references to the Roslyn workspace (#22)
+- [Fix] Uses the VS toolchain for SDK .NET Framework projects (#23)
+
 # 0.1.6
 
 - [Fix] Ensures only projects are added when loading a solution (#14, #15, thanks @JosephWoodward)

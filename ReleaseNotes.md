@@ -1,3 +1,7 @@
+# 0.2.1
+
+- [Fix] A better strategy for .NET Framework SDK projects (#23, #25)
+
 # 0.2.0
 
 - **[Breaking Change]** [Refactoring] Changed the `StringBuilder` logging arguments to take a `TextWriter` instead (#24)

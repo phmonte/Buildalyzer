@@ -1,3 +1,8 @@
+# 0.2.2
+
+- [Feature] Workspace extensions now accept `Workspace` instead of more specific `AdhocWorkspace` (#31, thanks @Jjagg)
+- [Fix] Updated MSBuild API references (#32)
+
 # 0.2.1
 
 - [Fix] A better strategy for .NET Framework SDK projects (#23, #25)

@@ -37,7 +37,7 @@ namespace Buildalyzer.Workspaces
         /// <param name="workspace">A Roslyn workspace.</param>
         /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
         /// <returns>The newly added Roslyn project.</returns>
-        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, AdhocWorkspace workspace, bool addProjectReferences = false)
+        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, Workspace workspace, bool addProjectReferences = false)
         {
             if (analyzer == null)
             {
@@ -95,7 +95,7 @@ namespace Buildalyzer.Workspaces
             return workspace.CurrentSolution.GetProject(projectId);
         }
 
-        private static ProjectInfo GetProjectInfo(ProjectAnalyzer analyzer, AdhocWorkspace workspace, ProjectId projectId)
+        private static ProjectInfo GetProjectInfo(ProjectAnalyzer analyzer, Workspace workspace, ProjectId projectId)
         {
             string projectName = Path.GetFileNameWithoutExtension(analyzer.ProjectFilePath);
             string languageName = GetLanguageName(analyzer.ProjectFilePath);
@@ -149,7 +149,7 @@ namespace Buildalyzer.Workspaces
             return null;
         }
 
-        private static IEnumerable<ProjectReference> GetExistingProjectReferences(ProjectAnalyzer analyzer, AdhocWorkspace workspace) =>
+        private static IEnumerable<ProjectReference> GetExistingProjectReferences(ProjectAnalyzer analyzer, Workspace workspace) =>
             analyzer.GetProjectReferences()
                 ?.Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath == x))
                 .Where(x => x != null)

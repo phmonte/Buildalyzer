@@ -22,6 +22,7 @@ namespace Buildalyzer
         private readonly Dictionary<string, string> _globalProperties;
         private readonly BuildEnvironment _buildEnvironment;
         private readonly ConsoleLogger _logger;
+        private BinaryLogger _binaryLogger = null;
 
         private Project _project = null;
         private ProjectInstance _compiledProject = null;
@@ -66,6 +67,16 @@ namespace Buildalyzer
             {
                 _logger = new ConsoleLogger(manager.LoggerVerbosity, x => LoggerExtensions.LogInformation(manager.ProjectLogger, x), null, null);
             }
+        }
+
+        public ProjectAnalyzer WithBinaryLog(string binaryLogFilePath = null)
+        {
+            _binaryLogger = new BinaryLogger
+            {
+                Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFilePath, "binlog"),
+                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
+            };
+            return this;
         }
 
         public Project Load()
@@ -120,11 +131,19 @@ namespace Buildalyzer
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.GetToolsPath(), projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
+            return projectCollection;
+        }
+
+        private IEnumerable<ILogger> GetLoggers()
+        {
             if (_logger != null)
             {
-                projectCollection.RegisterLogger(_logger);
+                yield return _logger;
             }
-            return projectCollection;
+            if (_binaryLogger != null)
+            {
+                yield return _binaryLogger;
+            }
         }
 
         public ProjectInstance Compile()
@@ -144,11 +163,11 @@ namespace Buildalyzer
             try
             {
                 ProjectInstance projectInstance = project.CreateProjectInstance();
-                if (!projectInstance.Build("Clean", _logger == null ? null : new ILogger[] { _logger }))
+                if (!projectInstance.Build("Clean", GetLoggers()))
                 {
                     return null;
                 }
-                if (!projectInstance.Build("Compile", _logger == null ? null : new ILogger[] { _logger }))
+                if (!projectInstance.Build("Compile", GetLoggers()))
                 {
                     return null;
                 }

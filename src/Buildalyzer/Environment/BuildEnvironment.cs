@@ -28,6 +28,8 @@ namespace Buildalyzer.Environment
             {
                 _oldMsBuildExtensionsPath = System.Environment.GetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath);
                 System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath, msBuildExtensionsPath);
+                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "32", msBuildExtensionsPath);
+                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "64", msBuildExtensionsPath);
             }
             if (globalProperties.TryGetValue(MsBuildProperties.MSBuildSDKsPath, out var msBuildSDKsPath))
             {
@@ -41,6 +43,8 @@ namespace Buildalyzer.Environment
             if (_oldMsBuildExtensionsPath != null)
             {
                 System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath, _oldMsBuildExtensionsPath);
+                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "32", _oldMsBuildExtensionsPath);
+                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "64", _oldMsBuildExtensionsPath);
             }
             if (_oldMsBuildSdksPath != null)
             {

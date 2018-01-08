@@ -26,7 +26,8 @@ namespace NetCoreTests
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
-            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj"
+            @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -49,6 +50,8 @@ namespace NetCoreTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+                // Uncomment to generate a binary log if something isn't working
+                //.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Compile();

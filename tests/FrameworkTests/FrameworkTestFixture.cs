@@ -26,7 +26,8 @@ namespace FrameworkTests
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
-            @"SdkFrameworkProject\SdkFrameworkProject.csproj"
+            @"SdkFrameworkProject\SdkFrameworkProject.csproj",
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -49,6 +50,8 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+                // Uncomment to generate a binary log if something isn't working
+                //.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Compile();

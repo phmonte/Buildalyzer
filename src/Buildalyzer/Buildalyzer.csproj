@@ -1,5 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -14,7 +13,6 @@
     <AssemblyVersion>0.2.2.0</AssemblyVersion>
     <FileVersion>0.2.2.0</FileVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.5.180" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.5.180" />
@@ -23,5 +21,4 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
   </ItemGroup>
-
 </Project>

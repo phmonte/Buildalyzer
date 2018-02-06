@@ -27,16 +27,21 @@ namespace Buildalyzer
         public string SolutionDirectory { get; }
         
         public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
-            : this(null, loggerFactory, loggerVerbosity)
+            : this(null, null, loggerFactory, loggerVerbosity)
         {
         }
 
         public AnalyzerManager(TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
-            : this(null, logWriter, loggerVerbosity)
+            : this(null, null, logWriter, loggerVerbosity)
+        {
+        }
+        
+        public AnalyzerManager(string solutionFilePath, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+            : this(solutionFilePath, null, logWriter, loggerVerbosity)
         {
         }
 
-        public AnalyzerManager(string solutionFilePath, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionFilePath, string[] projects, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             ProjectLogger = loggerFactory?.CreateLogger<ProjectAnalyzer>();
@@ -45,16 +50,16 @@ namespace Buildalyzer
             {
                 solutionFilePath = ValidatePath(solutionFilePath, true);
                 SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                GetProjectsInSolution(solutionFilePath);
+                GetProjectsInSolution(solutionFilePath, projects);
             }
         }
 
-        public AnalyzerManager(string solutionFilePath, TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
+        public AnalyzerManager(string solutionFilePath, string[] projects, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal)
         {
             LoggerVerbosity = loggerVerbosity;
             if (logWriter != null)
             {
-                LoggerFactory loggerFactory = new LoggerFactory();                
+                LoggerFactory loggerFactory = new LoggerFactory();
                 loggerFactory.AddProvider(new TextWriterLoggerProvider(logWriter));
                 ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
             }
@@ -63,12 +68,13 @@ namespace Buildalyzer
             {
                 solutionFilePath = ValidatePath(solutionFilePath, true);
                 SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                GetProjectsInSolution(solutionFilePath);
+                GetProjectsInSolution(solutionFilePath, projects);
             }
         }
 
-        private void GetProjectsInSolution(string solutionFilePath)
+        private void GetProjectsInSolution(string solutionFilePath, string[] projects = null)
         {
+            projects = projects ?? new string[] { };
             var supportedType = new[]
             {
                 SolutionProjectType.KnownToBeMSBuildFormat,
@@ -78,8 +84,8 @@ namespace Buildalyzer
             SolutionFile solution = SolutionFile.Parse(solutionFilePath);
             foreach(ProjectInSolution project in solution.ProjectsInOrder)
             {
-                if (!supportedType.Contains(project.ProjectType))
-                    continue;
+                if (!supportedType.Contains(project.ProjectType)) continue;
+                if (projects.Length > 0 && !projects.Contains(project.ProjectName)) continue;
                 GetProject(project.AbsolutePath);
             }
         }

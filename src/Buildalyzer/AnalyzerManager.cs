@@ -74,7 +74,6 @@ namespace Buildalyzer
 
         private void GetProjectsInSolution(string solutionFilePath, string[] projects = null)
         {
-            projects = projects ?? new string[] { };
             var supportedType = new[]
             {
                 SolutionProjectType.KnownToBeMSBuildFormat,
@@ -85,7 +84,7 @@ namespace Buildalyzer
             foreach(ProjectInSolution project in solution.ProjectsInOrder)
             {
                 if (!supportedType.Contains(project.ProjectType)) continue;
-                if (projects.Length > 0 && !projects.Contains(project.ProjectName)) continue;
+                if (projects != null && !projects.Contains(project.ProjectName)) continue;
                 GetProject(project.AbsolutePath);
             }
         }

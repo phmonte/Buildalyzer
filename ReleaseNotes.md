@@ -1,3 +1,9 @@
+# 0.2.3
+
+- [Feature] Added ability to tweak project files prior to build (#36, thanks @Mpdreamz)
+- [Feature] Added ability to filter out specific projects in a solution (#35, thanks @Mpdreamz)
+- [Fix] Extended timeout to get `dotnet --info` (#34, thanks @Mpdreamz)
+
 # 0.2.2
 
 - [Feature] Workspace extensions now accept `Workspace` instead of more specific `AdhocWorkspace` (#31, thanks @Jjagg)

@@ -13,6 +13,7 @@ using Microsoft.Build.Utilities;
 using ILogger = Microsoft.Build.Framework.ILogger;
 using LoggerExtensions = Microsoft.Extensions.Logging.LoggerExtensions;
 using Buildalyzer.Environment;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
 {
@@ -65,7 +66,7 @@ namespace Buildalyzer
             // Create the logger
             if(manager.ProjectLogger != null)
             {
-                _logger = new ConsoleLogger(manager.LoggerVerbosity, x => LoggerExtensions.LogInformation(manager.ProjectLogger, x), null, null);
+                _logger = new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null);
             }
         }
 

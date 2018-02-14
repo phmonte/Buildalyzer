@@ -50,7 +50,7 @@ namespace Buildalyzer
         {
             Manager = manager;
             ProjectFilePath = projectFilePath;
-            _projectDocument = TweakProjectDocument(projectDocument);
+            _projectDocument = TweakProjectDocument(manager, projectDocument);
 
             // Get the paths
             _buildEnvironment = EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectDocument);
@@ -107,7 +107,7 @@ namespace Buildalyzer
         }
 
         // Tweaks the project file a bit to ensure a succesfull build
-        private static XDocument TweakProjectDocument(XDocument projectDocument)
+        private static XDocument TweakProjectDocument(AnalyzerManager manager, XDocument projectDocument)
         {
             // Add SkipGetTargetFrameworkProperties to every ProjectReference
             foreach (XElement projectReference in projectDocument.GetDescendants("ProjectReference").ToArray())
@@ -121,6 +121,9 @@ namespace Buildalyzer
             {
                 ensureNuGetPackageBuildImports.Remove();
             }
+
+            manager.ProjectTweaker?.Invoke(projectDocument);
+            
 
             return projectDocument;
         }

@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Loader;
-using System.Text;
-using System.Xml;
-using Microsoft.Build.Framework;
-using Microsoft.Extensions.Logging;
-using Microsoft.Build.Construction;
 using System.Linq;
 using System.Xml.Linq;
 using Buildalyzer.Logging;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
 {
@@ -26,28 +22,36 @@ namespace Buildalyzer
         
         internal Action<XDocument> ProjectTweaker { get; }
 
+        internal bool CleanBeforeCompile { get; }
+
         public string SolutionDirectory { get; }
         
-        public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null)
-            : this(null, null, loggerFactory, loggerVerbosity, projectTweaker)
+        public AnalyzerManager(ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null, bool cleanBeforeCompile = true)
+            : this(null, null, loggerFactory, loggerVerbosity, projectTweaker, cleanBeforeCompile)
         {
         }
 
-        public AnalyzerManager(TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null)
-            : this(null, null, logWriter, loggerVerbosity, projectTweaker)
+        public AnalyzerManager(TextWriter logWriter, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null, bool cleanBeforeCompile = true)
+            : this(null, null, logWriter, loggerVerbosity, projectTweaker, cleanBeforeCompile)
         {
         }
         
-        public AnalyzerManager(string solutionFilePath, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null)
-            : this(solutionFilePath, null, logWriter, loggerVerbosity, projectTweaker)
+        public AnalyzerManager(string solutionFilePath, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null, bool cleanBeforeCompile = true)
+            : this(solutionFilePath, null, logWriter, loggerVerbosity, projectTweaker, cleanBeforeCompile)
         {
         }
 
-        public AnalyzerManager(string solutionFilePath, string[] projects, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null)
+        public AnalyzerManager(string solutionFilePath, string[] projects, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null, bool cleanBeforeCompile = true)
+            : this(solutionFilePath, null, CreateLoggerFactory(logWriter), loggerVerbosity, projectTweaker, cleanBeforeCompile)
+        {
+        }
+
+        public AnalyzerManager(string solutionFilePath, string[] projects, ILoggerFactory loggerFactory = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null, bool cleanBeforeCompile = true)
         {
             LoggerVerbosity = loggerVerbosity;
             ProjectLogger = loggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectTweaker = projectTweaker;
+            CleanBeforeCompile = cleanBeforeCompile;
 
             if (solutionFilePath != null)
             {
@@ -57,23 +61,16 @@ namespace Buildalyzer
             }
         }
 
-        public AnalyzerManager(string solutionFilePath, string[] projects, TextWriter logWriter = null, LoggerVerbosity loggerVerbosity = LoggerVerbosity.Normal, Action<XDocument> projectTweaker = null)
+        private static ILoggerFactory CreateLoggerFactory(TextWriter logWriter)
         {
-            LoggerVerbosity = loggerVerbosity;
-            ProjectTweaker = projectTweaker;
             if (logWriter != null)
             {
                 LoggerFactory loggerFactory = new LoggerFactory();
                 loggerFactory.AddProvider(new TextWriterLoggerProvider(logWriter));
-                ProjectLogger = loggerFactory.CreateLogger<ProjectAnalyzer>();
+                return loggerFactory;
             }
 
-            if (solutionFilePath != null)
-            {
-                solutionFilePath = ValidatePath(solutionFilePath, true);
-                SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                GetProjectsInSolution(solutionFilePath, projects);
-            }
+            return null;
         }
 
         private void GetProjectsInSolution(string solutionFilePath, string[] projects = null)

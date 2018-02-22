@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.Loader;
-using System.Text;
-using System.Xml;
-using Microsoft.Build.Framework;
-using Microsoft.Extensions.Logging;
-using Microsoft.Build.Construction;
 using System.Linq;
 using System.Xml.Linq;
+using Buildalyzer.Environment;
 using Buildalyzer.Logging;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
 {
@@ -92,7 +89,7 @@ namespace Buildalyzer
                 GetProject(project.AbsolutePath);
             }
         }
-        
+
         public ProjectAnalyzer GetProject(string projectFilePath)
         {
             if (projectFilePath == null)
@@ -100,16 +97,21 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            // Normalize as .sln uses backslash regardless of OS the sln is created on
-            projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
-            projectFilePath = ValidatePath(projectFilePath, true);
-            if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
+            return GetProjectInternal(projectFilePath, null, true, null);
+        }
+
+        public ProjectAnalyzer GetProject(string projectFilePath, BuildEnvironment buildEnvironment)
+        {
+            if (projectFilePath == null)
             {
-                return project;
+                throw new ArgumentNullException(nameof(projectFilePath));
             }
-            project = new ProjectAnalyzer(this, projectFilePath);
-            _projects.Add(projectFilePath, project);
-            return project;
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
+            return GetProjectInternal(projectFilePath, null, true, buildEnvironment);
         }
 
         public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
@@ -123,14 +125,39 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(projectDocument));
             }
 
+            return GetProjectInternal(projectFilePath, projectDocument, false, null);
+        }
+
+        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+            if (projectDocument == null)
+            {
+                throw new ArgumentNullException(nameof(projectDocument));
+            }
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
+            return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment);
+        }
+
+        private ProjectAnalyzer GetProjectInternal(string projectFilePath, XDocument projectDocument, bool checkExists, BuildEnvironment buildEnvironment)
+        {
+            ValidateBuildEnvironment(buildEnvironment);
+
             // Normalize as .sln uses backslash regardless of OS the sln is created on
             projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
-            projectFilePath = ValidatePath(projectFilePath, false);
+            projectFilePath = ValidatePath(projectFilePath, checkExists);
             if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
             {
                 return project;
             }
-            project = new ProjectAnalyzer(this, projectFilePath, projectDocument);
+            project = new ProjectAnalyzer(this, projectFilePath, projectDocument, buildEnvironment);
             _projects.Add(projectFilePath, project);
             return project;
         }
@@ -147,6 +174,30 @@ namespace Buildalyzer
                 throw new ArgumentException($"The path {path} could not be found.");
             }
             return path;
+        }
+
+        private static void ValidateBuildEnvironment(BuildEnvironment buildEnvironment)
+        {
+            if (buildEnvironment == null)
+            {
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(buildEnvironment.ToolsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.ToolsPath)} must be provided.");
+            }
+            if (string.IsNullOrWhiteSpace(buildEnvironment.ExtensionsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.ExtensionsPath)} must be provided.");
+            }
+            if (string.IsNullOrWhiteSpace(buildEnvironment.SDKsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.SDKsPath)} must be provided.");
+            }
+            if (string.IsNullOrWhiteSpace(buildEnvironment.RoslynTargetsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.RoslynTargetsPath)} must be provided.");
+            }
         }
     }
 }

@@ -1,3 +1,10 @@
+# 0.3.0
+
+- **[Breaking Change]** [Refactoring] Added `AnalyzerManagerOptions` to encapsulate lesser used `AnalyzerManager` constructor arguments (#44)
+- [Fix] Updated MSBuild API references for latest Visual Studio and .NET SDKs
+- [Feature] Added support for custom build environments (#41, thanks @dfederm)
+- [Feature] Added toggle for whether to clean when compiling (#38, #40, thanks @dfederm)
+
 # 0.2.3
 
 - [Feature] Added ability to tweak project files prior to build (#36, thanks @Mpdreamz)

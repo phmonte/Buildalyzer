@@ -167,7 +167,7 @@ namespace Buildalyzer
             try
             {
                 ProjectInstance projectInstance = project.CreateProjectInstance();
-                if (!projectInstance.Build("Clean", GetLoggers()))
+                if (Manager.CleanBeforeCompile && !projectInstance.Build("Clean", GetLoggers()))
                 {
                     return null;
                 }

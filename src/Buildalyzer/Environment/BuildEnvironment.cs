@@ -1,55 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Buildalyzer.Environment
+﻿namespace Buildalyzer.Environment
 {
-    internal abstract class BuildEnvironment
+    public sealed class BuildEnvironment
     {
-        private string _oldMsBuildExtensionsPath = null;
-        private string _oldMsBuildSdksPath = null;
+        public string ToolsPath { get; set; }
 
-        public abstract string GetToolsPath();
+        public string ExtensionsPath { get; set; }
 
-        public virtual Dictionary<string, string> GetGlobalProperties(string solutionDir) =>
-            new Dictionary<string, string>
-            {
-                { MsBuildProperties.SolutionDir, solutionDir },
-                { MsBuildProperties.DesignTimeBuild, "true" },
-                { MsBuildProperties.BuildProjectReferences, "false" },
-                { MsBuildProperties.SkipCompilerExecution, "true" },
-                { MsBuildProperties.ProvideCommandLineArgs, "true" },
-                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
-                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" }
-            };
+        public string SDKsPath { get; set; }
 
-        public virtual void SetEnvironmentVars(IReadOnlyDictionary<string, string> globalProperties)
-        {
-            if (globalProperties.TryGetValue(MsBuildProperties.MSBuildExtensionsPath, out var msBuildExtensionsPath))
-            {
-                _oldMsBuildExtensionsPath = System.Environment.GetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath, msBuildExtensionsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "32", msBuildExtensionsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "64", msBuildExtensionsPath);
-            }
-            if (globalProperties.TryGetValue(MsBuildProperties.MSBuildSDKsPath, out var msBuildSDKsPath))
-            {
-                _oldMsBuildSdksPath = System.Environment.GetEnvironmentVariable(MsBuildProperties.MSBuildSDKsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildSDKsPath, msBuildSDKsPath);
-            }
-        }
-
-        public virtual void UnsetEnvironmentVars()
-        {
-            if (_oldMsBuildExtensionsPath != null)
-            {
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath, _oldMsBuildExtensionsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "32", _oldMsBuildExtensionsPath);
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildExtensionsPath + "64", _oldMsBuildExtensionsPath);
-            }
-            if (_oldMsBuildSdksPath != null)
-            {
-                System.Environment.SetEnvironmentVariable(MsBuildProperties.MSBuildSDKsPath, _oldMsBuildSdksPath);
-            }
-        }
+        public string RoslynTargetsPath { get; set; }
     }
 }

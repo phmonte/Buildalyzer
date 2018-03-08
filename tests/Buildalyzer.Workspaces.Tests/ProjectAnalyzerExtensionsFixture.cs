@@ -81,7 +81,10 @@ namespace Buildalyzer.Workspaces.Tests
                     @"..\..\..\..\" + projectFile));
             if (manager == null)
             {
-                manager = new AnalyzerManager(log);
+                manager = new AnalyzerManager(new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                });
             }
             return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
         }

@@ -21,14 +21,14 @@ namespace NetCoreTests
 #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
-            @"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",
+            //@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",  // #33
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
-            //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
+            //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"  // #29
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -83,7 +83,12 @@ namespace NetCoreTests
             projectFile = GetProjectPath(projectFile);
             XDocument projectDocument = XDocument.Load(projectFile);
             projectFile = projectFile.Replace(".csproj", "Virtual.csproj");
-            ProjectAnalyzer analyzer = new AnalyzerManager(log).GetProject(projectFile, projectDocument);
+            ProjectAnalyzer analyzer = new AnalyzerManager(
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                })
+                .GetProject(projectFile, projectDocument);
 
             // When
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
@@ -117,10 +122,15 @@ namespace NetCoreTests
             StringWriter log = new StringWriter();
 
             // When
-            AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"), log);
+            AnalyzerManager manager = new AnalyzerManager(
+                GetProjectPath("TestProjects.sln"),
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                });
 
             // Then
-            manager.Projects.Keys.ShouldBe(_projectFiles.Select(x => GetProjectPath(x)), true, log.ToString());
+            _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
         
         [Test]
@@ -134,7 +144,11 @@ namespace NetCoreTests
         }
 
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
-            new AnalyzerManager(log).GetProject(GetProjectPath(projectFile));
+            new AnalyzerManager(new AnalyzerManagerOptions
+            {
+                LogWriter = log
+            })
+            .GetProject(GetProjectPath(projectFile));
 
         private static string GetProjectPath(string file)
         {

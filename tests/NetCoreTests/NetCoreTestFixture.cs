@@ -28,7 +28,7 @@ namespace NetCoreTests
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
-            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
+            //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]

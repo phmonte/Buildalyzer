@@ -21,6 +21,7 @@ namespace NetCoreTests
 #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
+            @"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
@@ -89,6 +90,24 @@ namespace NetCoreTests
 
             // Then
             sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"), log.ToString());
+        }
+
+        [TestCaseSource(nameof(_projectFiles))]
+        public void GetsReferences(string projectFile)
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.GetReferences();
+
+            // Then
+            references.ShouldContain(x => x.EndsWith("mscorlib.dll"), log.ToString());
+            if (projectFile.Contains("PackageReference"))
+            {
+                references.ShouldContain(x => x.EndsWith("Newtonsoft.Json.dll"), log.ToString());
+            }
         }
 
         [Test]

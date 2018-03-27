@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using Buildalyzer.Environment;
+using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Logging;
@@ -27,7 +28,7 @@ namespace Buildalyzer
         private ProjectInstance _compiledProject = null;
 
         public AnalyzerManager Manager { get; }
-        
+
         public string ProjectFilePath { get; }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Buildalyzer
             // Set global properties
             string solutionDir = manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath);
             _globalProperties = GetGlobalProperties(solutionDir);
-            
+
             // Create the logger
             if(manager.ProjectLogger != null)
             {
@@ -87,11 +88,16 @@ namespace Buildalyzer
             Dictionary<string, string> environmentVars = GetEnvironmentVars(GlobalProperties);
             Dictionary<string, string> originalEnvironmentVars = SetEnvironmentVars(environmentVars);
             try
-            { 
+            {
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
-                    _project = projectCollection.LoadProject(projectReader);
-                    _project.FullPath = ProjectFilePath;
+                    var xml = ProjectRootElement.Create(projectReader, projectCollection);
+
+                    // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
+                    // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
+                    xml.FullPath = ProjectFilePath;
+
+                    _project = new Project(xml, _globalProperties, null, projectCollection);
                 }
                 return _project;
             }
@@ -118,13 +124,13 @@ namespace Buildalyzer
             }
 
             manager.ProjectTweaker?.Invoke(projectDocument);
-            
+
 
             return projectDocument;
         }
 
         private ProjectCollection CreateProjectCollection()
-        {            
+        {
             ProjectCollection projectCollection = new ProjectCollection(_globalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.ToolsPath, projectCollection, string.Empty));
@@ -179,7 +185,7 @@ namespace Buildalyzer
             }
         }
 
-        public IReadOnlyList<string> GetSourceFiles() => 
+        public IReadOnlyList<string> GetSourceFiles() =>
             Compile()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
                 .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.EvaluatedInclude)))

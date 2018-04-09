@@ -19,7 +19,6 @@ namespace Buildalyzer
     public class ProjectAnalyzer
     {
         private readonly XDocument _projectDocument;
-        private readonly Dictionary<string, string> _globalProperties;
         private readonly BuildEnvironment _buildEnvironment;
         private readonly ConsoleLogger _logger;
         private BinaryLogger _binaryLogger = null;
@@ -35,7 +34,7 @@ namespace Buildalyzer
         /// The global properties for MSBuild. By default, each project
         /// is configured with properties that use a design-time build without calling the compiler.
         /// </summary>
-        public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;
+        public IReadOnlyDictionary<string, string> GlobalProperties => _buildEnvironment.GlobalProperties;
 
         public Project Project => Load();
 
@@ -53,9 +52,9 @@ namespace Buildalyzer
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
 
-            // Set global properties
+            // Set the solution directory global property
             string solutionDir = manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath);
-            _globalProperties = GetGlobalProperties(solutionDir);
+            SetGlobalProperty(MsBuildProperties.SolutionDir, solutionDir);
 
             // Create the logger
             if(manager.ProjectLogger != null)
@@ -85,10 +84,8 @@ namespace Buildalyzer
             ProjectCollection projectCollection = CreateProjectCollection();
 
             // Load the project
-            Dictionary<string, string> environmentVars = GetEnvironmentVars(GlobalProperties);
-            Dictionary<string, string> originalEnvironmentVars = SetEnvironmentVars(environmentVars);
-            try
-            {
+            using (_buildEnvironment.SetEnvironmentVariables())
+            {               
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
                     var xml = ProjectRootElement.Create(projectReader, projectCollection);
@@ -97,13 +94,9 @@ namespace Buildalyzer
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                     xml.FullPath = ProjectFilePath;
 
-                    _project = new Project(xml, _globalProperties, null, projectCollection);
+                    _project = new Project(xml, _buildEnvironment.GlobalProperties, null, projectCollection);
                 }
                 return _project;
-            }
-            finally
-            {
-                UnsetEnvironmentVars(originalEnvironmentVars);
             }
         }
 
@@ -131,7 +124,7 @@ namespace Buildalyzer
 
         private ProjectCollection CreateProjectCollection()
         {
-            ProjectCollection projectCollection = new ProjectCollection(_globalProperties);
+            ProjectCollection projectCollection = new ProjectCollection(_buildEnvironment.GlobalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
@@ -163,10 +156,8 @@ namespace Buildalyzer
             }
 
             // Compile the project
-            Dictionary<string, string> environmentVars = GetEnvironmentVars(GlobalProperties);
-            Dictionary<string, string> originalEnvironmentVars = SetEnvironmentVars(environmentVars);
-            try
-            {
+            using (_buildEnvironment.SetEnvironmentVariables())
+            { 
                 ProjectInstance projectInstance = project.CreateProjectInstance();
                 if (Manager.CleanBeforeCompile && !projectInstance.Build("Clean", GetLoggers()))
                 {
@@ -178,10 +169,6 @@ namespace Buildalyzer
                 }
                 _compiledProject = projectInstance;
                 return _compiledProject;
-            }
-            finally
-            {
-                UnsetEnvironmentVars(originalEnvironmentVars);
             }
         }
 
@@ -209,7 +196,7 @@ namespace Buildalyzer
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }
-            _globalProperties[key] = value;
+            _buildEnvironment.GlobalProperties[key] = value;
         }
 
         public bool RemoveGlobalProperty(string key)
@@ -218,53 +205,7 @@ namespace Buildalyzer
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }
-            return _globalProperties.Remove(key);
+            return _buildEnvironment.GlobalProperties.Remove(key);
         }
-
-        private static Dictionary<string, string> SetEnvironmentVars(Dictionary<string, string> environmentVars)
-        {
-            Dictionary<string, string> originalEnvironmentVars = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> environmentVar in environmentVars)
-            {
-                originalEnvironmentVars.Add(environmentVar.Key, System.Environment.GetEnvironmentVariable(environmentVar.Key));
-                System.Environment.SetEnvironmentVariable(environmentVar.Key, environmentVar.Value);
-            }
-
-            return originalEnvironmentVars;
-        }
-
-        private static void UnsetEnvironmentVars(Dictionary<string, string> originalEnvironmentVars)
-        {
-            foreach (KeyValuePair<string, string> originalEnvironmentVar in originalEnvironmentVars)
-            {
-                System.Environment.SetEnvironmentVariable(originalEnvironmentVar.Key, originalEnvironmentVar.Value);
-            }
-        }
-
-        private Dictionary<string, string> GetGlobalProperties(string solutionDir) =>
-            new Dictionary<string, string>
-            {
-                { MsBuildProperties.SolutionDir, solutionDir },
-                { MsBuildProperties.DesignTimeBuild, "true" },
-                { MsBuildProperties.BuildProjectReferences, "false" },
-                { MsBuildProperties.SkipCompilerExecution, "true" },
-                { MsBuildProperties.ProvideCommandLineArgs, "true" },
-                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
-                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
-                { MsBuildProperties.MSBuildExtensionsPath, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath32, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath64, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, _buildEnvironment.SDKsPath },
-                { MsBuildProperties.RoslynTargetsPath, _buildEnvironment.RoslynTargetsPath },
-            };
-
-        private Dictionary<string, string> GetEnvironmentVars(IReadOnlyDictionary<string, string> globalProperties) =>
-            new Dictionary<string, string>
-            {
-                { MsBuildProperties.MSBuildExtensionsPath, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath32, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath64, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, _buildEnvironment.SDKsPath }
-            };
     }
 }

@@ -57,13 +57,9 @@ namespace Buildalyzer.Environment
         private static BuildEnvironment CreateCoreEnvironment(string projectPath)
         {
             string dotnetPath = DotnetPathResolver.ResolvePath(projectPath);
-            return new BuildEnvironment
-            {
-                ToolsPath = dotnetPath,
-                ExtensionsPath = dotnetPath,
-                SDKsPath = Path.Combine(dotnetPath, "Sdks"),
-                RoslynTargetsPath = Path.Combine(dotnetPath, "Roslyn"),
-            };
+            string sdksPath = Path.Combine(dotnetPath, "Sdks");
+            string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
+            return new BuildEnvironment(dotnetPath, dotnetPath, sdksPath, roslynTargetsPath);
         }
 
         private static BuildEnvironment CreateFrameworkEnvironment(string projectPath, bool sdkProject)
@@ -90,13 +86,9 @@ namespace Buildalyzer.Environment
 
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
-            return new BuildEnvironment
-            {
-                ToolsPath = toolsPath,
-                ExtensionsPath = extensionsPath,
-                SDKsPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(projectPath) : extensionsPath, "Sdks"),
-                RoslynTargetsPath = Path.Combine(toolsPath, "Roslyn"),
-            };
+            string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(projectPath) : extensionsPath, "Sdks");
+            string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
+            return new BuildEnvironment(toolsPath, extensionsPath, sdksPath, roslynTargetsPath);
         }
     }
 }

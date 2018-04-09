@@ -1,3 +1,10 @@
+# 0.4.0
+
+- [Fix] Updated MSBuild API references for latest Visual Studio and .NET SDKs
+- [Refactoring] Internally refactored the way temporary environment variables are set and unset
+- [Feature] Sets environment variable MSBUILD_EXE_PATH while preserving existing value if there is one (#42)
+- [Feature] Sets MSBuild project path so properties like MSBuildThisFileDirectory work (#45, thanks @jirikopecky)
+
 # 0.3.0
 
 - **[Breaking Change]** [Refactoring] Added `AnalyzerManagerOptions` to encapsulate lesser used `AnalyzerManager` constructor arguments (#44)

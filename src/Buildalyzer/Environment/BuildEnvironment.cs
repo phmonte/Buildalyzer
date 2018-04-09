@@ -6,7 +6,7 @@ namespace Buildalyzer.Environment
 {
     public sealed class BuildEnvironment
     {
-        public string ToolsPath { get; set; }
+        public string MsBuildExePath { get; set; }
 
         public string ExtensionsPath { get; set; }
 
@@ -14,16 +14,23 @@ namespace Buildalyzer.Environment
 
         public string RoslynTargetsPath { get; set; }
 
+        public string ToolsPath => Path.GetDirectoryName(MsBuildExePath);
+
         internal Dictionary<string, string> GlobalProperties { get; }
 
-        public BuildEnvironment(string toolsPath, string extensionsPath, string sdksPath, string roslynTargetsPath)
+        public BuildEnvironment(string msBuildExePath, string extensionsPath, string sdksPath, string roslynTargetsPath)
         {
-            ToolsPath = toolsPath;
+            // Check if we've already specified a path to MSBuild
+            string envMsBuildExePath = System.Environment.GetEnvironmentVariable(EnvironmentVariables.MSBUILD_EXE_PATH);
+            MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
+                ? envMsBuildExePath : msBuildExePath;
+
             ExtensionsPath = extensionsPath;
             SDKsPath = sdksPath;
             RoslynTargetsPath = roslynTargetsPath;
 
             // Set default global properties
+            // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
             GlobalProperties = new Dictionary<string, string>
             {
                 { MsBuildProperties.DesignTimeBuild, "true" },
@@ -40,24 +47,34 @@ namespace Buildalyzer.Environment
             };
         }
 
-        internal IDisposable SetEnvironmentVariables()
-        {
-            Dictionary<string, string> newVariables = new Dictionary<string, string>
+        internal IDisposable SetEnvironmentVariables() => new TemporaryEnvironment(
+            new Dictionary<string, string>
             {
                 { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, SDKsPath }
-            };
+                { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
+                { EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
+            });
 
-            // Special case for MSBUILD_EXE_PATH - only set a new value if one isn't already set
-            string msbuildExePath = System.Environment.GetEnvironmentVariable("MSBUILD_EXE_PATH");
-            if (string.IsNullOrEmpty(msbuildExePath) || !File.Exists(msbuildExePath))
+        internal void Validate()
+        {
+            if (string.IsNullOrWhiteSpace(MsBuildExePath))
             {
-                newVariables.Add("MSBUILD_EXE_PATH", ToolsPath);
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(MsBuildExePath)} must be provided.");
             }
-
-            return new EnvironmentVariableSetter(newVariables);
+            if (string.IsNullOrWhiteSpace(ExtensionsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(ExtensionsPath)} must be provided.");
+            }
+            if (string.IsNullOrWhiteSpace(SDKsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(SDKsPath)} must be provided.");
+            }
+            if (string.IsNullOrWhiteSpace(RoslynTargetsPath))
+            {
+                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(RoslynTargetsPath)} must be provided.");
+            }
         }
     }
 }

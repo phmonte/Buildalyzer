@@ -129,7 +129,7 @@ namespace Buildalyzer
 
         private ProjectAnalyzer GetProjectInternal(string projectFilePath, XDocument projectDocument, bool checkExists, BuildEnvironment buildEnvironment)
         {
-            ValidateBuildEnvironment(buildEnvironment);
+            buildEnvironment?.Validate();
 
             // Normalize as .sln uses backslash regardless of OS the sln is created on
             projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
@@ -155,30 +155,6 @@ namespace Buildalyzer
                 throw new ArgumentException($"The path {path} could not be found.");
             }
             return path;
-        }
-
-        private static void ValidateBuildEnvironment(BuildEnvironment buildEnvironment)
-        {
-            if (buildEnvironment == null)
-            {
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(buildEnvironment.ToolsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.ToolsPath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(buildEnvironment.ExtensionsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.ExtensionsPath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(buildEnvironment.SDKsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.SDKsPath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(buildEnvironment.RoslynTargetsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(buildEnvironment.RoslynTargetsPath)} must be provided.");
-            }
         }
     }
 }

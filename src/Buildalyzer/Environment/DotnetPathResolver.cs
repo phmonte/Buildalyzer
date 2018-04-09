@@ -38,12 +38,17 @@ namespace Buildalyzer.Environment
         private static List<string> GetInfo(string projectPath)
         {
             // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
-            // running 'dotnet --info'. Otherwise, we may get localized results.
-            string originalCliLanguage = System.Environment.GetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE);
-            System.Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, "en-US");
-
-            try
+            // running 'dotnet --info'. Otherwise, we may get localized results
+            // Also unset some MSBuild variables, see https://github.com/OmniSharp/omnisharp-roslyn/blob/df160f86ce906bc566fe3e04e38a4077bd6023b4/src/OmniSharp.Abstractions/Services/DotNetCliService.cs#L36
+            Dictionary<string, string> environmentVariables = new Dictionary<string, string>
             {
+                { EnvironmentVariables.DOTNET_CLI_UI_LANGUAGE, "en-US" },
+                { EnvironmentVariables.MSBUILD_EXE_PATH, null },
+                { MsBuildProperties.MSBuildExtensionsPath, null }
+            };
+
+            using (new TemporaryEnvironment(environmentVariables))
+            {               
                 // Create the process info
                 Process process = new Process();
                 process.StartInfo.FileName = "dotnet";
@@ -72,10 +77,6 @@ namespace Buildalyzer.Environment
                 sw.Stop();
                 process.Close();
                 return lines;
-            }
-            finally
-            {
-                System.Environment.SetEnvironmentVariable(DOTNET_CLI_UI_LANGUAGE, originalCliLanguage);
             }
         }
 

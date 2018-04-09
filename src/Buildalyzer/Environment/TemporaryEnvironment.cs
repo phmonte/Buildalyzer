@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Buildalyzer.Environment
 {
-    public class EnvironmentVariableSetter : IDisposable
+    public class TemporaryEnvironment : IDisposable
     {
         private readonly Dictionary<string, string> _originalVariables = new Dictionary<string, string>();
 
-        public EnvironmentVariableSetter(IDictionary<string, string> newVariables)
+        public TemporaryEnvironment(IDictionary<string, string> newVariables)
         {
             foreach (KeyValuePair<string, string> newVariable in newVariables)
             {

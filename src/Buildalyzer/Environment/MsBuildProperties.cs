@@ -4,6 +4,8 @@
     {
         // MSBuild Project Loading
         public const string MSBuildExtensionsPath = nameof(MSBuildExtensionsPath);
+        public const string MSBuildExtensionsPath32 = nameof(MSBuildExtensionsPath32);
+        public const string MSBuildExtensionsPath64 = nameof(MSBuildExtensionsPath64);
         public const string MSBuildSDKsPath = nameof(MSBuildSDKsPath);
         public const string RoslynTargetsPath = nameof(RoslynTargetsPath);
         public const string SolutionDir = nameof(SolutionDir);

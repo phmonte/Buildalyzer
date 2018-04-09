@@ -246,6 +246,8 @@ namespace Buildalyzer
                 // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
                 { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
                 { MsBuildProperties.MSBuildExtensionsPath, _buildEnvironment.ExtensionsPath },
+                { MsBuildProperties.MSBuildExtensionsPath32, _buildEnvironment.ExtensionsPath },
+                { MsBuildProperties.MSBuildExtensionsPath64, _buildEnvironment.ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, _buildEnvironment.SDKsPath },
                 { MsBuildProperties.RoslynTargetsPath, _buildEnvironment.RoslynTargetsPath },
             };
@@ -254,8 +256,8 @@ namespace Buildalyzer
             new Dictionary<string, string>
             {
                 { MsBuildProperties.MSBuildExtensionsPath, _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath + "32", _buildEnvironment.ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath + "64", _buildEnvironment.ExtensionsPath },
+                { MsBuildProperties.MSBuildExtensionsPath32, _buildEnvironment.ExtensionsPath },
+                { MsBuildProperties.MSBuildExtensionsPath64, _buildEnvironment.ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, _buildEnvironment.SDKsPath }
             };
     }

@@ -28,6 +28,7 @@ namespace FrameworkTests
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
+            @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
             //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
@@ -133,7 +134,7 @@ namespace FrameworkTests
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) => 
+        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
             new AnalyzerManager(new AnalyzerManagerOptions
             {
                 LogWriter = log

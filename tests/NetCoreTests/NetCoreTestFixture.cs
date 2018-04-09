@@ -28,6 +28,7 @@ namespace NetCoreTests
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
+            @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
             //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"  // #29
         };
 
@@ -132,13 +133,13 @@ namespace NetCoreTests
             // Then
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
-        
+
         [Test]
         public void IgnoreSolutionItemsThatAreNotProjects()
         {
             // Given / When
             AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
-            
+
             // Then
             manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }

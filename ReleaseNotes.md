@@ -1,3 +1,9 @@
+# 0.5.0
+
+- [Fix] Updated MSBuild API references for latest Visual Studio and .NET SDKs
+- [Fix] Added `DisableRarCache` MSBuild property and set to `false` (#56)
+- [Fix] Added `NuGet.Common` and `NuGet.ProjectModel` since they're no longer shipped in the box with the .NET SDK (#49, #54)
+
 # 0.4.0
 
 - [Fix] Updated MSBuild API references for latest Visual Studio and .NET SDKs

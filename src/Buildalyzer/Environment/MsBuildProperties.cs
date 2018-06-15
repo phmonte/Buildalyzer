@@ -15,6 +15,7 @@
         public const string BuildProjectReferences = nameof(BuildProjectReferences);
         public const string SkipCompilerExecution = nameof(SkipCompilerExecution);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
+        public const string DisableRarCache = nameof(DisableRarCache);
 
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);

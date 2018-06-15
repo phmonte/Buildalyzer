@@ -51,9 +51,9 @@ namespace FrameworkTests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log)
                 // Uncomment to generate a binary log if something isn't working
-                //.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
+                .WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Compile();

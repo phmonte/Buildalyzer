@@ -14,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
 

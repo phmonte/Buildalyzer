@@ -20,7 +20,7 @@ namespace Buildalyzer
 
         internal LoggerVerbosity LoggerVerbosity { get; }
         
-        internal Action<XDocument> ProjectTweaker { get; }
+        internal ProjectTransformer ProjectTransformer { get; }
 
         internal bool CleanBeforeCompile { get; }
 
@@ -43,7 +43,7 @@ namespace Buildalyzer
             options = options ?? new AnalyzerManagerOptions();
             LoggerVerbosity = options.LoggerVerbosity;
             ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
-            ProjectTweaker = options.ProjectTweaker;
+            ProjectTransformer = options.ProjectTransformer ?? new ProjectTransformer();
             CleanBeforeCompile = options.CleanBeforeCompile;
 
             if (solutionFilePath != null)

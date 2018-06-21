@@ -44,7 +44,8 @@ namespace Buildalyzer
         {
             Manager = manager;
             ProjectFilePath = projectFilePath;
-            _projectDocument = TweakProjectDocument(manager, projectDocument ?? XDocument.Load(projectFilePath));
+            _projectDocument = projectDocument ?? XDocument.Load(projectFilePath);
+            manager.ProjectTransformer.Apply(_projectDocument);
 
             // Get the paths
             _buildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectDocument);
@@ -98,28 +99,6 @@ namespace Buildalyzer
                 }
                 return _project;
             }
-        }
-
-        // Tweaks the project file a bit to ensure a succesfull build
-        private static XDocument TweakProjectDocument(AnalyzerManager manager, XDocument projectDocument)
-        {
-            // Add SkipGetTargetFrameworkProperties to every ProjectReference
-            foreach (XElement projectReference in projectDocument.GetDescendants("ProjectReference").ToArray())
-            {
-                projectReference.AddChildElement("SkipGetTargetFrameworkProperties", "true");
-            }
-
-            // Removes all EnsureNuGetPackageBuildImports
-            foreach (XElement ensureNuGetPackageBuildImports in
-                projectDocument.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
-            {
-                ensureNuGetPackageBuildImports.Remove();
-            }
-
-            manager.ProjectTweaker?.Invoke(projectDocument);
-
-
-            return projectDocument;
         }
 
         private ProjectCollection CreateProjectCollection()

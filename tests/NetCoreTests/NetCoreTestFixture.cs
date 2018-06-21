@@ -29,7 +29,7 @@ namespace NetCoreTests
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
-            //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"  // #29
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"  // #29
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -144,7 +144,7 @@ namespace NetCoreTests
             manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
             new AnalyzerManager(new AnalyzerManagerOptions
             {
                 LogWriter = log
@@ -153,7 +153,7 @@ namespace NetCoreTests
 
         private static string GetProjectPath(string file)
         {
-            var path = Path.GetFullPath(
+            string path = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(NetCoreTestFixture).Assembly.Location),
                     @"..\..\..\..\projects\" + file));

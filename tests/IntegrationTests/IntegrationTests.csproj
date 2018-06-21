@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.25.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
@@ -14,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
-
+  
 </Project>

@@ -11,7 +11,7 @@ namespace Buildalyzer
     {
         public ILoggerFactory LoggerFactory { get; set; }
         public LoggerVerbosity LoggerVerbosity { get; set; } = LoggerVerbosity.Normal;
-        public Action<XDocument> ProjectTweaker { get; set; }
+        public ProjectTransformer ProjectTransformer { get; set; }
         public bool CleanBeforeCompile { get; set; } = true;
 
         public TextWriter LogWriter

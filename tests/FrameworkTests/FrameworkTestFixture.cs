@@ -29,7 +29,7 @@ namespace FrameworkTests
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
             @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
-            //@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -134,14 +134,14 @@ namespace FrameworkTests
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
             new AnalyzerManager(new AnalyzerManagerOptions
             {
                 LogWriter = log
             })
             .GetProject(GetProjectPath(projectFile));
 
-        private string GetProjectPath(string file) =>
+        private static string GetProjectPath(string file) =>
             Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(FrameworkTestFixture).Assembly.Location),

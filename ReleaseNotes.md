@@ -1,3 +1,8 @@
+# 0.6.0
+
+- [Refactoring] Introduces a `ProjectTransformer` base class for specifying project file adjustments instead of a delegate
+- [Fix] Converts multi-targeted projects into a single target so Buildalyzer can build them (#29, #57)
+
 # 0.5.0
 
 - [Fix] Updated MSBuild API references for latest Visual Studio and .NET SDKs

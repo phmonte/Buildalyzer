@@ -21,7 +21,7 @@ namespace NetCoreTests
 #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
-            //@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",  // #33
+            @"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
@@ -29,7 +29,7 @@ namespace NetCoreTests
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
-            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"  // #29
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
         };
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -51,9 +51,9 @@ namespace NetCoreTests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log)
                 // Uncomment to generate a binary log if something isn't working
-                //.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
+                .WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Compile();

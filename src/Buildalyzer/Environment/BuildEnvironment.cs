@@ -38,6 +38,7 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.SkipCompilerExecution, "true" },
                 { MsBuildProperties.ProvideCommandLineArgs, "true" },
                 { MsBuildProperties.DisableRarCache, "true" },
+                { MsBuildProperties.AutoGenerateBindingRedirects, "false" },
                 // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
                 { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
                 { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },

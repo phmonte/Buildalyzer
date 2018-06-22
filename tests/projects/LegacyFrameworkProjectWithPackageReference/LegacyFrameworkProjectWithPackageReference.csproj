@@ -49,11 +49,5 @@
       <Version>10.0.3</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\LegacyFrameworkProject\LegacyFrameworkProject.csproj">
-      <Project>{36ed2b9d-2fc2-4725-9bc2-53cabf113477}</Project>
-      <Name>LegacyFrameworkProject</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

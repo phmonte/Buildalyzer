@@ -138,11 +138,15 @@ namespace Buildalyzer
             using (_buildEnvironment.SetEnvironmentVariables())
             { 
                 ProjectInstance projectInstance = project.CreateProjectInstance();
-                if (Manager.CleanBeforeCompile && !projectInstance.Build("Clean", GetLoggers()))
+                List<string> targets = new List<string>();
+                if(Manager.CleanBeforeCompile)
                 {
-                    return null;
+                    targets.Add("Clean");
                 }
-                if (!projectInstance.Build("Compile", GetLoggers()))
+                targets.Add("PrepareForBuild");
+                targets.Add("ResolveAssemblyReferences");
+                targets.Add("Compile");
+                if (!projectInstance.Build(targets.ToArray(), GetLoggers()))
                 {
                     return null;
                 }

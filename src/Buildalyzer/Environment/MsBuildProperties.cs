@@ -16,6 +16,7 @@
         public const string SkipCompilerExecution = nameof(SkipCompilerExecution);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
         public const string DisableRarCache = nameof(DisableRarCache);
+        public const string AutoGenerateBindingRedirects = nameof(AutoGenerateBindingRedirects);
 
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);

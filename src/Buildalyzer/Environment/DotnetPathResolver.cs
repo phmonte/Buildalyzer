@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading;
 
 namespace Buildalyzer.Environment
 {
@@ -26,10 +28,26 @@ namespace Buildalyzer.Environment
                 int retry = 0;
                 do
                 {
+                    if(retry == 0)
+                    {
+                        Thread.Sleep(500);
+                    }
                     lines = GetInfo(projectPath);
                     retry++;
                 } while ((lines == null || lines.Count == 0) && retry < 5);
-                BasePath = ParseBasePath(lines);
+
+                // Did we get any output?
+                if (lines == null || lines.Count == 0)
+                {
+                    throw new InvalidOperationException("Could not get results from `dotnet --info` call");
+                }
+
+                // Try to get a path
+                BasePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
+                if(string.IsNullOrWhiteSpace(BasePath))
+                {
+                    throw new InvalidOperationException("Could not locate SDK path in `dotnet --info` results");
+                }
 
                 return BasePath;
             }
@@ -60,7 +78,9 @@ namespace Buildalyzer.Environment
                 // Capture output
                 List<string> lines = new List<string>();
                 process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
                 process.OutputDataReceived += (s, e) => lines.Add(e.Data);
+                process.ErrorDataReceived += (s, e) => lines.Add(e.Data);
 
                 // Execute the process
                 process.Start();
@@ -69,6 +89,7 @@ namespace Buildalyzer.Environment
                 sw.Start();
                 while (!process.HasExited)
                 {
+                    Thread.Sleep(100);
                     if (sw.ElapsedMilliseconds > 4000)
                     {
                         break;
@@ -80,14 +101,10 @@ namespace Buildalyzer.Environment
             }
         }
 
-        private static string ParseBasePath(List<string> lines)
+        // Try to find a base path
+        internal static string ParseBasePath(List<string> lines)
         {
-            if (lines == null || lines.Count == 0)
-            {
-                throw new InvalidOperationException("Could not get results from `dotnet --info` call");
-            }
-
-            foreach (string line in lines)
+            foreach (string line in lines.Where(x => x != null))
             {
                 int colonIndex = line.IndexOf(':');
                 if (colonIndex >= 0
@@ -117,8 +134,28 @@ namespace Buildalyzer.Environment
                     return basePath;
                 }
             }
+            return null;
+        }
 
-            throw new InvalidOperationException("Could not locate base path in `dotnet --info` results");
+        // Fallback if a base path couldn't be found (I.e., global.json version is not available)
+        internal static string ParseInstalledSdksPath(List<string> lines)
+        {
+            int index = lines.IndexOf(".NET Core SDKs installed:");
+            if (index == -1)
+            {
+                return null;
+            }
+            index++;
+            while(!string.IsNullOrWhiteSpace(lines[index + 1]))
+            {
+                index++;
+            }
+            string[] segments = lines[index]
+                .Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .ToArray();
+            return $@"{segments[1]}{Path.DirectorySeparatorChar}{segments[0]}{Path.DirectorySeparatorChar}";
         }
     }
 }

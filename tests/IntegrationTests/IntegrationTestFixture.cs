@@ -46,10 +46,8 @@ namespace IntegrationTests
             foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
             {
                 // When
-                ProjectInstance projectInstance = analyzer
-                    // Uncomment to generate a binary log if something isn't working
-                    //.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFilePath), ".binlog")))
-                    .Compile();
+                //analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFilePath), "integration.binlog")));
+                ProjectInstance projectInstance = analyzer.Compile();
 
                 // Then
                 projectInstance.ShouldNotBeNull(log.ToString());
@@ -80,7 +78,7 @@ namespace IntegrationTests
                     Commands.Fetch(repo, remote.Name, refSpecs, null, string.Empty);
                 }
             }
-            return Directory.GetFiles(path, "*.sln")[0];
+            return Directory.GetFiles(path, "*.sln", SearchOption.AllDirectories)[0];
         }
 
         private static string GetRepositoryPath(string repository)

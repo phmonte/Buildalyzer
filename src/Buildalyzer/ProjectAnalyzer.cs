@@ -133,20 +133,27 @@ namespace Buildalyzer
             {
                 return null;
             }
-
+            
             // Compile the project
             using (_buildEnvironment.SetEnvironmentVariables())
-            { 
-                ProjectInstance projectInstance = project.CreateProjectInstance();
+            {
+                ProjectInstance projectInstance = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project);
                 List<string> targets = new List<string>();
                 if(Manager.CleanBeforeCompile)
                 {
                     targets.Add("Clean");
                 }
-                targets.Add("PrepareForBuild");
-                targets.Add("ResolveAssemblyReferences");
                 targets.Add("Compile");
-                if (!projectInstance.Build(targets.ToArray(), GetLoggers()))
+
+                // This is essentialy what ProjectInstance.Build() does, but it copies the BuildParameters
+                // from the ProjectCollection which is necessary for nested builds since we replaced the toolset
+                BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+                    new BuildParameters(project.ProjectCollection)
+                    {
+                        Loggers = GetLoggers()
+                    },
+                    new BuildRequestData(projectInstance, targets.ToArray()));
+                if (buildResult.OverallResult != BuildResultCode.Success)
                 {
                     return null;
                 }

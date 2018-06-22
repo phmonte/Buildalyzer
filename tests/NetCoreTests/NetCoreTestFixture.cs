@@ -53,7 +53,7 @@ namespace NetCoreTests
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log)
                 // Uncomment to generate a binary log if something isn't working
-                .WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".binlog")));
+                .WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Compile();
@@ -106,7 +106,7 @@ namespace NetCoreTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences();
+            IReadOnlyList<string> references = analyzer.GetReferences() ?? new List<string>();
 
             // Then
             references.ShouldContain(x => x.EndsWith("mscorlib.dll"), log.ToString());

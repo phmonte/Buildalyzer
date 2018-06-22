@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Buildalyzer.Environment;
 using Microsoft.Build.Construction;
+using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +24,9 @@ namespace Buildalyzer
         internal ProjectTransformer ProjectTransformer { get; }
 
         internal bool CleanBeforeCompile { get; }
+
+        // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
+        internal BuildManager BuildManager { get; }
 
         public string SolutionDirectory { get; }
 
@@ -45,6 +49,7 @@ namespace Buildalyzer
             ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectTransformer = options.ProjectTransformer ?? new ProjectTransformer();
             CleanBeforeCompile = options.CleanBeforeCompile;
+            BuildManager = new BuildManager();
 
             if (solutionFilePath != null)
             {

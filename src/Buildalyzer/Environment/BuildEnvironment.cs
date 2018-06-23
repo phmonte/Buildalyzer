@@ -18,10 +18,12 @@ namespace Buildalyzer.Environment
 
         internal Dictionary<string, string> GlobalProperties { get; }
 
+        internal Dictionary<string, string> EnvironmentVariables { get; }
+
         public BuildEnvironment(string msBuildExePath, string extensionsPath, string sdksPath, string roslynTargetsPath)
         {
             // Check if we've already specified a path to MSBuild
-            string envMsBuildExePath = System.Environment.GetEnvironmentVariable(EnvironmentVariables.MSBUILD_EXE_PATH);
+            string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
             MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
                 ? envMsBuildExePath : msBuildExePath;
 
@@ -31,7 +33,7 @@ namespace Buildalyzer.Environment
 
             // Set default global properties
             // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
-            GlobalProperties = new Dictionary<string, string>
+            GlobalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { MsBuildProperties.DesignTimeBuild, "true" },
                 { MsBuildProperties.BuildProjectReferences, "false" },
@@ -47,17 +49,16 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
                 { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
             };
-        }
 
-        internal IDisposable SetEnvironmentVariables() => new TemporaryEnvironment(
-            new Dictionary<string, string>
+            EnvironmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
-            });
+                { Environment.EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
+            };
+        }
 
         internal void Validate()
         {

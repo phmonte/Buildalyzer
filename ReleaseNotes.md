@@ -2,6 +2,9 @@
 
 - [Refactoring] Introduces a `ProjectTransformer` base class for specifying project file adjustments instead of a delegate
 - [Fix] Converts multi-targeted projects into a single target so Buildalyzer can build them (#29, #57)
+- [Fix] Calling `ProjectAnalyzer.SetGlobalProperty` and `ProjectAnalyzer.RemoveGlobalProperty` no longer leaks to projects sharing the same `BuildManager`
+- [Feature] Added ability to set global properties at the `AnalyzerManager` level (#52)
+- [Feature] Added ability to set environment variables for `AnalyzerManager` (all projects) and `ProjectAnalyzer` (specific project)
 
 # 0.5.0
 

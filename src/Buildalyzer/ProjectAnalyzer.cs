@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -26,6 +27,10 @@ namespace Buildalyzer
         private Project _project = null;
         private ProjectInstance _compiledProject = null;
 
+        // Project-specific global properties and environment variables
+        private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         public AnalyzerManager Manager { get; }
 
         public string ProjectFilePath { get; }
@@ -34,7 +39,13 @@ namespace Buildalyzer
         /// The global properties for MSBuild. By default, each project
         /// is configured with properties that use a design-time build without calling the compiler.
         /// </summary>
-        public IReadOnlyDictionary<string, string> GlobalProperties => _buildEnvironment.GlobalProperties;
+        public IReadOnlyDictionary<string, string> GlobalProperties => new ReadOnlyDictionary<string, string>(GetEffectiveGlobalProperties());
+
+        /// <summary>
+        /// The environment variables used for MSBuild. By default, each project
+        /// is configured with variables which help point to configured MSBuild paths.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> EnvironmentVariables => new ReadOnlyDictionary<string, string>(GetEffectiveEnvironmentVariables());
 
         public Project Project => Load();
 
@@ -81,11 +92,14 @@ namespace Buildalyzer
                 return _project;
             }
 
+            var effectiveGlobalProperties = GetEffectiveGlobalProperties();
+            var effectiveEnvironmentVariables = GetEffectiveEnvironmentVariables();
+
             // Create a project collection for each project since the toolset might change depending on the type of project
-            ProjectCollection projectCollection = CreateProjectCollection();
+            ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
 
             // Load the project
-            using (_buildEnvironment.SetEnvironmentVariables())
+            using (new TemporaryEnvironment(effectiveEnvironmentVariables))
             {               
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
@@ -95,15 +109,15 @@ namespace Buildalyzer
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                     xml.FullPath = ProjectFilePath;
 
-                    _project = new Project(xml, _buildEnvironment.GlobalProperties, null, projectCollection);
+                    _project = new Project(xml, effectiveGlobalProperties, null, projectCollection);
                 }
                 return _project;
             }
         }
 
-        private ProjectCollection CreateProjectCollection()
+        private ProjectCollection CreateProjectCollection(IDictionary<string, string> globalProperties)
         {
-            ProjectCollection projectCollection = new ProjectCollection(_buildEnvironment.GlobalProperties);
+            ProjectCollection projectCollection = new ProjectCollection(globalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
             projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
@@ -133,9 +147,11 @@ namespace Buildalyzer
             {
                 return null;
             }
-            
+
+            var effectiveEnvironmentVariables = GetEffectiveEnvironmentVariables();
+
             // Compile the project
-            using (_buildEnvironment.SetEnvironmentVariables())
+            using (new TemporaryEnvironment(effectiveEnvironmentVariables))
             {
                 ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
                 List<string> targets = new List<string>();
@@ -186,16 +202,66 @@ namespace Buildalyzer
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }
-            _buildEnvironment.GlobalProperties[key] = value;
+            _globalProperties[key] = value;
         }
 
-        public bool RemoveGlobalProperty(string key)
+        public void RemoveGlobalProperty(string key)
         {
             if (_project != null)
             {
                 throw new InvalidOperationException("Can not change global properties once project has been loaded");
             }
-            return _buildEnvironment.GlobalProperties.Remove(key);
+
+            // Nulls are removed before passing to MSBuild and can be used to ignore values in lower-precedence collections
+            _globalProperties[key] = null;
+        }
+
+        public void SetEnvironmentVariable(string key, string value)
+        {
+            if (_project != null)
+            {
+                throw new InvalidOperationException("Can not change environment variables once project has been loaded");
+            }
+            _environmentVariables[key] = value;
+        }
+
+        // Note the order of precedence (from least to most)
+        private Dictionary<string, string> GetEffectiveGlobalProperties()
+            => GetEffectiveDictionary(
+                true,  // Remove nulls to avoid passing null global properties. But null can be used in higher-precident dictionaries to ignore a lower-precident dictionary's value.
+                _buildEnvironment.GlobalProperties,
+                Manager.GlobalProperties,
+                _globalProperties);
+
+        // Note the order of precedence (from least to most)
+        private Dictionary<string, string> GetEffectiveEnvironmentVariables()
+            => GetEffectiveDictionary(
+                false, // Don't remove nulls as a null value will unset the env var which may be set by a calling process.
+                _buildEnvironment.EnvironmentVariables,
+                Manager.EnvironmentVariables,
+                _environmentVariables);
+
+        private static Dictionary<string, string> GetEffectiveDictionary(
+            bool removeNulls,
+            params IDictionary<string, string>[] innerDictionaries)
+        {
+            var effectiveDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var innerDictionary in innerDictionaries)
+            {
+                foreach (var pair in innerDictionary)
+                {
+                    if (removeNulls && pair.Value == null)
+                    {
+                        effectiveDictionary.Remove(pair.Key);
+                    }
+                    else
+                    {
+                        effectiveDictionary[pair.Key] = pair.Value;
+                    }
+                }
+            }
+
+            return effectiveDictionary;
         }
     }
 }

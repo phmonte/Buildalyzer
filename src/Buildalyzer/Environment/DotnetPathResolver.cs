@@ -9,8 +9,6 @@ namespace Buildalyzer.Environment
 {
     internal static class DotnetPathResolver
     {
-        const string DOTNET_CLI_UI_LANGUAGE = nameof(DOTNET_CLI_UI_LANGUAGE);
-
         private static readonly object BasePathLock = new object();
         private static string BasePath = null;
 

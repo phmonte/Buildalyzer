@@ -37,9 +37,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProjectWithP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkProjectWithImportedProps", "tests\projects\SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj", "{99080E4E-D2E6-4764-84E8-4EABCF449963}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{22FFD58A-723B-47D1-8716-7A464FE80DB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{22FFD58A-723B-47D1-8716-7A464FE80DB4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buildalyzer.Tests", "tests\Buildalyzer.Tests\Buildalyzer.Tests.csproj", "{75A76A2E-6CBB-4BBF-9B7F-ACA308A8B5C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Tests", "tests\Buildalyzer.Tests\Buildalyzer.Tests.csproj", "{75A76A2E-6CBB-4BBF-9B7F-ACA308A8B5C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FD3A594-153D-4F6E-9D4F-12358C5C43B1}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+		ReleaseNotes.md = ReleaseNotes.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

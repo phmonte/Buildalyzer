@@ -91,7 +91,12 @@ These methods trigger compilation if it hasn't already been performed and will r
 
 Buildalyzer sets some MSBuild properties to make loading and compilation work the way it needs to (for example, to trigger a design-time build). You can view these properties with the `IReadOnlyDictionary<string, string>` property `ProjectAnalyzer.GlobalProperties`.
 
-If you want to change the configured properties before loading or compiling the project, use `ProjectAnalyzer.SetGlobalProperty(string key, string value)` and `ProjectAnalyzer.RemoveGlobalProperty(string key)`. Be careful though, you may break the ability to load, compile, or interpret the project if you change the MSBuild properties.
+If you want to change the configured properties before loading or compiling the project, there are two options:
+
+* `AnalyzerManager.SetGlobalProperty(string key, string value)` and `AnalyzerManager.RemoveGlobalProperty(string key)`. This will set the global properties for all projects loaded by this `AnalyzerManager`.
+* `ProjectAnalyzer.SetGlobalProperty(string key, string value)` and `ProjectAnalyzer.RemoveGlobalProperty(string key)`. This will set the global properties for just this project.
+
+Be careful though, you may break the ability to load, compile, or interpret the project if you change the MSBuild properties.
 
 ## Logging
 

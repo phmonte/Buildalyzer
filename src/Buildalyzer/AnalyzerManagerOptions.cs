@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Xml.Linq;
+﻿using System.IO;
 using Buildalyzer.Logging;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
@@ -27,18 +25,6 @@ namespace Buildalyzer
                 LoggerFactory = new LoggerFactory();
                 LoggerFactory.AddProvider(new TextWriterLoggerProvider(value));
             }
-        }
-
-        private static ILoggerFactory CreateLoggerFactory(TextWriter logWriter)
-        {
-            if (logWriter != null)
-            {
-                LoggerFactory loggerFactory = new LoggerFactory();
-                loggerFactory.AddProvider(new TextWriterLoggerProvider(logWriter));
-                return loggerFactory;
-            }
-
-            return null;
         }
     }
 }

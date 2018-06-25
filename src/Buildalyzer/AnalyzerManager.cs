@@ -28,6 +28,10 @@ namespace Buildalyzer
         // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
         internal BuildManager BuildManager { get; }
 
+        internal Dictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        internal Dictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         public string SolutionDirectory { get; }
 
         public AnalyzerManager(AnalyzerManagerOptions options = null)
@@ -130,6 +134,22 @@ namespace Buildalyzer
             }
 
             return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment);
+        }
+
+        public void SetGlobalProperty(string key, string value)
+        {
+            GlobalProperties[key] = value;
+        }
+
+        public void RemoveGlobalProperty(string key)
+        {
+            // Nulls are removed before passing to MSBuild and can be used to ignore values in lower-precedence collections
+            GlobalProperties[key] = null;
+        }
+
+        public void SetEnvironmentVariable(string key, string value)
+        {
+            EnvironmentVariables[key] = value;
         }
 
         private ProjectAnalyzer GetProjectInternal(string projectFilePath, XDocument projectDocument, bool checkExists, BuildEnvironment buildEnvironment)

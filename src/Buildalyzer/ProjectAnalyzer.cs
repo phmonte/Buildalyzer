@@ -19,12 +19,9 @@ namespace Buildalyzer
 {
     public class ProjectAnalyzer
     {
-        private readonly XDocument _projectDocument;
-        private readonly XElement _projectElement;
-        private readonly BuildEnvironment _buildEnvironment;
         private readonly ConsoleLogger _logger;
         private BinaryLogger _binaryLogger = null;
-
+        
         private Project _project = null;
         private ProjectInstance _compiledProject = null;
 
@@ -34,7 +31,7 @@ namespace Buildalyzer
 
         public AnalyzerManager Manager { get; }
 
-        public string ProjectFilePath { get; }
+        public ProjectFile ProjectFile { get; }
 
         /// <summary>
         /// The global properties for MSBuild. By default, each project
@@ -52,28 +49,16 @@ namespace Buildalyzer
 
         public ProjectInstance CompiledProject => Compile();
 
-        public bool IsSdkProject { get; }
+        public BuildEnvironment BuildEnvironment { get; private set; }
+
+        public string TargetFramework { get; private set; }
 
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
         {
             Manager = manager;
-            ProjectFilePath = projectFilePath;
-            _projectDocument = projectDocument ?? XDocument.Load(projectFilePath);
-            manager.ProjectTransformer.Apply(_projectDocument);
-
-            _projectElement = _projectDocument.GetDescendants("Project").FirstOrDefault();
-            if(_projectElement == null)
-            {
-                throw new ArgumentException("Unrecognized project file format");
-            }
-            IsSdkProject = GetIsSdkProject(_projectElement); 
-
-            // Get the paths
-            _buildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectElement, IsSdkProject);
-            if (_buildEnvironment == null)
-            {
-                throw new ArgumentException("Unrecognized project file format");
-            }
+            ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
+            SetTargetFramework(null, false);
+            SetBuildEnvironment(buildEnvironment);
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
@@ -89,16 +74,36 @@ namespace Buildalyzer
             }
         }
 
-        // Check for an SDK attribute on the project element
-        // If no <Project> attribute, check for a SDK import (see https://github.com/Microsoft/msbuild/issues/1493)
-        private bool GetIsSdkProject(XElement projectElement) =>
-            projectElement.GetAttributeValue("Sdk") != null || projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null);
+        private void InvalidateCache()
+        {
+            _project = null;
+            _compiledProject = null;
+        }
 
+        public void SetBuildEnvironment(BuildEnvironment buildEnvironment)
+        {
+            buildEnvironment?.Validate();
+            BuildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(ProjectFile, TargetFramework);
+            InvalidateCache();
+        }
+
+        public void SetTargetFramework(string targetFramework, bool recalculateBuildEnvironment = true)
+        {
+            TargetFramework = string.IsNullOrWhiteSpace(targetFramework)
+                ? ProjectFile.TargetFrameworks.FirstOrDefault()
+                : targetFramework;
+            if(recalculateBuildEnvironment)
+            {
+                SetBuildEnvironment(null);
+            }
+            InvalidateCache();
+        }
+        
         public ProjectAnalyzer WithBinaryLog(string binaryLogFilePath = null)
         {
             _binaryLogger = new BinaryLogger
             {
-                Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFilePath, "binlog"),
+                Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
                 CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
             };
             return this;
@@ -118,13 +123,13 @@ namespace Buildalyzer
             // Load the project
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {               
-                using (XmlReader projectReader = _projectDocument.CreateReader())
+                using (XmlReader projectReader = ProjectFile.CreateReader(TargetFramework))
                 {
-                    var xml = ProjectRootElement.Create(projectReader, projectCollection);
+                    ProjectRootElement xml = ProjectRootElement.Create(projectReader, projectCollection);
 
                     // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                    xml.FullPath = ProjectFilePath;
+                    xml.FullPath = ProjectFile.Path;
 
                     _project = new Project(xml, effectiveGlobalProperties, null, projectCollection);
                 }
@@ -136,7 +141,7 @@ namespace Buildalyzer
         {
             ProjectCollection projectCollection = new ProjectCollection(globalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
-            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, _buildEnvironment.ToolsPath, projectCollection, string.Empty));
+            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, BuildEnvironment.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
             return projectCollection;
         }
@@ -166,16 +171,16 @@ namespace Buildalyzer
             }
 
             // Some project types can't be built from .NET Core
-            if (BuildEnvironment.IsRunningOnCoreClr)
+            if (BuildEnvironment.IsRunningOnCore)
             {
                 // Portable projects
-                if (_projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Project").EndsWith("Microsoft.Portable.CSharp.targets")))
+                if (ProjectFile.IsPortable)
                 {
                     throw new Exception("Can't build portable class library projects from a .NET Core host");
                 }
 
                 // Legacy framework projects with PackageReference
-                if (!IsSdkProject && _projectElement.GetDescendants("PackageReference").Any())
+                if (!ProjectFile.UsesSdk && ProjectFile.ContainsPackageReferences)
                 {
                     throw new Exception("Can't build legacy projects that contain PackageReference from a .NET Core host");
                 }
@@ -212,7 +217,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetSourceFiles() =>
             Compile()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
 
         public IReadOnlyList<string> GetReferences() =>
@@ -224,43 +229,33 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetProjectReferences() =>
             Compile()?.Items
                 .Where(x => x.ItemType == "ProjectReference")
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
 
         public void SetGlobalProperty(string key, string value)
         {
-            if (_project != null)
-            {
-                throw new InvalidOperationException("Can not change global properties once project has been loaded");
-            }
             _globalProperties[key] = value;
+            InvalidateCache();
         }
 
         public void RemoveGlobalProperty(string key)
         {
-            if (_project != null)
-            {
-                throw new InvalidOperationException("Can not change global properties once project has been loaded");
-            }
-
             // Nulls are removed before passing to MSBuild and can be used to ignore values in lower-precedence collections
             _globalProperties[key] = null;
+            InvalidateCache();
         }
 
         public void SetEnvironmentVariable(string key, string value)
         {
-            if (_project != null)
-            {
-                throw new InvalidOperationException("Can not change environment variables once project has been loaded");
-            }
             _environmentVariables[key] = value;
+            InvalidateCache();
         }
 
         // Note the order of precedence (from least to most)
         private Dictionary<string, string> GetEffectiveGlobalProperties()
             => GetEffectiveDictionary(
                 true,  // Remove nulls to avoid passing null global properties. But null can be used in higher-precident dictionaries to ignore a lower-precident dictionary's value.
-                _buildEnvironment.GlobalProperties,
+                BuildEnvironment.GlobalProperties,
                 Manager.GlobalProperties,
                 _globalProperties);
 
@@ -268,13 +263,13 @@ namespace Buildalyzer
         private Dictionary<string, string> GetEffectiveEnvironmentVariables()
             => GetEffectiveDictionary(
                 false, // Don't remove nulls as a null value will unset the env var which may be set by a calling process.
-                _buildEnvironment.EnvironmentVariables,
+                BuildEnvironment.EnvironmentVariables,
                 Manager.EnvironmentVariables,
                 _environmentVariables);
 
         private static Dictionary<string, string> GetEffectiveDictionary(
             bool removeNulls,
-            params IDictionary<string, string>[] innerDictionaries)
+            params IReadOnlyDictionary<string, string>[] innerDictionaries)
         {
             var effectiveDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var innerDictionary in innerDictionaries)

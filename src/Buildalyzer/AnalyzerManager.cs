@@ -152,10 +152,12 @@ namespace Buildalyzer
             EnvironmentVariables[key] = value;
         }
 
-        private ProjectAnalyzer GetProjectInternal(string projectFilePath, XDocument projectDocument, bool checkExists, BuildEnvironment buildEnvironment)
+        private ProjectAnalyzer GetProjectInternal(
+            string projectFilePath,
+            XDocument projectDocument,
+            bool checkExists,
+            BuildEnvironment buildEnvironment)
         {
-            buildEnvironment?.Validate();
-
             // Normalize as .sln uses backslash regardless of OS the sln is created on
             projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
             projectFilePath = ValidatePath(projectFilePath, checkExists);

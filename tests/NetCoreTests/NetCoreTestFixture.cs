@@ -135,7 +135,7 @@ namespace NetCoreTests
             AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
 
             // Then
-            manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
+            manager.Projects.Any(x => x.Value.ProjectFile.Path.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
         [Test]

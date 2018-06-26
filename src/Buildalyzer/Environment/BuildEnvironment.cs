@@ -4,10 +4,15 @@ using System.IO;
 
 namespace Buildalyzer.Environment
 {
+    /// <summary>
+    /// An immutable representation of a particular build environment (paths, properties, etc).
+    /// </summary>
     public sealed class BuildEnvironment
     {
-        public static bool IsRunningOnCoreClr =>
-            Type.GetType("System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", false) != null;
+        // https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.runtimeinformation.frameworkdescription
+        public static bool IsRunningOnCore =>
+            System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                .Replace(" ", string.Empty).Trim().StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase);
 
         public string MsBuildExePath { get; }
 
@@ -19,11 +24,17 @@ namespace Buildalyzer.Environment
 
         public string ToolsPath => Path.GetDirectoryName(MsBuildExePath);
         
-        internal Dictionary<string, string> GlobalProperties { get; }
+        internal IReadOnlyDictionary<string, string> GlobalProperties { get; }
 
-        internal Dictionary<string, string> EnvironmentVariables { get; }
-
-        public BuildEnvironment(string msBuildExePath, string extensionsPath, string sdksPath, string roslynTargetsPath)
+        internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+        
+        public BuildEnvironment(
+            string msBuildExePath,
+            string extensionsPath,
+            string sdksPath,
+            string roslynTargetsPath,
+            IDictionary<string, string> additionalGlobalProperties = null,
+            IDictionary<string, string> additionalEnvironmentVariables = null)
         {
             // Check if we've already specified a path to MSBuild
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
@@ -36,7 +47,7 @@ namespace Buildalyzer.Environment
 
             // Set default global properties
             // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
-            GlobalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            Dictionary<string, string> globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { MsBuildProperties.DesignTimeBuild, "true" },
                 { MsBuildProperties.BuildProjectReferences, "false" },
@@ -52,8 +63,16 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
                 { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
             };
+            if(additionalGlobalProperties != null)
+            {
+                foreach(var globalProperty in additionalGlobalProperties)
+                {
+                    globalProperties[globalProperty.Key] = globalProperty.Value;
+                }
+            }
+            GlobalProperties = globalProperties;
 
-            EnvironmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            Dictionary<string, string> environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
@@ -61,6 +80,14 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
                 { Environment.EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
             };
+            if (additionalEnvironmentVariables != null)
+            {
+                foreach (var environmentVariable in additionalEnvironmentVariables)
+                {
+                    environmentVariables[environmentVariable.Key] = environmentVariable.Value;
+                }
+            }
+            EnvironmentVariables = environmentVariables;
         }
 
         internal void Validate()

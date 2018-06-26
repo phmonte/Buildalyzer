@@ -78,32 +78,5 @@ namespace BuildalyzerTests
   </ItemGroup>
 </Project>");
         }
-
-        [Test]
-        public void RemovesMultipleTargets()
-        {
-            // Given
-            XDocument projectDocument = XDocument.Parse(@"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include=""Microsoft.Extensions.Logging"" Version=""2.0.0"" />
-  </ItemGroup>
-</Project>");
-
-            // When
-            ProjectTransformer.RemoveMultipleTargets(projectDocument);
-
-            // Then
-            projectDocument.ToString().ShouldBe(@"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard1.1</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include=""Microsoft.Extensions.Logging"" Version=""2.0.0"" />
-  </ItemGroup>
-</Project>");
-        }
     }
 }

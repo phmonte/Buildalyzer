@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -8,40 +9,38 @@ namespace Buildalyzer.Environment
 {
     internal abstract class EnvironmentFactory
     {
-        public static BuildEnvironment GetBuildEnvironment(string projectPath, XElement projectElement, bool isSdkProject)
+        public static BuildEnvironment GetBuildEnvironment(ProjectFile projectFile, string targetFramework)
         {                
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
-            if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
+            if (BuildEnvironment.IsRunningOnCore)
             {
-                return CreateCoreEnvironment(projectPath);
+                return CreateCoreEnvironment(projectFile.Path);
             }
 
             // If this is an SDK project, check the target framework
-            if (isSdkProject)
+            if (projectFile.UsesSdk)
             {
                 // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
                 // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
-                string targetFramework = projectElement.GetDescendants("TargetFramework").FirstOrDefault()?.Value;
                 if (targetFramework != null
                     && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                     && targetFramework.Length > 3
                     && char.IsDigit(targetFramework[4]))
                 {
-                    return CreateFrameworkEnvironment(projectPath, true);
+                    return CreateFrameworkEnvironment(projectFile.Path, true);
                 }
 
                 // Otherwise use the .NET Core SDK
-                return CreateCoreEnvironment(projectPath);
+                return CreateCoreEnvironment(projectFile.Path);
             }
 
             // Use Framework tools if a ToolsVersion attribute
-            if (projectElement.GetAttributeValue("ToolsVersion") != null)
+            if (projectFile.ToolsVersion != null)
             {
-                return CreateFrameworkEnvironment(projectPath, false);
+                return CreateFrameworkEnvironment(projectFile.Path, false);
             }
 
-            return null;
+            throw new Exception("Could not determine build environment");
         }
 
         // Based on code from OmniSharp
@@ -82,16 +81,20 @@ namespace Buildalyzer.Environment
             string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(projectPath) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
 
-            BuildEnvironment buildEnvironment = new BuildEnvironment(msBuildExePath, extensionsPath, sdksPath, roslynTargetsPath);
-
             // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
             string vsRoot = Path.Combine(extensionsPath, @"..\");
-            buildEnvironment.GlobalProperties[MsBuildProperties.CodeAnalysisRuleDirectories] =
-                Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules"));
-            buildEnvironment.GlobalProperties[MsBuildProperties.CodeAnalysisRuleSetDirectories] =
-                Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets"));
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>
+            {
+                { MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")) },
+                { MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")) }
+            };
 
-            return buildEnvironment;
+            return new BuildEnvironment(
+                msBuildExePath,
+                extensionsPath,
+                sdksPath,
+                roslynTargetsPath,
+                additionalGlobalProperties);
         }
     }
 }

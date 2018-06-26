@@ -47,7 +47,7 @@ namespace NetCoreIntegrationTests
             foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
             {
                 // When
-                analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFilePath), "integration.binlog")));
+                analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), "integration.binlog")));
                 ProjectInstance projectInstance = analyzer.Compile();
 
                 // Then

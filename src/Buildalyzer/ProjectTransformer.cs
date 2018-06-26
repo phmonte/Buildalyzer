@@ -28,7 +28,6 @@ namespace Buildalyzer
             {
                 AddSkipGetTargetFrameworkProperties(projectDocument);
                 RemoveEnsureNuGetPackageBuildImports(projectDocument);
-                RemoveMultipleTargets(projectDocument);
             }
         }
 
@@ -48,16 +47,6 @@ namespace Buildalyzer
                 projectDocument.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
             {
                 ensureNuGetPackageBuildImports.Remove();
-            }
-        }
-
-        // Converts a multi-targets project to a single target (the first one)
-        public static void RemoveMultipleTargets(XDocument projectDocument)
-        {
-            foreach (XElement targetFrameworks in projectDocument.GetDescendants("TargetFrameworks").ToArray())
-            {
-                targetFrameworks.Name = "TargetFramework";
-                targetFrameworks.Value = targetFrameworks.Value.Split(';')[0].Trim();
             }
         }
     }

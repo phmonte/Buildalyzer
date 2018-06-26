@@ -20,6 +20,7 @@ namespace Buildalyzer
     public class ProjectAnalyzer
     {
         private readonly XDocument _projectDocument;
+        private readonly XElement _projectElement;
         private readonly BuildEnvironment _buildEnvironment;
         private readonly ConsoleLogger _logger;
         private BinaryLogger _binaryLogger = null;
@@ -51,6 +52,8 @@ namespace Buildalyzer
 
         public ProjectInstance CompiledProject => Compile();
 
+        public bool IsSdkProject { get; }
+
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
         {
             Manager = manager;
@@ -58,8 +61,19 @@ namespace Buildalyzer
             _projectDocument = projectDocument ?? XDocument.Load(projectFilePath);
             manager.ProjectTransformer.Apply(_projectDocument);
 
+            _projectElement = _projectDocument.GetDescendants("Project").FirstOrDefault();
+            if(_projectElement == null)
+            {
+                throw new ArgumentException("Unrecognized project file format");
+            }
+            IsSdkProject = GetIsSdkProject(_projectElement); 
+
             // Get the paths
-            _buildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectDocument);
+            _buildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(projectFilePath, _projectElement, IsSdkProject);
+            if (_buildEnvironment == null)
+            {
+                throw new ArgumentException("Unrecognized project file format");
+            }
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
@@ -74,6 +88,11 @@ namespace Buildalyzer
                 _logger = new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null);
             }
         }
+
+        // Check for an SDK attribute on the project element
+        // If no <Project> attribute, check for a SDK import (see https://github.com/Microsoft/msbuild/issues/1493)
+        private bool GetIsSdkProject(XElement projectElement) =>
+            projectElement.GetAttributeValue("Sdk") != null || projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null);
 
         public ProjectAnalyzer WithBinaryLog(string binaryLogFilePath = null)
         {
@@ -91,15 +110,13 @@ namespace Buildalyzer
             {
                 return _project;
             }
-
-            var effectiveGlobalProperties = GetEffectiveGlobalProperties();
-            var effectiveEnvironmentVariables = GetEffectiveEnvironmentVariables();
-
+            
             // Create a project collection for each project since the toolset might change depending on the type of project
+            var effectiveGlobalProperties = GetEffectiveGlobalProperties();
             ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
 
             // Load the project
-            using (new TemporaryEnvironment(effectiveEnvironmentVariables))
+            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {               
                 using (XmlReader projectReader = _projectDocument.CreateReader())
                 {
@@ -148,10 +165,24 @@ namespace Buildalyzer
                 return null;
             }
 
-            var effectiveEnvironmentVariables = GetEffectiveEnvironmentVariables();
+            // Some project types can't be built from .NET Core
+            if (BuildEnvironment.IsRunningOnCoreClr)
+            {
+                // Portable projects
+                if (_projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Project").EndsWith("Microsoft.Portable.CSharp.targets")))
+                {
+                    throw new Exception("Can't build portable class library projects from a .NET Core host");
+                }
+
+                // Legacy framework projects with PackageReference
+                if (!IsSdkProject && _projectElement.GetDescendants("PackageReference").Any())
+                {
+                    throw new Exception("Can't build legacy projects that contain PackageReference from a .NET Core host");
+                }
+            }
 
             // Compile the project
-            using (new TemporaryEnvironment(effectiveEnvironmentVariables))
+            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {
                 ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
                 List<string> targets = new List<string>();

@@ -138,6 +138,19 @@ namespace NetCoreTests
             manager.Projects.Any(x => x.Value.ProjectFilePath.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
+        [Test]
+        public void ThrowsForLegacyFrameworkProjectWithPackageReference()
+        {
+            // Given
+            AnalyzerManager manager = new AnalyzerManager();
+            ProjectAnalyzer analyzer = manager.GetProject(GetProjectPath(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj"));
+            Project project = analyzer.Load();
+
+            // When, Then
+            project.ShouldNotBeNull();
+            Should.Throw<Exception>(() => analyzer.Compile());            
+        }
+
         private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
             new AnalyzerManager(new AnalyzerManagerOptions
             {

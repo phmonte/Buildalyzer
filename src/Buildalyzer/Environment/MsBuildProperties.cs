@@ -18,6 +18,10 @@
         public const string DisableRarCache = nameof(DisableRarCache);
         public const string AutoGenerateBindingRedirects = nameof(AutoGenerateBindingRedirects);
 
+        // .NET Framework code analysis rulesets
+        public const string CodeAnalysisRuleDirectories = nameof(CodeAnalysisRuleDirectories);
+        public const string CodeAnalysisRuleSetDirectories = nameof(CodeAnalysisRuleSetDirectories);
+
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);
     }

@@ -6,16 +6,19 @@ namespace Buildalyzer.Environment
 {
     public sealed class BuildEnvironment
     {
-        public string MsBuildExePath { get; set; }
+        public static bool IsRunningOnCoreClr =>
+            Type.GetType("System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", false) != null;
 
-        public string ExtensionsPath { get; set; }
+        public string MsBuildExePath { get; }
 
-        public string SDKsPath { get; set; }
+        public string ExtensionsPath { get; }
 
-        public string RoslynTargetsPath { get; set; }
+        public string SDKsPath { get; }
+
+        public string RoslynTargetsPath { get; }
 
         public string ToolsPath => Path.GetDirectoryName(MsBuildExePath);
-
+        
         internal Dictionary<string, string> GlobalProperties { get; }
 
         internal Dictionary<string, string> EnvironmentVariables { get; }

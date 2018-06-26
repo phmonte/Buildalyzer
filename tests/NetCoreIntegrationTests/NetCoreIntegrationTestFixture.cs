@@ -9,10 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace IntegrationTests
+namespace NetCoreIntegrationTests
 {
     [TestFixture]
-    public class IntegrationTestFixture
+    public class NetCoreIntegrationTestFixture
     {
         private static string[] _repositories =
         {
@@ -28,7 +28,8 @@ namespace IntegrationTests
 			"https://github.com/dotnet/roslyn.git",
 			"https://github.com/Reactive-Extensions/Rx.NET.git",
 			"https://github.com/serilog/serilog.git",
-			"https://github.com/Abc-Arbitrage/ZeroLog.git"
+			"https://github.com/Abc-Arbitrage/ZeroLog.git",
+            "https://github.com/cake-build/cake"
         };
 
 
@@ -46,11 +47,12 @@ namespace IntegrationTests
             foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
             {
                 // When
-                //analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFilePath), "integration.binlog")));
+                analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFilePath), "integration.binlog")));
                 ProjectInstance projectInstance = analyzer.Compile();
 
                 // Then
                 projectInstance.ShouldNotBeNull(log.ToString());
+                analyzer.GetSourceFiles().Count.ShouldBeGreaterThan(0);
             }
         }
 
@@ -85,7 +87,7 @@ namespace IntegrationTests
         {
             string path = Path.GetFullPath(
                 Path.Combine(
-                    Path.GetDirectoryName(typeof(IntegrationTestFixture).Assembly.Location),
+                    Path.GetDirectoryName(typeof(NetCoreIntegrationTestFixture).Assembly.Location),
                     @"..\..\..\..\repos\" + Path.GetFileNameWithoutExtension(repository)));
 
             return path.Replace('\\', Path.DirectorySeparatorChar);

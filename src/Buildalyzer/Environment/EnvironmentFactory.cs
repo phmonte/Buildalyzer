@@ -8,50 +8,40 @@ namespace Buildalyzer.Environment
 {
     internal abstract class EnvironmentFactory
     {
-        public static BuildEnvironment GetBuildEnvironment(string projectPath, XDocument projectDocument)
-        {
-            XElement projectElement = projectDocument.GetDescendants("Project").FirstOrDefault();
-            if (projectElement != null)
+        public static BuildEnvironment GetBuildEnvironment(string projectPath, XElement projectElement, bool isSdkProject)
+        {                
+            // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
+            if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
             {
-                // Does this project use the SDK?
-                // Check for an SDK attribute on the project element
-                // If no <Project> attribute, check for a SDK import (see https://github.com/Microsoft/msbuild/issues/1493)
-                bool sdkProject = projectElement.GetAttributeValue("Sdk") != null
-                    || projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Sdk") != null);
-                
-                // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
-                if (System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                    .Replace(" ", "").StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase))
-                {
-                    return CreateCoreEnvironment(projectPath);
-                }
-
-                // If this is an SDK project, check the target framework
-                if (sdkProject)
-                {
-                    // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
-                    // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
-                    string targetFramework = projectElement.GetDescendants("TargetFramework").FirstOrDefault()?.Value;
-                    if (targetFramework != null
-                        && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
-                        && targetFramework.Length > 3
-                        && char.IsDigit(targetFramework[4]))
-                    {
-                        return CreateFrameworkEnvironment(projectPath, true);
-                    }
-
-                    // Otherwise use the .NET Core SDK
-                    return CreateCoreEnvironment(projectPath);
-                }
-
-                // Use Framework tools if a ToolsVersion attribute
-                if (projectElement.GetAttributeValue("ToolsVersion") != null)
-                {
-                    return CreateFrameworkEnvironment(projectPath, false);
-                }
+                return CreateCoreEnvironment(projectPath);
             }
 
-            throw new InvalidOperationException("Unrecognized project file format");
+            // If this is an SDK project, check the target framework
+            if (isSdkProject)
+            {
+                // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
+                // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
+                string targetFramework = projectElement.GetDescendants("TargetFramework").FirstOrDefault()?.Value;
+                if (targetFramework != null
+                    && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                    && targetFramework.Length > 3
+                    && char.IsDigit(targetFramework[4]))
+                {
+                    return CreateFrameworkEnvironment(projectPath, true);
+                }
+
+                // Otherwise use the .NET Core SDK
+                return CreateCoreEnvironment(projectPath);
+            }
+
+            // Use Framework tools if a ToolsVersion attribute
+            if (projectElement.GetAttributeValue("ToolsVersion") != null)
+            {
+                return CreateFrameworkEnvironment(projectPath, false);
+            }
+
+            return null;
         }
 
         // Based on code from OmniSharp
@@ -91,7 +81,17 @@ namespace Buildalyzer.Environment
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
             string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(projectPath) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
-            return new BuildEnvironment(msBuildExePath, extensionsPath, sdksPath, roslynTargetsPath);
+
+            BuildEnvironment buildEnvironment = new BuildEnvironment(msBuildExePath, extensionsPath, sdksPath, roslynTargetsPath);
+
+            // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
+            string vsRoot = Path.Combine(extensionsPath, @"..\");
+            buildEnvironment.GlobalProperties[MsBuildProperties.CodeAnalysisRuleDirectories] =
+                Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules"));
+            buildEnvironment.GlobalProperties[MsBuildProperties.CodeAnalysisRuleSetDirectories] =
+                Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets"));
+
+            return buildEnvironment;
         }
     }
 }

@@ -49,9 +49,9 @@ namespace Buildalyzer.Workspaces
             }
 
             // Get or create an ID for this project
-            string projectGuid = analyzer.CompiledProject?.GetPropertyValue("ProjectGuid");
+            string projectGuid = analyzer.ProjectInstance?.GetPropertyValue("ProjectGuid");
             ProjectId projectId = !string.IsNullOrEmpty(projectGuid)
-                && Guid.TryParse(analyzer.CompiledProject?.GetPropertyValue("ProjectGuid"), out var projectIdGuid) 
+                && Guid.TryParse(analyzer.ProjectInstance?.GetPropertyValue("ProjectGuid"), out var projectIdGuid) 
                 ? ProjectId.CreateFromSerialized(projectIdGuid) 
                 : ProjectId.CreateNewId();
 
@@ -106,7 +106,7 @@ namespace Buildalyzer.Workspaces
                 projectName,
                 languageName,
                 filePath: analyzer.ProjectFile.Path,
-                outputFilePath: analyzer.CompiledProject?.GetPropertyValue("TargetPath"),
+                outputFilePath: analyzer.ProjectInstance?.GetPropertyValue("TargetPath"),
                 documents: GetDocuments(analyzer, projectId),
                 projectReferences: GetExistingProjectReferences(analyzer, workspace),
                 metadataReferences: GetMetadataReferences(analyzer),

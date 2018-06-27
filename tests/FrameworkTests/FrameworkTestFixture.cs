@@ -27,6 +27,7 @@ namespace FrameworkTests
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
+            @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
             @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
             @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
@@ -55,7 +56,7 @@ namespace FrameworkTests
             //analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
 
             // When
-            ProjectInstance projectInstance = analyzer.Compile();
+            ProjectInstance projectInstance = analyzer.Build();
 
             // Then
             projectInstance.ShouldNotBeNull(log.ToString());
@@ -72,6 +73,7 @@ namespace FrameworkTests
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
+            sourceFiles.ShouldNotBeNull(log.ToString());
             sourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
             {
                 "Class1",
@@ -81,17 +83,32 @@ namespace FrameworkTests
         }
 
         [Test]
-        public void GetsAlternateTargetSourceFiles()
-        {
+        public void SetTargetGetsSourceFiles()
+        {            
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            analyzer.SetTargetFramework("netstandard2.0");
+            analyzer.SetTargetFramework("net462");
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
+            sourceFiles.ShouldNotBeNull(log.ToString());
+            sourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            {
+                "Class1",
+                "AssemblyAttributes",
+                "AssemblyInfo"
+            }, true, log.ToString());
+
+            // When
+            log.GetStringBuilder().Clear();
+            analyzer.SetTargetFramework("netstandard2.0");
+            sourceFiles = analyzer.GetSourceFiles();
+
+            // Then
+            sourceFiles.ShouldNotBeNull(log.ToString());
             sourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
             {
                 "Class2",
@@ -119,6 +136,7 @@ namespace FrameworkTests
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
+            sourceFiles.ShouldNotBeNull(log.ToString());
             sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"), log.ToString());
         }
 
@@ -133,10 +151,11 @@ namespace FrameworkTests
             IReadOnlyList<string> references = analyzer.GetReferences() ?? new List<string>();
 
             // Then
+            references.ShouldNotBeNull(log.ToString());
             references.ShouldContain(x => x.EndsWith("mscorlib.dll"), log.ToString());
             if (projectFile.Contains("PackageReference"))
             {
-                references.ShouldContain(x => x.EndsWith("Newtonsoft.Json.dll"), log.ToString());
+                references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
             }
         }
 

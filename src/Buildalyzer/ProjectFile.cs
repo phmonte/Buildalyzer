@@ -14,6 +14,11 @@ namespace Buildalyzer
         private readonly XElement _projectElement;
 
         /// <summary>
+        /// Indicates if this project file was passed in directly as XML content.
+        /// </summary>
+        public bool Virtual { get; }
+
+        /// <summary>
         /// The full path to the project file.
         /// </summary>
         public string Path { get; }
@@ -26,6 +31,7 @@ namespace Buildalyzer
         internal ProjectFile(string path, XDocument document, ProjectTransformer transformer)
         {
             Path = path;
+            Virtual = document != null;
             _document = document ?? XDocument.Load(path);
             transformer.Apply(_document);
 

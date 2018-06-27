@@ -32,7 +32,6 @@ namespace NetCoreIntegrationTests
             "https://github.com/cake-build/cake"
         };
 
-
         [TestCaseSource(nameof(_repositories))]
         public void CompilesProject(string repository)
         {
@@ -48,7 +47,7 @@ namespace NetCoreIntegrationTests
             {
                 // When
                 analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), "integration.binlog")));
-                ProjectInstance projectInstance = analyzer.Compile();
+                ProjectInstance projectInstance = analyzer.Build();
 
                 // Then
                 projectInstance.ShouldNotBeNull(log.ToString());

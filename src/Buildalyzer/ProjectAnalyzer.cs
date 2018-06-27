@@ -23,7 +23,7 @@ namespace Buildalyzer
         private BinaryLogger _binaryLogger = null;
         
         private Project _project = null;
-        private ProjectInstance _compiledProject = null;
+        private ProjectInstance _projectInstance = null;
 
         // Project-specific global properties and environment variables
         private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -47,7 +47,7 @@ namespace Buildalyzer
 
         public Project Project => Load();
 
-        public ProjectInstance CompiledProject => Compile();
+        public ProjectInstance ProjectInstance => Build();
 
         public BuildEnvironment BuildEnvironment { get; private set; }
 
@@ -74,25 +74,48 @@ namespace Buildalyzer
             }
         }
 
-        private void InvalidateCache()
+        /// <summary>
+        /// Invalidates the cached build data and will result in new builds.
+        /// </summary>
+        public void InvalidateCache()
         {
             _project = null;
-            _compiledProject = null;
+            _projectInstance = null;
+            Manager.BuildManager.ResetCaches();
         }
 
+        /// <summary>
+        /// Sets the build environment that should be used.
+        /// </summary>
+        /// <param name="buildEnvironment">
+        /// The new build environment.
+        /// Passing in <c>null</c> indicates that the build environment should be reset to the default value.
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </param>
         public void SetBuildEnvironment(BuildEnvironment buildEnvironment)
         {
-            buildEnvironment?.Validate();
-            BuildEnvironment = buildEnvironment ?? EnvironmentFactory.GetBuildEnvironment(ProjectFile, TargetFramework);
+            BuildEnvironment = buildEnvironment ?? new EnvironmentFactory(Manager, ProjectFile).GetBuildEnvironment(TargetFramework);
             InvalidateCache();
         }
 
+        /// <summary>
+        /// Sets the target framework to be used for builds.
+        /// </summary>
+        /// <param name="targetFramework">
+        /// The target framework to use.
+        /// Passing in <c>null</c> indicates that the target framework should be reset to the default value
+        /// (the first target framework in the project file).
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </param>
+        /// <param name="recalculateBuildEnvironment">
+        /// Indicates if the build environment should be recalculated when changing the target framework.
+        /// </param>
         public void SetTargetFramework(string targetFramework, bool recalculateBuildEnvironment = true)
         {
             TargetFramework = string.IsNullOrWhiteSpace(targetFramework)
                 ? ProjectFile.TargetFrameworks.FirstOrDefault()
                 : targetFramework;
-            if(recalculateBuildEnvironment)
+            if (recalculateBuildEnvironment)
             {
                 SetBuildEnvironment(null);
             }
@@ -137,32 +160,11 @@ namespace Buildalyzer
             }
         }
 
-        private ProjectCollection CreateProjectCollection(IDictionary<string, string> globalProperties)
+        public ProjectInstance Build()
         {
-            ProjectCollection projectCollection = new ProjectCollection(globalProperties);
-            projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
-            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, BuildEnvironment.ToolsPath, projectCollection, string.Empty));
-            projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
-            return projectCollection;
-        }
-
-        private IEnumerable<ILogger> GetLoggers()
-        {
-            if (_logger != null)
+            if (_projectInstance != null)
             {
-                yield return _logger;
-            }
-            if (_binaryLogger != null)
-            {
-                yield return _binaryLogger;
-            }
-        }
-
-        public ProjectInstance Compile()
-        {
-            if (_compiledProject != null)
-            {
-                return _compiledProject;
+                return _projectInstance;
             }
             Project project = Load();
             if (project == null)
@@ -186,48 +188,45 @@ namespace Buildalyzer
                 }
             }
 
-            // Compile the project
+            // Build the project
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {
                 ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
-                List<string> targets = new List<string>();
-                if(Manager.CleanBeforeCompile)
-                {
-                    targets.Add("Clean");
-                }
-                targets.Add("Compile");
 
                 // This is essentialy what ProjectInstance.Build() does, but it copies the BuildParameters
                 // from the ProjectCollection which is necessary for nested builds since we replaced the toolset
-                BuildResult buildResult = Manager.BuildManager.Build(
-                    new BuildParameters(project.ProjectCollection)
-                    {
-                        Loggers = GetLoggers()
-                    },
-                    new BuildRequestData(projectInstance, targets.ToArray()));
-                if (buildResult.OverallResult != BuildResultCode.Success)
+                if (BuildEnvironment.Targets.Length > 0)
                 {
-                    return null;
+                    BuildResult buildResult = Manager.BuildManager.Build(
+                        new BuildParameters(project.ProjectCollection)
+                        {
+                            Loggers = GetLoggers()
+                        },
+                        new BuildRequestData(projectInstance, BuildEnvironment.Targets));
+                    if (buildResult.OverallResult != BuildResultCode.Success)
+                    {
+                        return null;
+                    }
                 }
-                _compiledProject = projectInstance;
-                return _compiledProject;
+                _projectInstance = projectInstance;
+                return _projectInstance;
             }
         }
 
         public IReadOnlyList<string> GetSourceFiles() =>
-            Compile()?.Items
+            Build()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
                 .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
 
         public IReadOnlyList<string> GetReferences() =>
-            Compile()?.Items
+            Build()?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && x.EvaluatedInclude.StartsWith("/reference:"))
                 .Select(x => x.EvaluatedInclude.Substring(11).Trim('"'))
                 .ToList();
 
         public IReadOnlyList<string> GetProjectReferences() =>
-            Compile()?.Items
+            Build()?.Items
                 .Where(x => x.ItemType == "ProjectReference")
                 .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
@@ -288,6 +287,27 @@ namespace Buildalyzer
             }
 
             return effectiveDictionary;
+        }
+
+        private ProjectCollection CreateProjectCollection(IDictionary<string, string> globalProperties)
+        {
+            ProjectCollection projectCollection = new ProjectCollection(globalProperties);
+            projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
+            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, BuildEnvironment.ToolsPath, projectCollection, string.Empty));
+            projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
+            return projectCollection;
+        }
+
+        private IEnumerable<ILogger> GetLoggers()
+        {
+            if (_logger != null)
+            {
+                yield return _logger;
+            }
+            if (_binaryLogger != null)
+            {
+                yield return _binaryLogger;
+            }
         }
     }
 }

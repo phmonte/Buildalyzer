@@ -14,6 +14,12 @@ namespace Buildalyzer.Environment
             System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
                 .Replace(" ", string.Empty).Trim().StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase);
 
+        // Used for cloning
+        private IDictionary<string, string> _additionalGlobalProperties;
+        private IDictionary<string, string> _additionalEnvironmentVariables;
+
+        public string[] Targets { get; }
+
         public string MsBuildExePath { get; }
 
         public string ExtensionsPath { get; }
@@ -27,8 +33,9 @@ namespace Buildalyzer.Environment
         internal IReadOnlyDictionary<string, string> GlobalProperties { get; }
 
         internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
-        
+
         public BuildEnvironment(
+            string[] targets,
             string msBuildExePath,
             string extensionsPath,
             string sdksPath,
@@ -36,14 +43,20 @@ namespace Buildalyzer.Environment
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
+            Targets = targets ?? throw new ArgumentNullException(nameof(targets));
+
             // Check if we've already specified a path to MSBuild
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
             MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
                 ? envMsBuildExePath : msBuildExePath;
+            if(MsBuildExePath == null)
+            {
+                throw new ArgumentNullException(nameof(msBuildExePath));
+            }
 
-            ExtensionsPath = extensionsPath;
-            SDKsPath = sdksPath;
-            RoslynTargetsPath = roslynTargetsPath;
+            ExtensionsPath = extensionsPath ?? throw new ArgumentNullException(nameof(extensionsPath));
+            SDKsPath = sdksPath ?? throw new ArgumentNullException(nameof(sdksPath));
+            RoslynTargetsPath = roslynTargetsPath ?? throw new ArgumentNullException(nameof(roslynTargetsPath));
 
             // Set default global properties
             // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
@@ -69,6 +82,9 @@ namespace Buildalyzer.Environment
                 {
                     globalProperties[globalProperty.Key] = globalProperty.Value;
                 }
+
+                // Copy to a new dictionary in case the source dictionary is mutated
+                _additionalGlobalProperties = new Dictionary<string, string>(additionalGlobalProperties);
             }
             GlobalProperties = globalProperties;
 
@@ -86,28 +102,30 @@ namespace Buildalyzer.Environment
                 {
                     environmentVariables[environmentVariable.Key] = environmentVariable.Value;
                 }
+
+                // Copy to a new dictionary in case the source dictionary is mutated
+                _additionalEnvironmentVariables = new Dictionary<string, string>(additionalEnvironmentVariables);
             }
             EnvironmentVariables = environmentVariables;
         }
 
-        internal void Validate()
-        {
-            if (string.IsNullOrWhiteSpace(MsBuildExePath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(MsBuildExePath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(ExtensionsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(ExtensionsPath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(SDKsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(SDKsPath)} must be provided.");
-            }
-            if (string.IsNullOrWhiteSpace(RoslynTargetsPath))
-            {
-                throw new ArgumentException($"The value for {nameof(BuildEnvironment)}.{nameof(RoslynTargetsPath)} must be provided.");
-            }
-        }
+        /// <summary>
+        /// Clones the build environment with a different set of targets.
+        /// </summary>
+        /// <param name="targets">
+        /// The targets that should be used to build the project.
+        /// Specifying an empty array indicates that the <see cref="ProjectAnalyzer"/> should
+        /// return a <see cref="Microsoft.Build.Execution.ProjectInstance"/> without building the project.
+        /// </param>
+        /// <returns>A new build environment with the specified targets.</returns>
+        public BuildEnvironment WithTargets(params string[] targets) =>
+            new BuildEnvironment(
+                targets,
+                MsBuildExePath,
+                ExtensionsPath,
+                SDKsPath,
+                RoslynTargetsPath,
+                _additionalGlobalProperties,
+                _additionalEnvironmentVariables);
     }
 }

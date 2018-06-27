@@ -7,18 +7,27 @@ using Microsoft.Build.Utilities;
 
 namespace Buildalyzer.Environment
 {
-    internal abstract class EnvironmentFactory
+    internal class EnvironmentFactory
     {
-        public static BuildEnvironment GetBuildEnvironment(ProjectFile projectFile, string targetFramework)
+        private readonly AnalyzerManager _manager;
+        private readonly ProjectFile _projectFile;
+
+        public EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile)
+        {
+            _manager = manager;
+            _projectFile = projectFile;
+        }
+
+        public BuildEnvironment GetBuildEnvironment(string targetFramework)
         {                
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
             if (BuildEnvironment.IsRunningOnCore)
             {
-                return CreateCoreEnvironment(projectFile.Path);
+                return CreateCoreEnvironment();
             }
 
             // If this is an SDK project, check the target framework
-            if (projectFile.UsesSdk)
+            if (_projectFile.UsesSdk)
             {
                 // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
                 // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
@@ -27,17 +36,17 @@ namespace Buildalyzer.Environment
                     && targetFramework.Length > 3
                     && char.IsDigit(targetFramework[4]))
                 {
-                    return CreateFrameworkEnvironment(projectFile.Path, true);
+                    //return CreateFrameworkEnvironment(true);
                 }
 
                 // Otherwise use the .NET Core SDK
-                return CreateCoreEnvironment(projectFile.Path);
+                return CreateCoreEnvironment();
             }
 
             // Use Framework tools if a ToolsVersion attribute
-            if (projectFile.ToolsVersion != null)
+            if (_projectFile.ToolsVersion != null)
             {
-                return CreateFrameworkEnvironment(projectFile.Path, false);
+                return CreateFrameworkEnvironment(false);
             }
 
             throw new Exception("Could not determine build environment");
@@ -45,17 +54,49 @@ namespace Buildalyzer.Environment
 
         // Based on code from OmniSharp
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-        private static BuildEnvironment CreateCoreEnvironment(string projectPath)
+        private BuildEnvironment CreateCoreEnvironment()
         {
-            string dotnetPath = DotnetPathResolver.ResolvePath(projectPath);
+            // Get targets
+            List<string> targets = new List<string>();
+            if (!_projectFile.Virtual)
+            {
+                // NuGet.Targets can't handle virtual project files:
+                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
+                // Also, the restore target is .NET Core only
+                targets.Add("Restore");
+            }
+            if (_manager.CleanBeforeCompile)
+            {
+                targets.Add("Clean");
+            }
+            targets.Add("Compile");
+
+            // Get paths
+            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path);
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
             string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
-            return new BuildEnvironment(msBuildExePath, dotnetPath, sdksPath, roslynTargetsPath);
+
+            return new BuildEnvironment(
+                targets.ToArray(),
+                msBuildExePath,
+                dotnetPath,
+                sdksPath,
+                roslynTargetsPath);
         }
 
-        private static BuildEnvironment CreateFrameworkEnvironment(string projectPath, bool sdkProject)
+        private BuildEnvironment CreateFrameworkEnvironment(bool sdkProject)
         {
+            // Get targets
+            List<string> targets = new List<string>();
+            targets.Add("Restore");
+            if (_manager.CleanBeforeCompile)
+            {
+                targets.Add("Clean");
+            }
+            targets.Add("Compile");
+
+            // Get paths
             string msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
             if (string.IsNullOrEmpty(msBuildExePath))
             {
@@ -78,7 +119,7 @@ namespace Buildalyzer.Environment
 
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
-            string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(projectPath) : extensionsPath, "Sdks");
+            string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
 
             // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
@@ -90,6 +131,7 @@ namespace Buildalyzer.Environment
             };
 
             return new BuildEnvironment(
+                targets.ToArray(),
                 msBuildExePath,
                 extensionsPath,
                 sdksPath,

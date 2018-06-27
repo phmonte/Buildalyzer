@@ -50,7 +50,7 @@ namespace FrameworkIntegrationTests
             {
                 // When
                 analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), "integration.binlog")));
-                ProjectInstance projectInstance = analyzer.Compile();
+                ProjectInstance projectInstance = analyzer.Build();
 
                 // Then
                 projectInstance.ShouldNotBeNull(log.ToString());

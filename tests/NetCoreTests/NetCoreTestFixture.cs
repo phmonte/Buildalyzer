@@ -71,7 +71,32 @@ namespace NetCoreTests
             IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
 
             // Then
-            sourceFiles.ShouldContain(x => x.EndsWith("Class1.cs"), log.ToString());
+            sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()).ShouldBe(new[]
+            {
+                "Class1",
+                "AssemblyAttributes",
+                "AssemblyInfo"
+            }, true, log.ToString());
+        }
+
+        [Test]
+        public void GetsAlternateTargetSourceFiles()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+
+            // When
+            analyzer.SetTargetFramework("netstandard2.0");
+            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+
+            // Then
+            sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()).ShouldBe(new[]
+            {
+                "Class2",
+                "AssemblyAttributes",
+                "AssemblyInfo"
+            }, true, log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]

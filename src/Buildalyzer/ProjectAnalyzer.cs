@@ -99,6 +99,15 @@ namespace Buildalyzer
         }
 
         /// <summary>
+        /// Creates a new <see cref="BuildEnvironment"/> and modifies the build targets
+        /// to the specified targets.
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </summary>
+        /// <param name="targetsToBuild">The targets to build.</param>
+        public void SetTargetsToBuild(params string[] targetsToBuild) =>
+            SetBuildEnvironment(BuildEnvironment.WithTargetsToBuild(targetsToBuild));
+
+        /// <summary>
         /// Sets the target framework to be used for builds.
         /// </summary>
         /// <param name="targetFramework">
@@ -127,7 +136,8 @@ namespace Buildalyzer
             _binaryLogger = new BinaryLogger
             {
                 Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
-                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed
+                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed,                
+                Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
             };
             return this;
         }
@@ -195,14 +205,14 @@ namespace Buildalyzer
 
                 // This is essentialy what ProjectInstance.Build() does, but it copies the BuildParameters
                 // from the ProjectCollection which is necessary for nested builds since we replaced the toolset
-                if (BuildEnvironment.Targets.Length > 0)
+                if (BuildEnvironment.TargetsToBuild.Length > 0)
                 {
                     BuildResult buildResult = Manager.BuildManager.Build(
                         new BuildParameters(project.ProjectCollection)
                         {
                             Loggers = GetLoggers()
                         },
-                        new BuildRequestData(projectInstance, BuildEnvironment.Targets));
+                        new BuildRequestData(projectInstance, BuildEnvironment.TargetsToBuild));
                     if (buildResult.OverallResult != BuildResultCode.Success)
                     {
                         return null;

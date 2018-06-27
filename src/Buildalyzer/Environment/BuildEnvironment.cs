@@ -18,7 +18,7 @@ namespace Buildalyzer.Environment
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
 
-        public string[] Targets { get; }
+        public string[] TargetsToBuild { get; }
 
         public string MsBuildExePath { get; }
 
@@ -35,7 +35,7 @@ namespace Buildalyzer.Environment
         internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
         public BuildEnvironment(
-            string[] targets,
+            string[] targetsToBuild,
             string msBuildExePath,
             string extensionsPath,
             string sdksPath,
@@ -43,7 +43,7 @@ namespace Buildalyzer.Environment
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
-            Targets = targets ?? throw new ArgumentNullException(nameof(targets));
+            TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
 
             // Check if we've already specified a path to MSBuild
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
@@ -74,7 +74,7 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
+                { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath }
             };
             if(additionalGlobalProperties != null)
             {
@@ -110,7 +110,7 @@ namespace Buildalyzer.Environment
         }
 
         /// <summary>
-        /// Clones the build environment with a different set of targets.
+        /// Clones the build environment with a different set of build targets.
         /// </summary>
         /// <param name="targets">
         /// The targets that should be used to build the project.
@@ -118,7 +118,7 @@ namespace Buildalyzer.Environment
         /// return a <see cref="Microsoft.Build.Execution.ProjectInstance"/> without building the project.
         /// </param>
         /// <returns>A new build environment with the specified targets.</returns>
-        public BuildEnvironment WithTargets(params string[] targets) =>
+        public BuildEnvironment WithTargetsToBuild(params string[] targets) =>
             new BuildEnvironment(
                 targets,
                 MsBuildExePath,

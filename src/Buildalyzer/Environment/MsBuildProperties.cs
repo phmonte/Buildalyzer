@@ -22,6 +22,9 @@
         public const string CodeAnalysisRuleDirectories = nameof(CodeAnalysisRuleDirectories);
         public const string CodeAnalysisRuleSetDirectories = nameof(CodeAnalysisRuleSetDirectories);
 
+        // NuGet
+        public const string ResolveNuGetPackages = nameof(ResolveNuGetPackages);
+
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);
     }

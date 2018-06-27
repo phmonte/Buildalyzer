@@ -147,7 +147,7 @@ namespace NetCoreTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences() ?? new List<string>();
+            IReadOnlyList<string> references = analyzer.GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -156,6 +156,42 @@ namespace NetCoreTests
             {
                 references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
             }
+        }
+
+        // Don't check for NodaTime.dll when using a legacy framework project and PackageReference
+        // because the legacy project system requires a non-design-time build to run the ResolveNuGetPackageAssets target
+        // TODO: use a non-design-time build for this
+        // TODO: copy the test to FrameworkTextFixture
+#if Is_Windows
+        [Test]
+        public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.GetReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+        }
+#endif
+
+        [Test]
+        public void SdkProjectWithPackageReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.GetReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
         }
 
         [Test]

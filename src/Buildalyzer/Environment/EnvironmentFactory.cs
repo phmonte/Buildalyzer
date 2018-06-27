@@ -36,7 +36,7 @@ namespace Buildalyzer.Environment
                     && targetFramework.Length > 3
                     && char.IsDigit(targetFramework[4]))
                 {
-                    //return CreateFrameworkEnvironment(true);
+                    return CreateFrameworkEnvironment(true);
                 }
 
                 // Otherwise use the .NET Core SDK
@@ -58,7 +58,7 @@ namespace Buildalyzer.Environment
         {
             // Get targets
             List<string> targets = new List<string>();
-            if (!_projectFile.Virtual)
+            if (BuildEnvironment.IsRunningOnCore && !_projectFile.Virtual)
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
@@ -89,7 +89,6 @@ namespace Buildalyzer.Environment
         {
             // Get targets
             List<string> targets = new List<string>();
-            targets.Add("Restore");
             if (_manager.CleanBeforeCompile)
             {
                 targets.Add("Clean");
@@ -122,12 +121,16 @@ namespace Buildalyzer.Environment
             string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
 
-            // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
+            // Additional global properties
             string vsRoot = Path.Combine(extensionsPath, @"..\");
             Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>
             {
+                // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
                 { MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")) },
-                { MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")) }
+                { MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")) },
+                
+                // This is required to trigger NuGet package resolution and regeneration of project.assets.json
+                { MsBuildProperties.ResolveNuGetPackages, "true" }
             };
 
             return new BuildEnvironment(

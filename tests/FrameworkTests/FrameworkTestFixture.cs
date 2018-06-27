@@ -53,7 +53,7 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            //analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
+            analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Build();
@@ -146,17 +146,29 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            //analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences() ?? new List<string>();
+            IReadOnlyList<string> references = analyzer.GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
             references.ShouldContain(x => x.EndsWith("mscorlib.dll"), log.ToString());
-            if (projectFile.Contains("PackageReference"))
-            {
-                references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
-            }
+        }
+
+        [Test]
+        public void SdkProjectWithPackageReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.GetReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
         }
 
         [Test]

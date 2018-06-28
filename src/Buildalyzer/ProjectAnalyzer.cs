@@ -19,8 +19,7 @@ namespace Buildalyzer
 {
     public class ProjectAnalyzer
     {
-        private readonly ConsoleLogger _logger;
-        private BinaryLogger _binaryLogger = null;
+        private readonly List<ILogger> _loggers = new List<ILogger>();
         
         private Project _project = null;
         private ProjectInstance _projectInstance = null;
@@ -53,12 +52,25 @@ namespace Buildalyzer
 
         public string TargetFramework { get; private set; }
 
-        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
+        public IEnumerable<ILogger> Loggers => _loggers;
+
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment, EnvironmentOptions environmentOptions)
         {
             Manager = manager;
             ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
-            SetTargetFramework(null, false);
-            SetBuildEnvironment(buildEnvironment);
+            ResetTargetFramework(false);
+            if (buildEnvironment != null)
+            {
+                SetBuildEnvironment(buildEnvironment);
+            }
+            else if(environmentOptions != null)
+            {
+                SetBuildEnvironment(environmentOptions);
+            }
+            else
+            {
+                ResetBuildEnvironment();
+            }
 
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
@@ -70,7 +82,7 @@ namespace Buildalyzer
             // Create the logger
             if(manager.ProjectLogger != null)
             {
-                _logger = new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null);
+                AddLogger(new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null));
             }
         }
 
@@ -81,20 +93,46 @@ namespace Buildalyzer
         {
             _project = null;
             _projectInstance = null;
-            Manager.BuildManager.ResetCaches();
         }
 
         /// <summary>
         /// Sets the build environment that should be used.
+        /// This will invalidate all cached build result data and result in new builds.
         /// </summary>
         /// <param name="buildEnvironment">
         /// The new build environment.
-        /// Passing in <c>null</c> indicates that the build environment should be reset to the default value.
-        /// This will invalidate all cached build result data and result in new builds.
         /// </param>
         public void SetBuildEnvironment(BuildEnvironment buildEnvironment)
         {
-            BuildEnvironment = buildEnvironment ?? new EnvironmentFactory(Manager, ProjectFile).GetBuildEnvironment(TargetFramework);
+            BuildEnvironment = buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment));
+            InvalidateCache();
+        }
+
+        /// <summary>
+        /// Sets the build environment that should be used by specifiying options.
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </summary>
+        /// <param name="options">
+        /// The new build environment options.
+        /// </param>
+        public void SetBuildEnvironment(EnvironmentOptions options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, options).GetBuildEnvironment(TargetFramework);
+            InvalidateCache();
+        }
+
+        /// <summary>
+        /// Resets the build environment to default values.
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </summary>
+        public void ResetBuildEnvironment()
+        {
+            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, null).GetBuildEnvironment(TargetFramework);
             InvalidateCache();
         }
 
@@ -109,38 +147,41 @@ namespace Buildalyzer
 
         /// <summary>
         /// Sets the target framework to be used for builds.
+        /// This will invalidate all cached build result data and result in new builds.
         /// </summary>
         /// <param name="targetFramework">
         /// The target framework to use.
-        /// Passing in <c>null</c> indicates that the target framework should be reset to the default value
-        /// (the first target framework in the project file).
-        /// This will invalidate all cached build result data and result in new builds.
         /// </param>
+        /// <param name="resetBuildEnvironment">
+        /// Indicates if the build environment should be recalculated when changing the target framework.
+        /// If this is <c>true</c> it will also reset the targets to build.
+        /// </param>
+        public void SetTargetFramework(string targetFramework, bool resetBuildEnvironment = true)
+        {
+            TargetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
+            if (resetBuildEnvironment)
+            {
+                ResetBuildEnvironment();
+            }
+            InvalidateCache();
+        }
+
+        /// <summary>
+        /// Resets the target framework to be used for builds to the first target framework in the project file.
+        /// This will invalidate all cached build result data and result in new builds.
+        /// </summary>
         /// <param name="recalculateBuildEnvironment">
         /// Indicates if the build environment should be recalculated when changing the target framework.
         /// If this is <c>true</c> it will also reset the targets to build.
         /// </param>
-        public void SetTargetFramework(string targetFramework, bool recalculateBuildEnvironment = true)
+        public void ResetTargetFramework(bool recalculateBuildEnvironment = true)
         {
-            TargetFramework = string.IsNullOrWhiteSpace(targetFramework)
-                ? ProjectFile.TargetFrameworks.FirstOrDefault()
-                : targetFramework;
+            TargetFramework = ProjectFile.TargetFrameworks.FirstOrDefault();
             if (recalculateBuildEnvironment)
             {
-                SetBuildEnvironment(null);
+                ResetBuildEnvironment();
             }
             InvalidateCache();
-        }
-        
-        public ProjectAnalyzer WithBinaryLog(string binaryLogFilePath = null)
-        {
-            _binaryLogger = new BinaryLogger
-            {
-                Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
-                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed,                
-                Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
-            };
-            return this;
         }
 
         public Project Load()
@@ -181,6 +222,10 @@ namespace Buildalyzer
             {
                 return _projectInstance;
             }
+
+            // Reset the cache before every build in case MSBuild cached something from a project reference build
+            Manager.BuildManager.ResetCaches();
+
             Project project = Load();
             if (project == null)
             {
@@ -215,7 +260,7 @@ namespace Buildalyzer
                     BuildResult buildResult = Manager.BuildManager.Build(
                         new BuildParameters(project.ProjectCollection)
                         {
-                            Loggers = GetLoggers(),
+                            Loggers = Loggers,
                             ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
                         },
                         new BuildRequestData(projectInstance, BuildEnvironment.TargetsToBuild));
@@ -314,16 +359,32 @@ namespace Buildalyzer
             return projectCollection;
         }
 
-        private IEnumerable<ILogger> GetLoggers()
+        public void AddBinaryLogger(string binaryLogFilePath = null) =>
+            AddLogger(new BinaryLogger
+            {
+                Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
+                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed,
+                Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
+            });
+
+        public void AddLogger(ILogger logger)
         {
-            if (_logger != null)
+            if (logger == null)
             {
-                yield return _logger;
+                throw new ArgumentNullException(nameof(logger));
             }
-            if (_binaryLogger != null)
+
+            _loggers.Add(logger);
+        }
+
+        public void RemoveLogger(ILogger logger)
+        {
+            if (logger == null)
             {
-                yield return _binaryLogger;
+                throw new ArgumentNullException(nameof(logger));
             }
+
+            _loggers.Remove(logger);
         }
     }
 }

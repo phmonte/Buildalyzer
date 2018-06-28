@@ -11,11 +11,13 @@ namespace Buildalyzer.Environment
     {
         private readonly AnalyzerManager _manager;
         private readonly ProjectFile _projectFile;
+        private readonly EnvironmentOptions _options;
 
-        public EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile)
+        public EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile, EnvironmentOptions options)
         {
             _manager = manager;
             _projectFile = projectFile;
+            _options = options ?? new EnvironmentOptions();
         }
 
         public BuildEnvironment GetBuildEnvironment(string targetFramework)
@@ -56,19 +58,35 @@ namespace Buildalyzer.Environment
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
         private BuildEnvironment CreateCoreEnvironment()
         {
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
+
             // Get targets
             List<string> targets = new List<string>();
-            if (!_projectFile.Virtual)
+            if (_options.RestoreTarget && !_projectFile.Virtual)
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
                 targets.Add("Restore");
             }
-            if (_manager.CleanBeforeCompile)
+            if (_options.CleanTarget)
             {
                 targets.Add("Clean");
+
+                // Required to force CoreCompile target when it calculates everything is already built
+                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+                if (_options.CompileTarget)
+                {
+                    additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
+                }
             }
-            targets.Add("Compile");
+            if(_options.CompileTarget)
+            {
+                targets.Add("Compile");
+            }
+            if(_options.BuildTarget)
+            {
+                targets.Add("Build");
+            }
 
             // Get paths
             string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path);
@@ -76,14 +94,11 @@ namespace Buildalyzer.Environment
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
             string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
 
-            // Additional global properties
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>
-            {
-                // Required to find and import the Restore target
-                { MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets" }
-            };
+            // Required to find and import the Restore target
+            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets");
 
             return new BuildEnvironment(
+                _options.DesignTime,
                 targets.ToArray(),
                 msBuildExePath,
                 dotnetPath,
@@ -94,19 +109,35 @@ namespace Buildalyzer.Environment
 
         private BuildEnvironment CreateFrameworkEnvironment()
         {
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
+
             // Get targets
             List<string> targets = new List<string>();
-            if (_projectFile.UsesSdk && !_projectFile.Virtual)
+            if (_options.RestoreTarget && _projectFile.UsesSdk && !_projectFile.Virtual)
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
                 targets.Add("Restore");
             }
-            if (_manager.CleanBeforeCompile)
+            if (_options.CleanTarget)
             {
                 targets.Add("Clean");
+
+                // Required to force CoreCompile target when it calculates everything is already built
+                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+                if (_options.CompileTarget)
+                {
+                    additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
+                }
             }
-            targets.Add("Compile");
+            if (_options.CompileTarget)
+            {
+                targets.Add("Compile");
+            }
+            if (_options.BuildTarget)
+            {
+                targets.Add("Build");
+            }
 
             // Get paths
             string msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
@@ -133,23 +164,20 @@ namespace Buildalyzer.Environment
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
             string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
-
-            // Additional global properties
+            
+            // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
             string vsRoot = Path.Combine(extensionsPath, @"..\");
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>
-            {
-                // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
-                { MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")) },
-                { MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")) },
-                
-                // This is required to trigger NuGet package resolution and regeneration of project.assets.json
-                { MsBuildProperties.ResolveNuGetPackages, "true" },
+            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")));
+            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")));
 
-                // Required to find and import the Restore target
-                { MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets" }
-            };
+            // This is required to trigger NuGet package resolution and regeneration of project.assets.json
+            additionalGlobalProperties.Add(MsBuildProperties.ResolveNuGetPackages, "true");
+
+            // Required to find and import the Restore target
+            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets");
 
             return new BuildEnvironment(
+                _options.DesignTime,
                 targets.ToArray(),
                 msBuildExePath,
                 extensionsPath,

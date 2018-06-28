@@ -28,5 +28,6 @@
 
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);
+        public const string NonExistentFile = nameof(NonExistentFile);
     }
 }

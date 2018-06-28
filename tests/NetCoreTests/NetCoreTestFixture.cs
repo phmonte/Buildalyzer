@@ -11,6 +11,7 @@ using Shouldly;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
+using Buildalyzer.Environment;
 
 namespace NetCoreTests
 {
@@ -162,27 +163,6 @@ namespace NetCoreTests
             }
         }
 
-        // Don't check for NodaTime.dll when using a legacy framework project and PackageReference
-        // because the legacy project system requires a non-design-time build to run the ResolveNuGetPackageAssets target
-        // TODO: use a non-design-time build for this
-        // TODO: copy the test to FrameworkTextFixture
-#if Is_Windows
-        [Test]
-        public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
-        {
-            // Given
-            StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
-
-            // When
-            IReadOnlyList<string> references = analyzer.GetReferences();
-
-            // Then
-            references.ShouldNotBeNull(log.ToString());
-            references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
-        }
-#endif
-
         [Test]
         public void SdkProjectWithPackageReferenceGetsReferences()
         {
@@ -251,7 +231,7 @@ namespace NetCoreTests
                 .GetProject(GetProjectPath(projectFile));
             if (BinaryLog)
             {
-                analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
+                analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
             }
             return analyzer;
         }

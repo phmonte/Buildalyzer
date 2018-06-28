@@ -148,6 +148,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="version.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj">

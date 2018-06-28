@@ -18,6 +18,8 @@ namespace Buildalyzer.Environment
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
 
+        public bool DesignTime { get; }
+
         public string[] TargetsToBuild { get; }
 
         public string MsBuildExePath { get; }
@@ -35,6 +37,7 @@ namespace Buildalyzer.Environment
         internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
         public BuildEnvironment(
+            bool designTime,
             string[] targetsToBuild,
             string msBuildExePath,
             string extensionsPath,
@@ -43,6 +46,7 @@ namespace Buildalyzer.Environment
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
+            DesignTime = designTime;
             TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
 
             // Check if we've already specified a path to MSBuild
@@ -59,23 +63,28 @@ namespace Buildalyzer.Environment
             RoslynTargetsPath = roslynTargetsPath ?? throw new ArgumentNullException(nameof(roslynTargetsPath));
 
             // Set default global properties
-            // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
             Dictionary<string, string> globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                { MsBuildProperties.DesignTimeBuild, "true" },
-                { MsBuildProperties.BuildProjectReferences, "false" },
-                { MsBuildProperties.SkipCompilerExecution, "true" },
                 { MsBuildProperties.ProvideCommandLineArgs, "true" },
-                { MsBuildProperties.DisableRarCache, "true" },
-                { MsBuildProperties.AutoGenerateBindingRedirects, "false" },
-                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
-                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
                 { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath }
+                { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
+
+                // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
+                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" }
+
+                // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
             };
+            if(DesignTime)
+            {
+                globalProperties.Add(MsBuildProperties.DesignTimeBuild, "true");
+                globalProperties.Add(MsBuildProperties.BuildProjectReferences, "false");
+                globalProperties.Add(MsBuildProperties.SkipCompilerExecution, "true");
+                globalProperties.Add(MsBuildProperties.DisableRarCache, "true");
+                globalProperties.Add(MsBuildProperties.AutoGenerateBindingRedirects, "false");
+            }
             if(additionalGlobalProperties != null)
             {
                 foreach(var globalProperty in additionalGlobalProperties)
@@ -120,6 +129,7 @@ namespace Buildalyzer.Environment
         /// <returns>A new build environment with the specified targets.</returns>
         public BuildEnvironment WithTargetsToBuild(params string[] targets) =>
             new BuildEnvironment(
+                DesignTime,
                 targets,
                 MsBuildExePath,
                 ExtensionsPath,

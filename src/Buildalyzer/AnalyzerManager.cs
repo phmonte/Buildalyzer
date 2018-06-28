@@ -22,9 +22,7 @@ namespace Buildalyzer
         internal LoggerVerbosity LoggerVerbosity { get; }
         
         internal ProjectTransformer ProjectTransformer { get; }
-
-        internal bool CleanBeforeCompile { get; }
-
+        
         // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
         internal BuildManager BuildManager { get; }
 
@@ -52,7 +50,6 @@ namespace Buildalyzer
             LoggerVerbosity = options.LoggerVerbosity;
             ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectTransformer = options.ProjectTransformer ?? new ProjectTransformer();
-            CleanBeforeCompile = options.CleanBeforeCompile;
             BuildManager = new BuildManager();
 
             if (solutionFilePath != null)
@@ -87,7 +84,7 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            return GetProjectInternal(projectFilePath, null, true, null);
+            return GetProjectInternal(projectFilePath, null, true, null, null);
         }
 
         public ProjectAnalyzer GetProject(string projectFilePath, BuildEnvironment buildEnvironment)
@@ -101,7 +98,21 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(buildEnvironment));
             }
 
-            return GetProjectInternal(projectFilePath, null, true, buildEnvironment);
+            return GetProjectInternal(projectFilePath, null, true, buildEnvironment, null);
+        }
+
+        public ProjectAnalyzer GetProject(string projectFilePath, EnvironmentOptions environmentOptions)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return GetProjectInternal(projectFilePath, null, true, null, environmentOptions);
         }
 
         public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
@@ -115,7 +126,7 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(projectDocument));
             }
 
-            return GetProjectInternal(projectFilePath, projectDocument, false, null);
+            return GetProjectInternal(projectFilePath, projectDocument, false, null, null);
         }
 
         public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
@@ -133,7 +144,25 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(buildEnvironment));
             }
 
-            return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment);
+            return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment, null);
+        }
+
+        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, EnvironmentOptions environmentOptions)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+            if (projectDocument == null)
+            {
+                throw new ArgumentNullException(nameof(projectDocument));
+            }
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return GetProjectInternal(projectFilePath, projectDocument, false, null, environmentOptions);
         }
 
         public void SetGlobalProperty(string key, string value)
@@ -156,7 +185,8 @@ namespace Buildalyzer
             string projectFilePath,
             XDocument projectDocument,
             bool checkExists,
-            BuildEnvironment buildEnvironment)
+            BuildEnvironment buildEnvironment,
+            EnvironmentOptions environmentOptions)
         {
             // Normalize as .sln uses backslash regardless of OS the sln is created on
             projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
@@ -165,7 +195,7 @@ namespace Buildalyzer
             {
                 return project;
             }
-            project = new ProjectAnalyzer(this, projectFilePath, projectDocument, buildEnvironment);
+            project = new ProjectAnalyzer(this, projectFilePath, projectDocument, buildEnvironment, environmentOptions);
             _projects.Add(projectFilePath, project);
             return project;
         }

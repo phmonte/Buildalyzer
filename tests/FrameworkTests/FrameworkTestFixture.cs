@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Shouldly;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
+using Buildalyzer.Environment;
 
 namespace FrameworkTests
 {
@@ -174,6 +175,26 @@ namespace FrameworkTests
             references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
         }
 
+        // The legacy project system requires a non-design-time build to run the ResolveNuGetPackageAssets target
+        [Test]
+        public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
+            analyzer.SetBuildEnvironment(new EnvironmentOptions
+            {
+                DesignTime = false
+            });
+
+            // When
+            IReadOnlyList<string> references = analyzer.GetReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+        }
+
         [Test]
         public void GetsProjectsInSolution()
         {
@@ -204,7 +225,7 @@ namespace FrameworkTests
                 .GetProject(GetProjectPath(projectFile));
             if(BinaryLog)
             {
-                analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
+                analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
             }
             return analyzer;
         }

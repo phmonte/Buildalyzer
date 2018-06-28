@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using Shouldly;
 using System.Xml.Linq;
+using Microsoft.Build.Framework;
 
 namespace FrameworkTests
 {
@@ -18,6 +19,9 @@ namespace FrameworkTests
     [TestFixture]
     public class FrameworkTestFixture
     {
+        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
+        private const bool BinaryLog = true;
+
         private static string[] _projectFiles =
         {
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
@@ -53,7 +57,6 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Build();
@@ -128,7 +131,8 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = new AnalyzerManager(
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
                 })
                 .GetProject(projectFile, projectDocument);
 
@@ -146,7 +150,6 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            //analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
 
             // When
             IReadOnlyList<string> references = analyzer.GetReferences();
@@ -182,19 +185,29 @@ namespace FrameworkTests
                 GetProjectPath("TestProjects.sln"),
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
                 });
 
             // Then
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
-            new AnalyzerManager(new AnalyzerManagerOptions
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        {
+            ProjectAnalyzer analyzer =  new AnalyzerManager(
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
+                })
+                .GetProject(GetProjectPath(projectFile));
+            if(BinaryLog)
             {
-                LogWriter = log
-            })
-            .GetProject(GetProjectPath(projectFile));
+                analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
+            }
+            return analyzer;
+        }
 
         private static string GetProjectPath(string file) =>
             Path.GetFullPath(

@@ -24,6 +24,7 @@
 
         // NuGet
         public const string ResolveNuGetPackages = nameof(ResolveNuGetPackages);
+        public const string NuGetRestoreTargets = nameof(NuGetRestoreTargets);
 
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);

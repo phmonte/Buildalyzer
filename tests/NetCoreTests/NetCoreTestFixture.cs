@@ -10,12 +10,16 @@ using NUnit.Framework;
 using Shouldly;
 using System.Linq;
 using System.Xml.Linq;
+using Microsoft.Build.Framework;
 
 namespace NetCoreTests
 {
     [TestFixture]
     public class NetCoreTestFixture
     {
+        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
+        private const bool BinaryLog = false;
+
         private static string[] _projectFiles =
         {
 #if Is_Windows
@@ -52,7 +56,6 @@ namespace NetCoreTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            //analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
 
             // When
             ProjectInstance projectInstance = analyzer.Build();
@@ -127,7 +130,8 @@ namespace NetCoreTests
             ProjectAnalyzer analyzer = new AnalyzerManager(
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
                 })
                 .GetProject(projectFile, projectDocument);
 
@@ -205,7 +209,8 @@ namespace NetCoreTests
                 GetProjectPath("TestProjects.sln"),
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
                 });
 
             // Then
@@ -235,12 +240,21 @@ namespace NetCoreTests
             Should.Throw<Exception>(() => analyzer.Build());            
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
-            new AnalyzerManager(new AnalyzerManagerOptions
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        {
+            ProjectAnalyzer analyzer = new AnalyzerManager(
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
+                })
+                .GetProject(GetProjectPath(projectFile));
+            if (BinaryLog)
             {
-                LogWriter = log
-            })
-            .GetProject(GetProjectPath(projectFile));
+                analyzer = analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
+            }
+            return analyzer;
+        }
 
         private static string GetProjectPath(string file)
         {

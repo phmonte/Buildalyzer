@@ -118,6 +118,7 @@ namespace Buildalyzer
         /// </param>
         /// <param name="recalculateBuildEnvironment">
         /// Indicates if the build environment should be recalculated when changing the target framework.
+        /// If this is <c>true</c> it will also reset the targets to build.
         /// </param>
         public void SetTargetFramework(string targetFramework, bool recalculateBuildEnvironment = true)
         {
@@ -164,7 +165,11 @@ namespace Buildalyzer
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                     xml.FullPath = ProjectFile.Path;
 
-                    _project = new Project(xml, effectiveGlobalProperties, null, projectCollection);
+                    _project = new Project(
+                        xml,
+                        effectiveGlobalProperties,
+                        null,
+                        projectCollection);
                 }
                 return _project;
             }
@@ -210,7 +215,8 @@ namespace Buildalyzer
                     BuildResult buildResult = Manager.BuildManager.Build(
                         new BuildParameters(project.ProjectCollection)
                         {
-                            Loggers = GetLoggers()
+                            Loggers = GetLoggers(),
+                            ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
                         },
                         new BuildRequestData(projectInstance, BuildEnvironment.TargetsToBuild));
                     if (buildResult.OverallResult != BuildResultCode.Success)

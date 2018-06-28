@@ -36,7 +36,7 @@ namespace Buildalyzer.Environment
                     && targetFramework.Length > 3
                     && char.IsDigit(targetFramework[4]))
                 {
-                    return CreateFrameworkEnvironment(true);
+                    return CreateFrameworkEnvironment();
                 }
 
                 // Otherwise use the .NET Core SDK
@@ -46,7 +46,7 @@ namespace Buildalyzer.Environment
             // Use Framework tools if a ToolsVersion attribute
             if (_projectFile.ToolsVersion != null)
             {
-                return CreateFrameworkEnvironment(false);
+                return CreateFrameworkEnvironment();
             }
 
             throw new Exception("Could not determine build environment");
@@ -58,11 +58,10 @@ namespace Buildalyzer.Environment
         {
             // Get targets
             List<string> targets = new List<string>();
-            if (BuildEnvironment.IsRunningOnCore && !_projectFile.Virtual)
+            if (!_projectFile.Virtual)
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-                // Also, the restore target is .NET Core only
                 targets.Add("Restore");
             }
             if (_manager.CleanBeforeCompile)
@@ -77,18 +76,32 @@ namespace Buildalyzer.Environment
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
             string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
 
+            // Additional global properties
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>
+            {
+                // Required to find and import the Restore target
+                { MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets" }
+            };
+
             return new BuildEnvironment(
                 targets.ToArray(),
                 msBuildExePath,
                 dotnetPath,
                 sdksPath,
-                roslynTargetsPath);
+                roslynTargetsPath,
+                additionalGlobalProperties);
         }
 
-        private BuildEnvironment CreateFrameworkEnvironment(bool sdkProject)
+        private BuildEnvironment CreateFrameworkEnvironment()
         {
             // Get targets
             List<string> targets = new List<string>();
+            if (_projectFile.UsesSdk && !_projectFile.Virtual)
+            {
+                // NuGet.Targets can't handle virtual project files:
+                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
+                targets.Add("Restore");
+            }
             if (_manager.CleanBeforeCompile)
             {
                 targets.Add("Clean");
@@ -118,7 +131,7 @@ namespace Buildalyzer.Environment
 
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
-            string sdksPath = Path.Combine(sdkProject ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
+            string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
 
             // Additional global properties
@@ -130,7 +143,10 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")) },
                 
                 // This is required to trigger NuGet package resolution and regeneration of project.assets.json
-                { MsBuildProperties.ResolveNuGetPackages, "true" }
+                { MsBuildProperties.ResolveNuGetPackages, "true" },
+
+                // Required to find and import the Restore target
+                { MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets" }
             };
 
             return new BuildEnvironment(

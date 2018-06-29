@@ -1,6 +1,7 @@
 ﻿using Buildalyzer;
 using LibGit2Sharp;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
 using NUnit.Framework;
 using Shouldly;
 using System;
@@ -12,11 +13,13 @@ using System.Threading.Tasks;
 
 namespace FrameworkIntegrationTests
 {
-
 #if Is_Windows
     [TestFixture]
     public class FrameworkIntegrationTestFixture
     {
+        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
+        private const bool BinaryLog = false;
+
         private static string[] _repositories =
         {
             "https://github.com/AngleSharp/AngleSharp.git",
@@ -43,13 +46,18 @@ namespace FrameworkIntegrationTests
             StringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
             {
-                LogWriter = log
+                LogWriter = log,
+                LoggerVerbosity = Verbosity
             });
 
             foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
             {
                 // When
-                //analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), "integration.binlog")));
+                Console.WriteLine(analyzer.ProjectFile.Path);
+                if (BinaryLog)
+                {
+                    analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), ".integration.framework.binlog")));
+                }
                 ProjectInstance projectInstance = analyzer.Build();
 
                 // Then

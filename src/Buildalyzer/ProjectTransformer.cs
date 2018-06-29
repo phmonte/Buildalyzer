@@ -12,9 +12,9 @@ namespace Buildalyzer
             _applyDefaultTransformations = applyDefaultTransformations;
         }
 
-        internal void Apply(XDocument projectDocument)
+        internal void Apply(XDocument projectDocument, string targetFramework)
         {
-            DefaultTransform(projectDocument);
+            DefaultTransform(projectDocument, targetFramework);
             Transform(projectDocument);
         }
 
@@ -22,12 +22,13 @@ namespace Buildalyzer
         {
         }
 
-        private void DefaultTransform(XDocument projectDocument)
+        private void DefaultTransform(XDocument projectDocument, string targetFramework)
         {
             if (_applyDefaultTransformations)
             {
                 AddSkipGetTargetFrameworkProperties(projectDocument);
                 RemoveEnsureNuGetPackageBuildImports(projectDocument);
+                SetTargetFramework(projectDocument, targetFramework);
             }
         }
 
@@ -47,6 +48,19 @@ namespace Buildalyzer
                 projectDocument.GetDescendants("Target").Where(x => x.GetAttributeValue("Name") == "EnsureNuGetPackageBuildImports").ToArray())
             {
                 ensureNuGetPackageBuildImports.Remove();
+            }
+        }
+
+        public static void SetTargetFramework(XDocument projectDocument, string targetFramework)
+        {
+            if (!string.IsNullOrEmpty(targetFramework))
+            {
+                foreach (XElement targetFrameworkElement in
+                    projectDocument.GetDescendants("TargetFramework").Concat(projectDocument.GetDescendants("TargetFrameworks")).ToArray())
+                {
+                    targetFrameworkElement.Name = "TargetFramework";
+                    targetFrameworkElement.Value = targetFramework;
+                }
             }
         }
     }

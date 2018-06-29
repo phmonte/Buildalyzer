@@ -9,6 +9,9 @@
 
         /// <summary>
         /// Indicates that the <c>Clean</c> target should be used during build.
+        /// This also does some other tricks to ensure that even if the <c>Clean</c>
+        /// target doesn't delete all the artifacts, the <c>Compile</c> target is still
+        /// evaluated if it's specified.
         /// </summary>
         public bool CleanTarget { get; set; } = true;
 

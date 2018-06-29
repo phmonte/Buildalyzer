@@ -190,14 +190,30 @@ namespace Buildalyzer
             {
                 return _project;
             }
-            
+
+            // Some project types can't be built from .NET Core
+            if (BuildEnvironment.IsRunningOnCore)
+            {
+                // Portable projects
+                if (ProjectFile.IsPortable)
+                {
+                    throw new Exception("Can't build portable class library projects from a .NET Core host");
+                }
+
+                // Legacy framework projects with PackageReference
+                if (!ProjectFile.UsesSdk && ProjectFile.ContainsPackageReferences)
+                {
+                    throw new Exception("Can't build legacy projects that contain PackageReference from a .NET Core host");
+                }
+            }
+
             // Create a project collection for each project since the toolset might change depending on the type of project
             var effectiveGlobalProperties = GetEffectiveGlobalProperties();
             ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
 
             // Load the project
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
-            {               
+            {
                 using (XmlReader projectReader = ProjectFile.CreateReader(TargetFramework))
                 {
                     ProjectRootElement xml = ProjectRootElement.Create(projectReader, projectCollection);
@@ -231,23 +247,7 @@ namespace Buildalyzer
             {
                 return null;
             }
-
-            // Some project types can't be built from .NET Core
-            if (BuildEnvironment.IsRunningOnCore)
-            {
-                // Portable projects
-                if (ProjectFile.IsPortable)
-                {
-                    throw new Exception("Can't build portable class library projects from a .NET Core host");
-                }
-
-                // Legacy framework projects with PackageReference
-                if (!ProjectFile.UsesSdk && ProjectFile.ContainsPackageReferences)
-                {
-                    throw new Exception("Can't build legacy projects that contain PackageReference from a .NET Core host");
-                }
-            }
-
+            
             // Build the project
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {

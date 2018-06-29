@@ -12,6 +12,7 @@ namespace Buildalyzer
     {
         private readonly XDocument _document;
         private readonly XElement _projectElement;
+        private readonly ProjectTransformer _transformer;
 
         /// <summary>
         /// Indicates if this project file was passed in directly as XML content.
@@ -33,7 +34,7 @@ namespace Buildalyzer
             Path = path;
             Virtual = document != null;
             _document = document ?? XDocument.Load(path);
-            transformer.Apply(_document);
+            _transformer = transformer;
 
             // Get the project element
             _projectElement = _document.GetDescendants("Project").FirstOrDefault();
@@ -68,6 +69,14 @@ namespace Buildalyzer
             _projectElement.GetDescendants("Import").Any(x => x.GetAttributeValue("Project").EndsWith("Microsoft.Portable.CSharp.targets"));
 
         /// <summary>
+        /// Whether the project file is multi-targeted.
+        /// </summary>
+        /// <remarks>
+        /// Checks for an <c>TargetFrameworks</c> element.
+        /// </remarks>
+        public bool IsMultiTargeted => _projectElement.GetDescendants("TargetFrameworks").Any();
+
+        /// <summary>
         /// Whether the project file contains <c>PackageReference</c> items.
         /// </summary>
         public bool ContainsPackageReferences => _projectElement.GetDescendants("PackageReference").Any();
@@ -77,27 +86,11 @@ namespace Buildalyzer
         /// </summary>
         public string ToolsVersion => _projectElement.GetAttributeValue("ToolsVersion");
 
-        /// <summary>
-        /// Clones the project document, replacing all <c>TargetFramework</c> and <c>TargetFrameworks</c> elements with the
-        /// specified target framework and returns a <see cref="XmlReader"/> for the cloned project document.
-        /// </summary>
-        /// <param name="targetFramework">
-        /// The target framework to use for the cloned project file.
-        /// </param>
-        /// <returns>A <see cref="XmlReader"/> for the cloned project document.</returns>
         internal XmlReader CreateReader(string targetFramework)
         {
             XDocument document = new XDocument(_document);
-            if (!string.IsNullOrEmpty(targetFramework))
-            {                
-                foreach (XElement targetFrameworkElement in
-                    document.GetDescendants("TargetFramework").Concat(document.GetDescendants("TargetFrameworks")).ToArray())
-                {
-                    targetFrameworkElement.Name = "TargetFramework";
-                    targetFrameworkElement.Value = targetFramework;
-                }
-            }
-            return document.CreateReader();
+            _transformer.Apply(document, targetFramework);
+            return _document.CreateReader();
         }
     }
 }

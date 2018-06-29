@@ -21,7 +21,7 @@ namespace FrameworkTests
     public class FrameworkTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
-        private const bool BinaryLog = true;
+        private const bool BinaryLog = false;
 
         private static string[] _projectFiles =
         {

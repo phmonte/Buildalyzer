@@ -1,6 +1,7 @@
 ﻿using Buildalyzer;
 using LibGit2Sharp;
 using Microsoft.Build.Execution;
+using Microsoft.Build.Framework;
 using NUnit.Framework;
 using Shouldly;
 using System;
@@ -14,12 +15,15 @@ namespace NetCoreIntegrationTests
     [TestFixture]
     public class NetCoreIntegrationTestFixture
     {
+        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
+        private const bool BinaryLog = true;
+
         private static string[] _repositories =
         {
-			"https://github.com/AngleSharp/AngleSharp.git",
+			// "https://github.com/AngleSharp/AngleSharp.git", contains portable project, can't build
 			"https://github.com/autofac/Autofac.git",
 			"https://github.com/AutoMapper/AutoMapper.git",
-			"https://github.com/MarimerLLC/csla.git",
+			//"https://github.com/MarimerLLC/csla.git", contains portable project, can't build
 			"https://github.com/SixLabors/ImageSharp.git",
 			"https://github.com/moq/moq.git",
 			"https://github.com/JamesNK/Newtonsoft.Json.git",
@@ -40,13 +44,18 @@ namespace NetCoreIntegrationTests
             StringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
             {
-                LogWriter = log
+                LogWriter = log,
+                LoggerVerbosity = Verbosity
             });
 
             foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
             {
                 // When
-                //analyzer.WithBinaryLog(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), "integration.binlog")));
+                Console.WriteLine(analyzer.ProjectFile.Path);
+                if (BinaryLog)
+                {
+                    analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), ".integration.core.binlog")));
+                }
                 ProjectInstance projectInstance = analyzer.Build();
 
                 // Then

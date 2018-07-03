@@ -21,9 +21,6 @@ namespace Buildalyzer
     {
         private readonly List<ILogger> _loggers = new List<ILogger>();
         
-        private Project _project = null;
-        private ProjectInstance _projectInstance = null;
-
         // Project-specific global properties and environment variables
         private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -87,15 +84,6 @@ namespace Buildalyzer
         }
 
         /// <summary>
-        /// Invalidates the cached build data and will result in new builds.
-        /// </summary>
-        public void InvalidateCache()
-        {
-            _project = null;
-            _projectInstance = null;
-        }
-
-        /// <summary>
         /// Sets the build environment that should be used.
         /// This will invalidate all cached build result data and result in new builds.
         /// </summary>
@@ -105,7 +93,6 @@ namespace Buildalyzer
         public void SetBuildEnvironment(BuildEnvironment buildEnvironment)
         {
             BuildEnvironment = buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment));
-            InvalidateCache();
         }
 
         /// <summary>
@@ -123,7 +110,6 @@ namespace Buildalyzer
             }
 
             BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, options).GetBuildEnvironment(TargetFramework);
-            InvalidateCache();
         }
 
         /// <summary>
@@ -133,7 +119,6 @@ namespace Buildalyzer
         public void ResetBuildEnvironment()
         {
             BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, null).GetBuildEnvironment(TargetFramework);
-            InvalidateCache();
         }
 
         /// <summary>
@@ -163,7 +148,6 @@ namespace Buildalyzer
             {
                 ResetBuildEnvironment();
             }
-            InvalidateCache();
         }
 
         /// <summary>
@@ -181,16 +165,10 @@ namespace Buildalyzer
             {
                 ResetBuildEnvironment();
             }
-            InvalidateCache();
         }
 
         public Project Load()
         {
-            if (_project != null)
-            {
-                return _project;
-            }
-
             // Some project types can't be built from .NET Core
             if (BuildEnvironment.IsRunningOnCore)
             {
@@ -208,7 +186,7 @@ namespace Buildalyzer
             }
 
             // Create a project collection for each project since the toolset might change depending on the type of project
-            var effectiveGlobalProperties = GetEffectiveGlobalProperties();
+            Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties();
             ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
 
             // Load the project
@@ -216,61 +194,76 @@ namespace Buildalyzer
             {
                 using (XmlReader projectReader = ProjectFile.CreateReader(TargetFramework))
                 {
-                    ProjectRootElement xml = ProjectRootElement.Create(projectReader, projectCollection);
+                    ProjectRootElement root = ProjectRootElement.Create(projectReader, projectCollection);
 
                     // When constructing a project from an XmlReader, MSBuild cannot determine the project file path.  Setting the
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
-                    xml.FullPath = ProjectFile.Path;
+                    root.FullPath = ProjectFile.Path;
 
-                    _project = new Project(
-                        xml,
+                    return new Project(
+                        root,
                         effectiveGlobalProperties,
-                        null,
+                        ToolLocationHelper.CurrentToolsVersion,
                         projectCollection);
                 }
-                return _project;
             }
         }
 
         public ProjectInstance Build()
         {
-            if (_projectInstance != null)
+            if(BuildEnvironment.TargetsToBuild.Length == 0)
             {
-                return _projectInstance;
+                throw new InvalidOperationException("No targets are specified to build.");
             }
 
             // Reset the cache before every build in case MSBuild cached something from a project reference build
             Manager.BuildManager.ResetCaches();
-
-            Project project = Load();
-            if (project == null)
-            {
-                return null;
-            }
-            
+                        
             // Build the project
+            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
+            (ProjectInstance, BuildResult) result = (null, null);
+
+            // Run the Restore target before any other targets in a seperate submission
+            if (string.Compare(targetsToBuild[0], "Restore", StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                targetsToBuild = targetsToBuild.Skip(1).ToArray();
+                result = BuildTargets("Restore");
+            }
+
+            // Run all other targets (if there are any)
+            if(targetsToBuild.Length > 0)
+            {
+                result = BuildTargets(targetsToBuild);
+            }
+
+            // TODO: return a result object that contains the ProjectInstance, BuildResult, and helpers like GetSourceFiles()
+            if(result.Item2?.OverallResult == BuildResultCode.Success)
+            {
+                return result.Item1;
+            }
+            return null;
+        }
+
+        private (ProjectInstance, BuildResult) BuildTargets(params string[] targetsToBuild)
+        {
+            // Get a fresh project, otherwise the MSBuild cache will mess up builds
+            // See https://github.com/Microsoft/msbuild/issues/3469
+            Project project = Load();
+
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {
-                ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
+                //ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
+                ProjectInstance projectInstance = project.CreateProjectInstance();
 
-                // This is essentialy what ProjectInstance.Build() does, but it copies the BuildParameters
-                // from the ProjectCollection which is necessary for nested builds since we replaced the toolset
-                if (BuildEnvironment.TargetsToBuild.Length > 0)
-                {
-                    BuildResult buildResult = Manager.BuildManager.Build(
-                        new BuildParameters(project.ProjectCollection)
-                        {
-                            Loggers = Loggers,
-                            ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
-                        },
-                        new BuildRequestData(projectInstance, BuildEnvironment.TargetsToBuild));
-                    if (buildResult.OverallResult != BuildResultCode.Success)
+                BuildResult buildResult = Manager.BuildManager.Build(
+                    new BuildParameters(project.ProjectCollection)
                     {
-                        return null;
-                    }
-                }
-                _projectInstance = projectInstance;
-                return _projectInstance;
+                        Loggers = Loggers,
+                        ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
+                    },
+                    new BuildRequestData(projectInstance, targetsToBuild));
+
+                return (projectInstance, buildResult);
             }
         }
 
@@ -295,20 +288,17 @@ namespace Buildalyzer
         public void SetGlobalProperty(string key, string value)
         {
             _globalProperties[key] = value;
-            InvalidateCache();
         }
 
         public void RemoveGlobalProperty(string key)
         {
             // Nulls are removed before passing to MSBuild and can be used to ignore values in lower-precedence collections
             _globalProperties[key] = null;
-            InvalidateCache();
         }
 
         public void SetEnvironmentVariable(string key, string value)
         {
             _environmentVariables[key] = value;
-            InvalidateCache();
         }
 
         // Note the order of precedence (from least to most)

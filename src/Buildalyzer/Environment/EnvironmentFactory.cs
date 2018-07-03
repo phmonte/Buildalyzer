@@ -66,6 +66,7 @@ namespace Buildalyzer.Environment
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
+
                 targets.Add("Restore");
             }
             if (_options.CleanTarget)
@@ -74,16 +75,9 @@ namespace Buildalyzer.Environment
 
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                if (_options.CompileTarget)
-                {
-                    additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-                }
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
             }
-            if(_options.CompileTarget)
-            {
-                targets.Add("Compile");
-            }
-            if(_options.BuildTarget)
+            if (_options.BuildTarget)
             {
                 targets.Add("Build");
             }
@@ -117,6 +111,7 @@ namespace Buildalyzer.Environment
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
+
                 targets.Add("Restore");
             }
             if (_options.CleanTarget)
@@ -125,14 +120,7 @@ namespace Buildalyzer.Environment
 
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                if (_options.CompileTarget)
-                {
-                    additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-                }
-            }
-            if (_options.CompileTarget)
-            {
-                targets.Add("Compile");
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
             }
             if (_options.BuildTarget)
             {

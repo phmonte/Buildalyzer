@@ -73,7 +73,7 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
 
                 // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
-                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" }
+                { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
 
                 // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
             };
@@ -84,6 +84,11 @@ namespace Buildalyzer.Environment
                 globalProperties.Add(MsBuildProperties.SkipCompilerExecution, "true");
                 globalProperties.Add(MsBuildProperties.DisableRarCache, "true");
                 globalProperties.Add(MsBuildProperties.AutoGenerateBindingRedirects, "false");
+                globalProperties.Add(MsBuildProperties.CopyBuildOutputToOutputDirectory, "false");
+                globalProperties.Add(MsBuildProperties.CopyOutputSymbolsToOutputDirectory, "false");
+                globalProperties.Add(MsBuildProperties.SkipCopyBuildProduct, "true");
+                globalProperties.Add(MsBuildProperties.AddModules, "false");
+                globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
             }
             if(additionalGlobalProperties != null)
             {

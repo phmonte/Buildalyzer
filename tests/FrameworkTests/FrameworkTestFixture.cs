@@ -53,13 +53,31 @@ namespace FrameworkTests
         }
 
         [TestCaseSource(nameof(_projectFiles))]
-        public void CompilesProject(string projectFile)
+        public void DesignTimeBuildsProject(string projectFile)
         {
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            ProjectInstance projectInstance = analyzer.Build();
+
+            // Then
+            projectInstance.ShouldNotBeNull(log.ToString());
+        }
+
+        [TestCaseSource(nameof(_projectFiles))]
+        public void BuildsProject(string projectFile)
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log, false);
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
             ProjectInstance projectInstance = analyzer.Build();
 
             // Then
@@ -214,7 +232,7 @@ namespace FrameworkTests
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, bool designTime = true)
         {
             ProjectAnalyzer analyzer =  new AnalyzerManager(
                 new AnalyzerManagerOptions
@@ -222,7 +240,10 @@ namespace FrameworkTests
                     LogWriter = log,
                     LoggerVerbosity = Verbosity
                 })
-                .GetProject(GetProjectPath(projectFile));
+                .GetProject(GetProjectPath(projectFile), new EnvironmentOptions
+                {
+                    DesignTime = designTime
+                });
             if(BinaryLog)
             {
                 analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));
@@ -235,6 +256,15 @@ namespace FrameworkTests
                 Path.Combine(
                     Path.GetDirectoryName(typeof(FrameworkTestFixture).Assembly.Location),
                     @"..\..\..\projects\" + file));
+
+        private static void DeleteProjectDirectory(string projectFile, string directory)
+        {
+            string path = Path.Combine(Path.GetDirectoryName(GetProjectPath(projectFile)), directory);
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
+        }
     }
 #endif
 }

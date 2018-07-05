@@ -58,11 +58,13 @@ namespace FrameworkIntegrationTests
                 {
                     analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), ".integration.framework.binlog")));
                 }
-                ProjectInstance projectInstance = analyzer.Build();
+                AnalyzerResults results = analyzer.Build();
 
                 // Then
-                projectInstance.ShouldNotBeNull(log.ToString());
-                analyzer.GetSourceFiles().Count.ShouldBeGreaterThan(0);
+                results.Count.ShouldBeGreaterThan(0, log.ToString());
+                results.First().OverallSuccess.ShouldBeTrue(log.ToString());
+                results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+                results.First().GetSourceFiles().Count.ShouldBeGreaterThan(0);
             }
         }
 

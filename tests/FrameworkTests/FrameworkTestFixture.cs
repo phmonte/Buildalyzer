@@ -46,6 +46,8 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
             Project project = analyzer.Load();
 
             // Then
@@ -62,10 +64,11 @@ namespace FrameworkTests
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            ProjectInstance projectInstance = analyzer.Build();
+            AnalyzerResults results = analyzer.Build();
 
             // Then
-            projectInstance.ShouldNotBeNull(log.ToString());
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -78,10 +81,11 @@ namespace FrameworkTests
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            ProjectInstance projectInstance = analyzer.Build();
+            AnalyzerResults results = analyzer.Build();
 
             // Then
-            projectInstance.ShouldNotBeNull(log.ToString());
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -92,7 +96,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build().First().GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -105,15 +109,41 @@ namespace FrameworkTests
         }
 
         [Test]
-        public void SetTargetGetsSourceFiles()
+        public void BuildAllTargetFrameworksGetsSourceFiles()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+
+            // When
+            AnalyzerResults results = analyzer.Build();
+
+            // Then
+            results.Count.ShouldBe(2);
+            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
+            results["net462"].GetSourceFiles().Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            {
+                "Class1",
+                "AssemblyAttributes",
+                "AssemblyInfo"
+            }, true, log.ToString());
+            results["netstandard2.0"].GetSourceFiles().Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            {
+                "Class2",
+                "AssemblyAttributes",
+                "AssemblyInfo"
+            }, true, log.ToString());
+        }
+
+        [Test]
+        public void BuildTargetFrameworkGetsSourceFiles()
         {            
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            analyzer.SetTargetFramework("net462");
-            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build("net462").GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -126,8 +156,7 @@ namespace FrameworkTests
 
             // When
             log.GetStringBuilder().Clear();
-            analyzer.SetTargetFramework("netstandard2.0");
-            sourceFiles = analyzer.GetSourceFiles();
+            sourceFiles = analyzer.Build("netstandard2.0").GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -156,7 +185,7 @@ namespace FrameworkTests
                 .GetProject(projectFile, projectDocument);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build().First().GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -171,7 +200,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -186,7 +215,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -206,7 +235,7 @@ namespace FrameworkTests
             });
 
             // When
-            IReadOnlyList<string> references = analyzer.GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());

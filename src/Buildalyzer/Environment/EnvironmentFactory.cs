@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
 
 namespace Buildalyzer.Environment
@@ -20,10 +21,11 @@ namespace Buildalyzer.Environment
             _options = options ?? new EnvironmentOptions();
         }
 
-        public BuildEnvironment GetBuildEnvironment(string targetFramework)
+        public BuildEnvironment GetBuildEnvironment()
         {                
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
-            if (BuildEnvironment.IsRunningOnCore)
+            // Also use the SDK if the project uses multi-targeting (regardless of the actual target)
+            if (BuildEnvironment.IsRunningOnCore || _projectFile.IsMultiTargeted)
             {
                 return CreateCoreEnvironment();
             }
@@ -33,6 +35,7 @@ namespace Buildalyzer.Environment
             {
                 // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
                 // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
+                string targetFramework = _projectFile?.TargetFrameworks.SingleOrDefault();
                 if (targetFramework != null
                     && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                     && targetFramework.Length > 3

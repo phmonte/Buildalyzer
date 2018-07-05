@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Buildalyzer.Construction;
 using Buildalyzer.Logging;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
@@ -9,7 +10,7 @@ namespace Buildalyzer
     {
         public ILoggerFactory LoggerFactory { get; set; }
         public LoggerVerbosity LoggerVerbosity { get; set; } = LoggerVerbosity.Normal;
-        public ProjectTransformer ProjectTransformer { get; set; }
+        public IProjectTransformer ProjectTransformer { get; set; }
 
         public TextWriter LogWriter
         {

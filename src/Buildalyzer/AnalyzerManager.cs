@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
@@ -21,7 +22,7 @@ namespace Buildalyzer
 
         internal LoggerVerbosity LoggerVerbosity { get; }
         
-        internal ProjectTransformer ProjectTransformer { get; }
+        internal IProjectTransformer ProjectTransformer { get; }
         
         // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
         internal BuildManager BuildManager { get; }
@@ -49,7 +50,7 @@ namespace Buildalyzer
             options = options ?? new AnalyzerManagerOptions();
             LoggerVerbosity = options.LoggerVerbosity;
             ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
-            ProjectTransformer = options.ProjectTransformer ?? new ProjectTransformer();
+            ProjectTransformer = options.ProjectTransformer;
             BuildManager = new BuildManager();
 
             if (solutionFilePath != null)

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
@@ -41,13 +42,7 @@ namespace Buildalyzer
         /// </summary>
         public IReadOnlyDictionary<string, string> EnvironmentVariables => new ReadOnlyDictionary<string, string>(GetEffectiveEnvironmentVariables());
 
-        public Project Project => Load();
-
-        public ProjectInstance ProjectInstance => Build();
-
         public BuildEnvironment BuildEnvironment { get; private set; }
-
-        public string TargetFramework { get; private set; }
 
         public IEnumerable<ILogger> Loggers => _loggers;
 
@@ -55,12 +50,11 @@ namespace Buildalyzer
         {
             Manager = manager;
             ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
-            ResetTargetFramework(false);
             if (buildEnvironment != null)
             {
                 SetBuildEnvironment(buildEnvironment);
             }
-            else if(environmentOptions != null)
+            else if (environmentOptions != null)
             {
                 SetBuildEnvironment(environmentOptions);
             }
@@ -109,7 +103,7 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(options));
             }
 
-            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, options).GetBuildEnvironment(TargetFramework);
+            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, options).GetBuildEnvironment();
         }
 
         /// <summary>
@@ -118,7 +112,7 @@ namespace Buildalyzer
         /// </summary>
         public void ResetBuildEnvironment()
         {
-            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, null).GetBuildEnvironment(TargetFramework);
+            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, null).GetBuildEnvironment();
         }
 
         /// <summary>
@@ -130,44 +124,9 @@ namespace Buildalyzer
         public void SetTargetsToBuild(params string[] targetsToBuild) =>
             SetBuildEnvironment(BuildEnvironment.WithTargetsToBuild(targetsToBuild));
 
-        /// <summary>
-        /// Sets the target framework to be used for builds.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        /// <param name="targetFramework">
-        /// The target framework to use.
-        /// </param>
-        /// <param name="resetBuildEnvironment">
-        /// Indicates if the build environment should be recalculated when changing the target framework.
-        /// If this is <c>true</c> it will also reset the targets to build.
-        /// </param>
-        public void SetTargetFramework(string targetFramework, bool resetBuildEnvironment = true)
-        {
-            TargetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
-            if (resetBuildEnvironment)
-            {
-                ResetBuildEnvironment();
-            }
-        }
+        public Project Load() => Load(null);
 
-        /// <summary>
-        /// Resets the target framework to be used for builds to the first target framework in the project file.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        /// <param name="recalculateBuildEnvironment">
-        /// Indicates if the build environment should be recalculated when changing the target framework.
-        /// If this is <c>true</c> it will also reset the targets to build.
-        /// </param>
-        public void ResetTargetFramework(bool recalculateBuildEnvironment = true)
-        {
-            TargetFramework = ProjectFile.TargetFrameworks.FirstOrDefault();
-            if (recalculateBuildEnvironment)
-            {
-                ResetBuildEnvironment();
-            }
-        }
-
-        public Project Load()
+        public Project Load(string targetFramework)
         {
             // Some project types can't be built from .NET Core
             if (BuildEnvironment.IsRunningOnCore)
@@ -187,12 +146,16 @@ namespace Buildalyzer
 
             // Create a project collection for each project since the toolset might change depending on the type of project
             Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties();
+            if(!string.IsNullOrEmpty(targetFramework))
+            {
+                effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
+            }
             ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
 
             // Load the project
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {
-                using (XmlReader projectReader = ProjectFile.CreateReader(TargetFramework))
+                using (XmlReader projectReader = ProjectFile.CreateReader())
                 {
                     ProjectRootElement root = ProjectRootElement.Create(projectReader, projectCollection);
 
@@ -208,47 +171,89 @@ namespace Buildalyzer
                 }
             }
         }
-
-        public ProjectInstance Build()
+        
+        /// <summary>
+        /// Builds all target framework(s).
+        /// </summary>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build()
         {
-            if(BuildEnvironment.TargetsToBuild.Length == 0)
+            // Load the project to get the evaluated target frameworks
+            Project project = Load();
+
+            // Get all evaluated target frameworks from the Project and build them
+            // but don't worry about getting a single target framework, it'll build the default
+            string[] targetFrameworks = ProjectFile.GetTargetFrameworks(
+                project.GetPropertyValue(ProjectFileNames.TargetFrameworks), null, null);
+
+            return Build(targetFrameworks);
+        }
+
+        /// <summary>
+        /// Builds the requested target framework(s).
+        /// </summary>
+        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build(string[] targetFrameworks)
+        {
+            // If the set of target frameworks is empty, just build the default
+            if(targetFrameworks == null || targetFrameworks.Length == 0)
+            {
+                targetFrameworks = new string[] { null };
+            }
+
+            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
+            AnalyzerResult result = PrepareForBuild(ref targetsToBuild);
+            AnalyzerResults results = new AnalyzerResults();
+            foreach (string targetFramework in targetFrameworks)
+            {
+                results.Add(BuildTargets(targetFramework, targetsToBuild));
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Builds a specific target framework.
+        /// </summary>
+        /// <param name="targetFramework">The target framework to build.</param>
+        /// <returns>The results of the build process.</returns>
+        public AnalyzerResult Build(string targetFramework)
+        {
+            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
+            AnalyzerResult result = PrepareForBuild(ref targetsToBuild);    
+            if (targetsToBuild.Length > 0)
+            {
+                result = BuildTargets(targetFramework, targetsToBuild);
+            }
+            return result;
+        }
+
+        private AnalyzerResult PrepareForBuild(ref string[] targetsToBuild)
+        {
+            if (targetsToBuild.Length == 0)
             {
                 throw new InvalidOperationException("No targets are specified to build.");
             }
 
             // Reset the cache before every build in case MSBuild cached something from a project reference build
             Manager.BuildManager.ResetCaches();
-                        
-            // Build the project
-            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
-            (ProjectInstance, BuildResult) result = (null, null);
 
             // Run the Restore target before any other targets in a seperate submission
             if (string.Compare(targetsToBuild[0], "Restore", StringComparison.OrdinalIgnoreCase) == 0)
             {
                 targetsToBuild = targetsToBuild.Skip(1).ToArray();
-                result = BuildTargets("Restore");
+                return BuildTargets(null, new[] { "Restore" });
             }
 
-            // Run all other targets (if there are any)
-            if(targetsToBuild.Length > 0)
-            {
-                result = BuildTargets(targetsToBuild);
-            }
-
-            // TODO: return a result object that contains the ProjectInstance, BuildResult, and helpers like GetSourceFiles()
-            if(result.Item2?.OverallResult == BuildResultCode.Success)
-            {
-                return result.Item1;
-            }
             return null;
         }
 
-        private (ProjectInstance, BuildResult) BuildTargets(params string[] targetsToBuild)
+        private AnalyzerResult BuildTargets(string targetFramework, string[] targetsToBuild)
         {
             // Get a fresh project, otherwise the MSBuild cache will mess up builds
             // See https://github.com/Microsoft/msbuild/issues/3469
-            Project project = Load();
+            Project project = Load(targetFramework);
 
             using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
             {
@@ -263,27 +268,9 @@ namespace Buildalyzer
                     },
                     new BuildRequestData(projectInstance, targetsToBuild));
 
-                return (projectInstance, buildResult);
+                return new AnalyzerResult(this, projectInstance, buildResult);
             }
         }
-
-        public IReadOnlyList<string> GetSourceFiles() =>
-            Build()?.Items
-                .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
-                .ToList();
-
-        public IReadOnlyList<string> GetReferences() =>
-            Build()?.Items
-                .Where(x => x.ItemType == "CscCommandLineArgs" && x.EvaluatedInclude.StartsWith("/reference:"))
-                .Select(x => x.EvaluatedInclude.Substring(11).Trim('"'))
-                .ToList();
-
-        public IReadOnlyList<string> GetProjectReferences() =>
-            Build()?.Items
-                .Where(x => x.ItemType == "ProjectReference")
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile.Path), x.EvaluatedInclude)))
-                .ToList();
 
         public void SetGlobalProperty(string key, string value)
         {

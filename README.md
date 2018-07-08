@@ -1,5 +1,8 @@
 # Buildalyzer
 
+[![NuGet Version](https://img.shields.io/nuget/v/Buildalyzer.svg)](https://www.nuget.org/packages/Buildalyzer)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Buildalyzer.svg)](https://www.nuget.org/packages/Buildalyzer)
+
 ![buildalyzer logo](./docs/buildalyzer.png)
 
 A little utility to perform design-time builds of .NET projects without having to think too hard about it:

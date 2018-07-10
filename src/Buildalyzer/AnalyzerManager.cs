@@ -36,13 +36,11 @@ namespace Buildalyzer
         public AnalyzerManager(AnalyzerManagerOptions options = null)
             : this(null, null, options)
         {
-
         }
 
         public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
             : this(solutionFilePath, null, options)
         {
-
         }
 
         public AnalyzerManager(string solutionFilePath, string[] projects, AnalyzerManagerOptions options = null)
@@ -78,94 +76,6 @@ namespace Buildalyzer
             }
         }
 
-        public ProjectAnalyzer GetProject(string projectFilePath)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, null, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, BuildEnvironment buildEnvironment)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (buildEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(buildEnvironment));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, buildEnvironment, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, EnvironmentOptions environmentOptions)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (environmentOptions == null)
-            {
-                throw new ArgumentNullException(nameof(environmentOptions));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, null, environmentOptions);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, null, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-            if (buildEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(buildEnvironment));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, EnvironmentOptions environmentOptions)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-            if (environmentOptions == null)
-            {
-                throw new ArgumentNullException(nameof(environmentOptions));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, null, environmentOptions);
-        }
-
         public void SetGlobalProperty(string key, string value)
         {
             GlobalProperties[key] = value;
@@ -182,12 +92,34 @@ namespace Buildalyzer
             EnvironmentVariables[key] = value;
         }
 
+        public ProjectAnalyzer GetProject(string projectFilePath)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+
+            return GetProjectInternal(projectFilePath, null, true);
+        }
+
+        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
+        {
+            if (projectFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(projectFilePath));
+            }
+            if (projectDocument == null)
+            {
+                throw new ArgumentNullException(nameof(projectDocument));
+            }
+
+            return GetProjectInternal(projectFilePath, projectDocument, false);
+        }
+
         private ProjectAnalyzer GetProjectInternal(
             string projectFilePath,
             XDocument projectDocument,
-            bool checkExists,
-            BuildEnvironment buildEnvironment,
-            EnvironmentOptions environmentOptions)
+            bool checkExists)
         {
             // Normalize as .sln uses backslash regardless of OS the sln is created on
             projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
@@ -196,7 +128,7 @@ namespace Buildalyzer
             {
                 return project;
             }
-            project = new ProjectAnalyzer(this, projectFilePath, projectDocument, buildEnvironment, environmentOptions);
+            project = new ProjectAnalyzer(this, projectFilePath, projectDocument);
             _projects.Add(projectFilePath, project);
             return project;
         }

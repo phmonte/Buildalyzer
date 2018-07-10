@@ -32,9 +32,9 @@ namespace Buildalyzer.Environment
 
         public string ToolsPath => Path.GetDirectoryName(MsBuildExePath);
         
-        internal IReadOnlyDictionary<string, string> GlobalProperties { get; }
+        public IReadOnlyDictionary<string, string> GlobalProperties { get; }
 
-        internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
         public BuildEnvironment(
             bool designTime,

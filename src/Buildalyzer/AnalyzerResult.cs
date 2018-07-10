@@ -1,4 +1,5 @@
 ﻿using Buildalyzer.Construction;
+using Buildalyzer.Environment;
 using Microsoft.Build.Execution;
 using System.Collections.Generic;
 using System.IO;
@@ -10,16 +11,23 @@ namespace Buildalyzer
     {
         private readonly ProjectAnalyzer _analyzer;
 
-        internal AnalyzerResult(ProjectAnalyzer analyzer, ProjectInstance projectInstance, BuildResult buildResult)
+        internal AnalyzerResult(
+            ProjectAnalyzer analyzer,
+            ProjectInstance projectInstance,
+            BuildResult buildResult,
+            BuildEnvironment buildEnvironment)
         {
             _analyzer = analyzer;
             ProjectInstance = projectInstance;
             BuildResult = buildResult;
+            BuildEnvironment = buildEnvironment;
         }
         
         public ProjectInstance ProjectInstance { get; }
 
         public BuildResult BuildResult { get; }
+
+        public BuildEnvironment BuildEnvironment { get; }
 
         public bool OverallSuccess => BuildResult.OverallResult == BuildResultCode.Success;
         

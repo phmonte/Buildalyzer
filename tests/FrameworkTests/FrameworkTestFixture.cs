@@ -76,12 +76,16 @@ namespace FrameworkTests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log, false);
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                DesignTime = false
+            };
 
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build();
+            AnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -229,13 +233,13 @@ namespace FrameworkTests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
-            analyzer.SetBuildEnvironment(new EnvironmentOptions
+            EnvironmentOptions options = new EnvironmentOptions
             {
                 DesignTime = false
-            });
+            };
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.Build(options).First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -261,7 +265,7 @@ namespace FrameworkTests
             _projectFiles.Select(x => GetProjectPath(x)).ShouldBeSubsetOf(manager.Projects.Keys, log.ToString());
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, bool designTime = true)
+        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
             ProjectAnalyzer analyzer =  new AnalyzerManager(
                 new AnalyzerManagerOptions
@@ -269,10 +273,7 @@ namespace FrameworkTests
                     LogWriter = log,
                     LoggerVerbosity = Verbosity
                 })
-                .GetProject(GetProjectPath(projectFile), new EnvironmentOptions
-                {
-                    DesignTime = designTime
-                });
+                .GetProject(GetProjectPath(projectFile));
             if(BinaryLog)
             {
                 analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".framework.binlog")));

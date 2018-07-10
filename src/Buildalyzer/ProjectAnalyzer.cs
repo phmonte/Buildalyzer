@@ -30,41 +30,34 @@ namespace Buildalyzer
 
         public ProjectFile ProjectFile { get; }
 
-        /// <summary>
-        /// The global properties for MSBuild. By default, each project
-        /// is configured with properties that use a design-time build without calling the compiler.
-        /// </summary>
-        public IReadOnlyDictionary<string, string> GlobalProperties => new ReadOnlyDictionary<string, string>(GetEffectiveGlobalProperties());
+        public EnvironmentFactory EnvironmentFactory { get; }
 
         /// <summary>
-        /// The environment variables used for MSBuild. By default, each project
-        /// is configured with variables which help point to configured MSBuild paths.
+        /// The global properties for MSBuild to be used for every build from this analyzer.
         /// </summary>
-        public IReadOnlyDictionary<string, string> EnvironmentVariables => new ReadOnlyDictionary<string, string>(GetEffectiveEnvironmentVariables());
+        /// <remarks>
+        /// Additional global properties may be added or changed by individual build environment.
+        /// </remarks>
+        public IReadOnlyDictionary<string, string> GlobalProperties => GetEffectiveGlobalProperties(null);
 
-        public BuildEnvironment BuildEnvironment { get; private set; }
-
+        /// <summary>
+        /// The environment variables for MSBuild to be used for every build from this analyzer.
+        /// </summary>
+        /// <remarks>
+        /// Additional environment variables may be added or changed by individual build environment.
+        /// </remarks>
+        public IReadOnlyDictionary<string, string> EnvironmentVariables => GetEffectiveEnvironmentVariables(null);
+        
         public IEnumerable<ILogger> Loggers => _loggers;
 
-        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment, EnvironmentOptions environmentOptions)
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument)
         {
-            Manager = manager;
-            ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
-            if (buildEnvironment != null)
-            {
-                SetBuildEnvironment(buildEnvironment);
-            }
-            else if (environmentOptions != null)
-            {
-                SetBuildEnvironment(environmentOptions);
-            }
-            else
-            {
-                ResetBuildEnvironment();
-            }
-
             // Preload/enforce referencing some required asemblies
             Copy copy = new Copy();
+
+            Manager = manager;
+            ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
+            EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
 
             // Set the solution directory global property
             string solutionDir = manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath);
@@ -76,58 +69,40 @@ namespace Buildalyzer
                 AddLogger(new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null));
             }
         }
+        
+        public Project Load() => Load(null, EnvironmentFactory.GetBuildEnvironment());
 
-        /// <summary>
-        /// Sets the build environment that should be used.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        /// <param name="buildEnvironment">
-        /// The new build environment.
-        /// </param>
-        public void SetBuildEnvironment(BuildEnvironment buildEnvironment)
+        public Project Load(EnvironmentOptions environmentOptions)
         {
-            BuildEnvironment = buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment));
-        }
-
-        /// <summary>
-        /// Sets the build environment that should be used by specifiying options.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        /// <param name="options">
-        /// The new build environment options.
-        /// </param>
-        public void SetBuildEnvironment(EnvironmentOptions options)
-        {
-            if (options == null)
+            if (environmentOptions == null)
             {
-                throw new ArgumentNullException(nameof(options));
+                throw new ArgumentNullException(nameof(environmentOptions));
             }
 
-            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, options).GetBuildEnvironment();
+            return Load(null, EnvironmentFactory.GetBuildEnvironment(environmentOptions));
         }
 
-        /// <summary>
-        /// Resets the build environment to default values.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        public void ResetBuildEnvironment()
+        public Project Load(BuildEnvironment buildEnvironment) => Load(null, buildEnvironment);
+
+        public Project Load(string targetFramwork) => Load(targetFramwork, EnvironmentFactory.GetBuildEnvironment());
+
+        public Project Load(string targetFramework, EnvironmentOptions environmentOptions)
         {
-            BuildEnvironment = new EnvironmentFactory(Manager, ProjectFile, null).GetBuildEnvironment();
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return Load(targetFramework, EnvironmentFactory.GetBuildEnvironment(environmentOptions));
         }
 
-        /// <summary>
-        /// Creates a new <see cref="BuildEnvironment"/> and modifies the build targets
-        /// to the specified targets.
-        /// This will invalidate all cached build result data and result in new builds.
-        /// </summary>
-        /// <param name="targetsToBuild">The targets to build.</param>
-        public void SetTargetsToBuild(params string[] targetsToBuild) =>
-            SetBuildEnvironment(BuildEnvironment.WithTargetsToBuild(targetsToBuild));
-
-        public Project Load() => Load(null);
-
-        public Project Load(string targetFramework)
+        public Project Load(string targetFramework, BuildEnvironment buildEnvironment)
         {
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
             // Some project types can't be built from .NET Core
             if (BuildEnvironment.IsRunningOnCore)
             {
@@ -145,15 +120,16 @@ namespace Buildalyzer
             }
 
             // Create a project collection for each project since the toolset might change depending on the type of project
-            Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties();
+            Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
             if(!string.IsNullOrEmpty(targetFramework))
             {
+                // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
                 effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
             }
-            ProjectCollection projectCollection = CreateProjectCollection(effectiveGlobalProperties);
+            ProjectCollection projectCollection = CreateProjectCollection(buildEnvironment, effectiveGlobalProperties);
 
             // Load the project
-            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
+            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables(buildEnvironment)))
             {
                 using (XmlReader projectReader = ProjectFile.CreateReader())
                 {
@@ -171,22 +147,49 @@ namespace Buildalyzer
                 }
             }
         }
-        
+
         /// <summary>
         /// Builds all target framework(s).
         /// </summary>
         /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
-        public AnalyzerResults Build()
+        public AnalyzerResults Build() => Build(EnvironmentFactory.GetBuildEnvironment());
+
+        /// <summary>
+        /// Builds all target framework(s) with the specified build environment options.
+        /// </summary>
+        /// <param name="environmentOptions">The environment options to use for the build.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build(EnvironmentOptions environmentOptions)
         {
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return Build(EnvironmentFactory.GetBuildEnvironment(environmentOptions));
+        }
+        
+        /// <summary>
+        /// Builds all target framework(s) with the specified build environment.
+        /// </summary>
+        /// <param name="buildEnvironment">The build environment to use for the build.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build(BuildEnvironment buildEnvironment)
+        {
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
             // Load the project to get the evaluated target frameworks
-            Project project = Load();
+            Project project = Load(buildEnvironment);
 
             // Get all evaluated target frameworks from the Project and build them
             // but don't worry about getting a single target framework, it'll build the default
             string[] targetFrameworks = ProjectFile.GetTargetFrameworks(
                 project.GetPropertyValue(ProjectFileNames.TargetFrameworks), null, null);
 
-            return Build(targetFrameworks);
+            return Build(targetFrameworks, buildEnvironment);
         }
 
         /// <summary>
@@ -194,20 +197,50 @@ namespace Buildalyzer
         /// </summary>
         /// <param name="targetFrameworks">The set of target frameworks to build.</param>
         /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
-        public AnalyzerResults Build(string[] targetFrameworks)
+        public AnalyzerResults Build(string[] targetFrameworks) =>
+            Build(targetFrameworks, EnvironmentFactory.GetBuildEnvironment());
+
+        /// <summary>
+        /// Builds the requested target framework(s).
+        /// </summary>
+        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
+        /// <param name="environmentOptions">The environment options to use for the build.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build(string[] targetFrameworks, EnvironmentOptions environmentOptions)
         {
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return Build(targetFrameworks, EnvironmentFactory.GetBuildEnvironment(environmentOptions));
+        }
+
+        /// <summary>
+        /// Builds the requested target framework(s).
+        /// </summary>
+        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
+        /// <param name="buildEnvironment">The build environment to use for the build.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Build(string[] targetFrameworks, BuildEnvironment buildEnvironment)
+        {
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
             // If the set of target frameworks is empty, just build the default
             if(targetFrameworks == null || targetFrameworks.Length == 0)
             {
                 targetFrameworks = new string[] { null };
             }
 
-            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
-            AnalyzerResult result = PrepareForBuild(ref targetsToBuild);
+            string[] targetsToBuild = buildEnvironment.TargetsToBuild;
+            AnalyzerResult result = PrepareForBuild(buildEnvironment, ref targetsToBuild);
             AnalyzerResults results = new AnalyzerResults();
             foreach (string targetFramework in targetFrameworks)
             {
-                results.Add(BuildTargets(targetFramework, targetsToBuild));
+                results.Add(BuildTargets(buildEnvironment, targetFramework, targetsToBuild));
             }
 
             return results;
@@ -218,18 +251,47 @@ namespace Buildalyzer
         /// </summary>
         /// <param name="targetFramework">The target framework to build.</param>
         /// <returns>The results of the build process.</returns>
-        public AnalyzerResult Build(string targetFramework)
+        public AnalyzerResult Build(string targetFramework) => Build(targetFramework, EnvironmentFactory.GetBuildEnvironment());
+
+        /// <summary>
+        /// Builds a specific target framework.
+        /// </summary>
+        /// <param name="targetFramework">The target framework to build.</param>
+        /// <param name="environmentOptions">The environment options to use for the build.</param>
+        /// <returns>The results of the build process.</returns>
+        public AnalyzerResult Build(string targetFramework, EnvironmentOptions environmentOptions)
         {
-            string[] targetsToBuild = BuildEnvironment.TargetsToBuild;
-            AnalyzerResult result = PrepareForBuild(ref targetsToBuild);    
+            if (environmentOptions == null)
+            {
+                throw new ArgumentNullException(nameof(environmentOptions));
+            }
+
+            return Build(targetFramework, EnvironmentFactory.GetBuildEnvironment(environmentOptions));
+        }
+
+        /// <summary>
+        /// Builds a specific target framework.
+        /// </summary>
+        /// <param name="targetFramework">The target framework to build.</param>
+        /// <param name="buildEnvironment">The build environment to use for the build.</param>
+        /// <returns>The results of the build process.</returns>
+        public AnalyzerResult Build(string targetFramework, BuildEnvironment buildEnvironment)
+        {
+            if (buildEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(buildEnvironment));
+            }
+
+            string[] targetsToBuild = buildEnvironment.TargetsToBuild;
+            AnalyzerResult result = PrepareForBuild(buildEnvironment, ref targetsToBuild);    
             if (targetsToBuild.Length > 0)
             {
-                result = BuildTargets(targetFramework, targetsToBuild);
+                result = BuildTargets(buildEnvironment, targetFramework, targetsToBuild);
             }
             return result;
         }
 
-        private AnalyzerResult PrepareForBuild(ref string[] targetsToBuild)
+        private AnalyzerResult PrepareForBuild(BuildEnvironment buildEnvironment, ref string[] targetsToBuild)
         {
             if (targetsToBuild.Length == 0)
             {
@@ -243,19 +305,19 @@ namespace Buildalyzer
             if (string.Compare(targetsToBuild[0], "Restore", StringComparison.OrdinalIgnoreCase) == 0)
             {
                 targetsToBuild = targetsToBuild.Skip(1).ToArray();
-                return BuildTargets(null, new[] { "Restore" });
+                return BuildTargets(buildEnvironment, null, new[] { "Restore" });
             }
 
             return null;
         }
 
-        private AnalyzerResult BuildTargets(string targetFramework, string[] targetsToBuild)
+        private AnalyzerResult BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild)
         {
             // Get a fresh project, otherwise the MSBuild cache will mess up builds
             // See https://github.com/Microsoft/msbuild/issues/3469
-            Project project = Load(targetFramework);
+            Project project = Load(targetFramework, buildEnvironment);
 
-            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables()))
+            using (new TemporaryEnvironment(GetEffectiveEnvironmentVariables(buildEnvironment)))
             {
                 //ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
                 ProjectInstance projectInstance = project.CreateProjectInstance();
@@ -268,7 +330,7 @@ namespace Buildalyzer
                     },
                     new BuildRequestData(projectInstance, targetsToBuild));
 
-                return new AnalyzerResult(this, projectInstance, buildResult);
+                return new AnalyzerResult(this, projectInstance, buildResult, buildEnvironment);
             }
         }
 
@@ -289,18 +351,18 @@ namespace Buildalyzer
         }
 
         // Note the order of precedence (from least to most)
-        private Dictionary<string, string> GetEffectiveGlobalProperties()
+        private Dictionary<string, string> GetEffectiveGlobalProperties(BuildEnvironment buildEnvironment)
             => GetEffectiveDictionary(
                 true,  // Remove nulls to avoid passing null global properties. But null can be used in higher-precident dictionaries to ignore a lower-precident dictionary's value.
-                BuildEnvironment.GlobalProperties,
+               buildEnvironment?.GlobalProperties,
                 Manager.GlobalProperties,
                 _globalProperties);
 
         // Note the order of precedence (from least to most)
-        private Dictionary<string, string> GetEffectiveEnvironmentVariables()
+        private Dictionary<string, string> GetEffectiveEnvironmentVariables(BuildEnvironment buildEnvironment)
             => GetEffectiveDictionary(
                 false, // Don't remove nulls as a null value will unset the env var which may be set by a calling process.
-                BuildEnvironment.EnvironmentVariables,
+                buildEnvironment?.EnvironmentVariables,
                 Manager.EnvironmentVariables,
                 _environmentVariables);
 
@@ -308,10 +370,10 @@ namespace Buildalyzer
             bool removeNulls,
             params IReadOnlyDictionary<string, string>[] innerDictionaries)
         {
-            var effectiveDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var innerDictionary in innerDictionaries)
+            Dictionary<string, string> effectiveDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (IReadOnlyDictionary<string, string> innerDictionary in innerDictionaries.Where(x => x != null))
             {
-                foreach (var pair in innerDictionary)
+                foreach (KeyValuePair<string, string> pair in innerDictionary)
                 {
                     if (removeNulls && pair.Value == null)
                     {
@@ -327,11 +389,11 @@ namespace Buildalyzer
             return effectiveDictionary;
         }
 
-        private ProjectCollection CreateProjectCollection(IDictionary<string, string> globalProperties)
+        private ProjectCollection CreateProjectCollection(BuildEnvironment buildEnvironment, IDictionary<string, string> globalProperties)
         {
             ProjectCollection projectCollection = new ProjectCollection(globalProperties);
             projectCollection.RemoveAllToolsets();  // Make sure we're only using the latest tools
-            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, BuildEnvironment.ToolsPath, projectCollection, string.Empty));
+            projectCollection.AddToolset(new Toolset(ToolLocationHelper.CurrentToolsVersion, buildEnvironment.ToolsPath, projectCollection, string.Empty));
             projectCollection.DefaultToolsVersion = ToolLocationHelper.CurrentToolsVersion;
             return projectCollection;
         }

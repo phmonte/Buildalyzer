@@ -1,24 +1,14 @@
-﻿namespace Buildalyzer.Environment
+﻿using System.Collections.Generic;
+
+namespace Buildalyzer.Environment
 {
     public class EnvironmentOptions
     {
         /// <summary>
-        /// Indicates that the <c>Restore</c> target should be used during build.
+        /// The default targets to build. The eventual build environment may remove one or more of these
+        /// targets depending on project file format and build tools support.
         /// </summary>
-        public bool RestoreTarget { get; set; } = true;
-
-        /// <summary>
-        /// Indicates that the <c>Clean</c> target should be used during build.
-        /// This also does some other tricks to ensure that even if the <c>Clean</c>
-        /// target doesn't delete all the artifacts, the <c>Build</c> target is still
-        /// evaluated if it's specified.
-        /// </summary>
-        public bool CleanTarget { get; set; } = true;
-
-        /// <summary>
-        /// Indicates that the <c>Build</c> target should be used during build.
-        /// </summary>
-        public bool BuildTarget { get; set; } = true;
+        public List<string> TargetsToBuild { get; } = new List<string> { "Restore", "Clean", "Build" };
 
         /// <summary>
         /// Indicates that a design-time build should be performed.
@@ -27,5 +17,9 @@
         /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md
         /// </remarks>
         public bool DesignTime { get; set; } = true;
+
+        public IDictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>();
+
+        public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
     }
 }

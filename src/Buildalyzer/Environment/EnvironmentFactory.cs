@@ -8,26 +8,29 @@ using Microsoft.Build.Utilities;
 
 namespace Buildalyzer.Environment
 {
-    internal class EnvironmentFactory
+    public class EnvironmentFactory
     {
         private readonly AnalyzerManager _manager;
         private readonly ProjectFile _projectFile;
-        private readonly EnvironmentOptions _options;
 
-        public EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile, EnvironmentOptions options)
+        internal EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile)
         {
             _manager = manager;
             _projectFile = projectFile;
-            _options = options ?? new EnvironmentOptions();
         }
+        
+        public BuildEnvironment GetBuildEnvironment() =>
+            GetBuildEnvironment(null);
+        
+        public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options)
+        {
+            options = options ?? new EnvironmentOptions();
 
-        public BuildEnvironment GetBuildEnvironment()
-        {                
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
             // Also use the SDK if the project uses multi-targeting (regardless of the actual target)
             if (BuildEnvironment.IsRunningOnCore || _projectFile.IsMultiTargeted)
             {
-                return CreateCoreEnvironment();
+                return CreateCoreEnvironment(options);
             }
 
             // If this is an SDK project, check the target framework
@@ -35,23 +38,23 @@ namespace Buildalyzer.Environment
             {
                 // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
                 // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
-                string targetFramework = _projectFile?.TargetFrameworks.SingleOrDefault();
+                string targetFramework = _projectFile.TargetFrameworks.SingleOrDefault();
                 if (targetFramework != null
                     && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                     && targetFramework.Length > 3
                     && char.IsDigit(targetFramework[4]))
                 {
-                    return CreateFrameworkEnvironment();
+                    return CreateFrameworkEnvironment(options);
                 }
 
                 // Otherwise use the .NET Core SDK
-                return CreateCoreEnvironment();
+                return CreateCoreEnvironment(options);
             }
 
             // Use Framework tools if a ToolsVersion attribute
             if (_projectFile.ToolsVersion != null)
             {
-                return CreateFrameworkEnvironment();
+                return CreateFrameworkEnvironment(options);
             }
 
             throw new Exception("Could not determine build environment");
@@ -59,30 +62,24 @@ namespace Buildalyzer.Environment
 
         // Based on code from OmniSharp
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-        private BuildEnvironment CreateCoreEnvironment()
+        private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalGlobalProperties = options.GlobalProperties.ToDictionary(x => x.Key, x => x.Value);
 
-            // Get targets
-            List<string> targets = new List<string>();
-            if (_options.RestoreTarget && !_projectFile.Virtual)
+            // Tweak targets
+            List<string> targets = new List<string>(options.TargetsToBuild);
+            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase) && _projectFile.Virtual)
             {
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-
-                targets.Add("Restore");
+                targets.RemoveAll(x => x.Equals("Restore", StringComparison.OrdinalIgnoreCase));
             }
-            if (_options.CleanTarget)
+            if (targets.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
-                targets.Add("Clean");
-
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-            }
-            if (_options.BuildTarget)
-            {
-                targets.Add("Build");
             }
 
             // Get paths
@@ -95,39 +92,38 @@ namespace Buildalyzer.Environment
             additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets");
 
             return new BuildEnvironment(
-                _options.DesignTime,
+                options.DesignTime,
                 targets.ToArray(),
                 msBuildExePath,
                 dotnetPath,
                 sdksPath,
                 roslynTargetsPath,
-                additionalGlobalProperties);
+                additionalGlobalProperties,
+                options.EnvironmentVariables);
         }
 
-        private BuildEnvironment CreateFrameworkEnvironment()
+        private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
         {
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalGlobalProperties = options.GlobalProperties.ToDictionary(x => x.Key, x => x.Value);
 
-            // Get targets
-            List<string> targets = new List<string>();
-            if (_options.RestoreTarget && _projectFile.UsesSdk && !_projectFile.Virtual)
+            // Tweak targets
+            List<string> targets = new List<string>(options.TargetsToBuild);
+            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase)
+                && (!_projectFile.UsesSdk || _projectFile.Virtual))
             {
+                // Restore target only works for SDK projects
+
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
 
-                targets.Add("Restore");
+                targets.RemoveAll(x => x.Equals("Restore", StringComparison.OrdinalIgnoreCase));
             }
-            if (_options.CleanTarget)
+            if (targets.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
-                targets.Add("Clean");
-
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-            }
-            if (_options.BuildTarget)
-            {
-                targets.Add("Build");
             }
 
             // Get paths
@@ -168,13 +164,14 @@ namespace Buildalyzer.Environment
             additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets");
 
             return new BuildEnvironment(
-                _options.DesignTime,
+                options.DesignTime,
                 targets.ToArray(),
                 msBuildExePath,
                 extensionsPath,
                 sdksPath,
                 roslynTargetsPath,
-                additionalGlobalProperties);
+                additionalGlobalProperties,
+                options.EnvironmentVariables);
         }
     }
 }

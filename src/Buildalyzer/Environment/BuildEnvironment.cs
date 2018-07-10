@@ -89,6 +89,7 @@ namespace Buildalyzer.Environment
                 globalProperties.Add(MsBuildProperties.SkipCopyBuildProduct, "true");
                 globalProperties.Add(MsBuildProperties.AddModules, "false");
                 globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
+                globalProperties.Add(MsBuildProperties.GeneratePackageOnBuild, "false");  // Prevent NuGet.Build.Tasks.Pack.targets from running the pack targets (since we didn't build anything)
             }
             if(additionalGlobalProperties != null)
             {

@@ -15,8 +15,6 @@ namespace Buildalyzer.Construction
         private readonly XDocument _document;
         private readonly XElement _projectElement;
         private readonly IProjectTransformer _transformer;
-
-        private Project _project;
         
         internal ProjectFile(string path, XDocument document, IProjectTransformer transformer)
         {
@@ -73,9 +71,11 @@ namespace Buildalyzer.Construction
         /// </summary>
         /// <remarks>
         /// Checks for an <c>Import</c> element with a <c>Project</c> attribute of <c>Microsoft.Portable.CSharp.targets</c>.
+        /// Also looks for a <c>LanguageTargets</c> with a <c>Microsoft.Portable.CSharp.targets</c> target.
         /// </remarks>
         public bool IsPortable =>
-            _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Project).EndsWith("Microsoft.Portable.CSharp.targets"));
+            _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Project).EndsWith("Microsoft.Portable.CSharp.targets", StringComparison.OrdinalIgnoreCase))
+            || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => x.Value.EndsWith("Microsoft.Portable.CSharp.targets", StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// Whether the project file is multi-targeted.

@@ -42,40 +42,35 @@ namespace FrameworkIntegrationTests
         public void CompilesProject(string repository)
         {
             // Given
-            string solutionFile = CloneOrFetchRepository(repository);
-            StringWriter log = new StringWriter();
-            AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
+            string[] solutionFiles = CloneOrFetchRepository(repository);
+            foreach (string solutionFile in solutionFiles)
             {
-                LogWriter = log,
-                LoggerVerbosity = Verbosity
-            });
-
-            foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
-            {
-                // When
-                Console.WriteLine(analyzer.ProjectFile.Path);
-                if (BinaryLog)
+                StringWriter log = new StringWriter();
+                AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
                 {
-                    analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(analyzer.ProjectFile.Path), ".integration.framework.binlog")));
-                }
-                AnalyzerResults results = analyzer.Build();
+                    LogWriter = log,
+                    LoggerVerbosity = Verbosity
+                });
 
-                // Then
-                results.Count.ShouldBeGreaterThan(0, log.ToString());
-                results.First().OverallSuccess.ShouldBeTrue(log.ToString());
-                results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
-                results.First().GetSourceFiles().Count.ShouldBeGreaterThan(0);
+                foreach (ProjectAnalyzer analyzer in manager.Projects.Values)
+                {
+                    // When
+                    Console.WriteLine(analyzer.ProjectFile.Path);
+                    if (BinaryLog)
+                    {
+                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.integration.framework.binlog");
+                    }
+                    AnalyzerResults results = analyzer.Build();
+
+                    // Then
+                    results.Count.ShouldBeGreaterThan(0, log.ToString());
+                    results.First().OverallSuccess.ShouldBeTrue(log.ToString());
+                    results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+                }
             }
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log) =>
-            new AnalyzerManager(new AnalyzerManagerOptions
-            {
-                LogWriter = log
-            })
-            .GetProject(projectFile);
-
-        private static string CloneOrFetchRepository(string repository)
+        private static string[] CloneOrFetchRepository(string repository)
         {
             string path = GetRepositoryPath(repository);
             if (!Directory.Exists(path))
@@ -92,7 +87,7 @@ namespace FrameworkIntegrationTests
                     Commands.Fetch(repo, remote.Name, refSpecs, null, string.Empty);
                 }
             }
-            return Directory.GetFiles(path, "*.sln", SearchOption.AllDirectories)[0];
+            return Directory.GetFiles(path, "*.sln", SearchOption.AllDirectories);
         }
 
         private static string GetRepositoryPath(string repository)

@@ -23,6 +23,7 @@
         public const string SkipCopyBuildProduct = nameof(SkipCopyBuildProduct);
         public const string AddModules = nameof(AddModules);
         public const string UseCommonOutputDirectory = nameof(UseCommonOutputDirectory);
+        public const string GeneratePackageOnBuild = nameof(GeneratePackageOnBuild);
 
         // .NET Framework code analysis rulesets
         public const string CodeAnalysisRuleDirectories = nameof(CodeAnalysisRuleDirectories);

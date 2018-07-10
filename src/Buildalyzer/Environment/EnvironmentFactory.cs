@@ -20,15 +20,20 @@ namespace Buildalyzer.Environment
         }
         
         public BuildEnvironment GetBuildEnvironment() =>
-            GetBuildEnvironment(null);
+            GetBuildEnvironment(null, null);
+
+        public BuildEnvironment GetBuildEnvironment(string targetFramework) =>
+            GetBuildEnvironment(targetFramework, null);
+
+        public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options) =>
+            GetBuildEnvironment(null, options);
         
-        public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options)
+        public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
         {
             options = options ?? new EnvironmentOptions();
 
             // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
-            // Also use the SDK if the project uses multi-targeting (regardless of the actual target)
-            if (BuildEnvironment.IsRunningOnCore || _projectFile.IsMultiTargeted)
+            if (BuildEnvironment.IsRunningOnCore)
             {
                 return CreateCoreEnvironment(options);
             }
@@ -36,13 +41,11 @@ namespace Buildalyzer.Environment
             // If this is an SDK project, check the target framework
             if (_projectFile.UsesSdk)
             {
-                // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
+                // Use the Framework tools if this project ONLY targets .NET Framework ("net" followed by a digit)
                 // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
-                string targetFramework = _projectFile.TargetFrameworks.SingleOrDefault();
-                if (targetFramework != null
-                    && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
-                    && targetFramework.Length > 3
-                    && char.IsDigit(targetFramework[4]))
+                if (targetFramework == null
+                    ? _projectFile.TargetFrameworks.All(x => IsFrameworkTargetFramework(x))
+                    : IsFrameworkTargetFramework(targetFramework))
                 {
                     return CreateFrameworkEnvironment(options);
                 }
@@ -109,11 +112,8 @@ namespace Buildalyzer.Environment
 
             // Tweak targets
             List<string> targets = new List<string>(options.TargetsToBuild);
-            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase)
-                && (!_projectFile.UsesSdk || _projectFile.Virtual))
+            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase) && _projectFile.Virtual)
             {
-                // Restore target only works for SDK projects
-
                 // NuGet.Targets can't handle virtual project files:
                 // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
 
@@ -173,5 +173,10 @@ namespace Buildalyzer.Environment
                 additionalGlobalProperties,
                 options.EnvironmentVariables);
         }
+
+        private bool IsFrameworkTargetFramework(string targetFramework) =>
+            targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                && targetFramework.Length > 3
+                && char.IsDigit(targetFramework[4]);
     }
 }

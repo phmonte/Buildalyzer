@@ -106,7 +106,7 @@ namespace Buildalyzer.Construction
         {
             if (!string.IsNullOrEmpty(targetFrameworks))
             {
-                return targetFrameworks.Split(';').Select(x => x.Trim()).ToArray();
+                return targetFrameworks.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
             }
             if (!string.IsNullOrEmpty(targetFramework))
             {

@@ -6,5 +6,6 @@ namespace Buildalyzer.Construction
     public interface IProjectTransformer
     {
         void Transform(XDocument projectDocument);
+
     }
 }

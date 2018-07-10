@@ -226,20 +226,15 @@ namespace FrameworkTests
             references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
         }
 
-        // The legacy project system requires a non-design-time build to run the ResolveNuGetPackageAssets target
         [Test]
         public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
         {
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
-            EnvironmentOptions options = new EnvironmentOptions
-            {
-                DesignTime = false
-            };
 
             // When
-            IReadOnlyList<string> references = analyzer.Build(options).First().GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());

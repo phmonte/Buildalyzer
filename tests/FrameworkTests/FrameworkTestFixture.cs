@@ -64,7 +64,7 @@ namespace FrameworkTests
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build();
+            AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -85,7 +85,7 @@ namespace FrameworkTests
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            AnalyzerResults results = analyzer.BuildAllTargetFrameworks(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -100,7 +100,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build().First().GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.BuildAllTargetFrameworks().First().GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -120,7 +120,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            AnalyzerResults results = analyzer.Build();
+            AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
 
             // Then
             results.Count.ShouldBe(2);
@@ -189,7 +189,7 @@ namespace FrameworkTests
                 .GetProject(projectFile, projectDocument);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build().First().GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.BuildAllTargetFrameworks().First().GetSourceFiles();
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -204,7 +204,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.BuildAllTargetFrameworks().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -219,7 +219,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.BuildAllTargetFrameworks().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -234,7 +234,7 @@ namespace FrameworkTests
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.BuildAllTargetFrameworks().First().GetReferences();
 
             // Then
             references.ShouldNotBeNull(log.ToString());

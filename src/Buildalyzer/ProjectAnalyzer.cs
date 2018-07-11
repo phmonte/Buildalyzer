@@ -155,14 +155,14 @@ namespace Buildalyzer
         /// Builds all target framework(s).
         /// </summary>
         /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
-        public AnalyzerResults Build() => Build(new EnvironmentOptions());
+        public AnalyzerResults BuildAllTargetFrameworks() => BuildAllTargetFrameworks(new EnvironmentOptions());
 
         /// <summary>
         /// Builds all target framework(s) with the specified build environment options.
         /// </summary>
         /// <param name="environmentOptions">The environment options to use for the build.</param>
         /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
-        public AnalyzerResults Build(EnvironmentOptions environmentOptions)
+        public AnalyzerResults BuildAllTargetFrameworks(EnvironmentOptions environmentOptions)
         {
             if (environmentOptions == null)
             {
@@ -185,7 +185,7 @@ namespace Buildalyzer
         /// </summary>
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
         /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
-        public AnalyzerResults Build(BuildEnvironment buildEnvironment)
+        public AnalyzerResults BuildAllTargetFrameworks(BuildEnvironment buildEnvironment)
         {
             if (buildEnvironment == null)
             {
@@ -283,7 +283,7 @@ namespace Buildalyzer
         /// Builds a specific target framework.
         /// </summary>
         /// <param name="targetFramework">The target framework to build.</param>
-        /// <returns>The results of the build process.</returns>
+        /// <returns>The result of the build process.</returns>
         public AnalyzerResult Build(string targetFramework) =>
             Build(targetFramework, EnvironmentFactory.GetBuildEnvironment(targetFramework));
 
@@ -292,7 +292,7 @@ namespace Buildalyzer
         /// </summary>
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="environmentOptions">The environment options to use for the build.</param>
-        /// <returns>The results of the build process.</returns>
+        /// <returns>The result of the build process.</returns>
         public AnalyzerResult Build(string targetFramework, EnvironmentOptions environmentOptions)
         {
             if (environmentOptions == null)
@@ -308,7 +308,7 @@ namespace Buildalyzer
         /// </summary>
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
-        /// <returns>The results of the build process.</returns>
+        /// <returns>The result of the build process.</returns>
         public AnalyzerResult Build(string targetFramework, BuildEnvironment buildEnvironment)
         {
             if (buildEnvironment == null)
@@ -327,6 +327,26 @@ namespace Buildalyzer
             }
             return result;
         }
+
+        /// <summary>
+        /// Builds the project without specifying a target framework. This may have undesirable behavior if the project is multi-targeted.
+        /// </summary>
+        /// <returns>The result of the build process.</returns>
+        public AnalyzerResult Build() => Build((string)null);
+
+        /// <summary>
+        /// Builds the project without specifying a target framework. This may have undesirable behavior if the project is multi-targeted.
+        /// </summary>
+        /// <param name="environmentOptions">The environment options to use for the build.</param>
+        /// <returns>The result of the build process.</returns>
+        public AnalyzerResult Build(EnvironmentOptions environmentOptions) => Build((string)null, environmentOptions);
+
+        /// <summary>
+        /// Builds the project without specifying a target framework. This may have undesirable behavior if the project is multi-targeted.
+        /// </summary>
+        /// <param name="buildEnvironment">The build environment to use for the build.</param>
+        /// <returns>The result of the build process.</returns>
+        public AnalyzerResult Build(BuildEnvironment buildEnvironment) => Build((string)null, buildEnvironment);
 
         private AnalyzerResult Restore(BuildEnvironment buildEnvironment, ref string[] targetsToBuild)
         {
@@ -364,7 +384,7 @@ namespace Buildalyzer
                     },
                     new BuildRequestData(projectInstance, targetsToBuild));
 
-                return new AnalyzerResult(this, projectInstance, buildResult, buildEnvironment);
+                return new AnalyzerResult(this, project, projectInstance, buildResult, buildEnvironment);
             }
         }
 

@@ -60,7 +60,7 @@ namespace FrameworkIntegrationTests
                     {
                         analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.integration.framework.binlog");
                     }
-                    AnalyzerResults results = analyzer.Build();
+                    AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
 
                     // Then
                     results.Count.ShouldBeGreaterThan(0, log.ToString());

@@ -1,5 +1,6 @@
 ﻿using Buildalyzer.Construction;
 using Buildalyzer.Environment;
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using System.Collections.Generic;
 using System.IO;
@@ -9,20 +10,25 @@ namespace Buildalyzer
 {
     public class AnalyzerResult
     {
-        private readonly ProjectAnalyzer _analyzer;
 
         internal AnalyzerResult(
             ProjectAnalyzer analyzer,
+            Project project,
             ProjectInstance projectInstance,
             BuildResult buildResult,
             BuildEnvironment buildEnvironment)
         {
-            _analyzer = analyzer;
+            Analyzer = analyzer;
+            Project = project;
             ProjectInstance = projectInstance;
             BuildResult = buildResult;
             BuildEnvironment = buildEnvironment;
         }
-        
+
+        public ProjectAnalyzer Analyzer { get; }
+
+        public Project Project { get; }
+
         public ProjectInstance ProjectInstance { get; }
 
         public BuildResult BuildResult { get; }
@@ -41,7 +47,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetSourceFiles() =>
             ProjectInstance?.Items
                 .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(_analyzer.ProjectFile.Path), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
 
         public IReadOnlyList<string> GetReferences() =>
@@ -53,7 +59,7 @@ namespace Buildalyzer
         public IReadOnlyList<string> GetProjectReferences() =>
             ProjectInstance ?.Items
                 .Where(x => x.ItemType == "ProjectReference")
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(_analyzer.ProjectFile.Path), x.EvaluatedInclude)))
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
     }
 }

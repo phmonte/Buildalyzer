@@ -1,5 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -12,9 +13,20 @@ namespace Buildalyzer.Construction
     /// </summary>
     public class ProjectFile
     {
+        /// <summary>
+        /// These imports are known to require a .NET Framework host and build tools.
+        /// </summary>
+        public static readonly string[] ImportsThatRequireNetFramework = new string[]
+        {
+            "Microsoft.Portable.CSharp.targets",
+            "Microsoft.Windows.UI.Xaml.CSharp.targets"
+        };
+
         private readonly XDocument _document;
         private readonly XElement _projectElement;
         private readonly IProjectTransformer _transformer;
+
+        private string[] _targetFrameworks = null;
         
         internal ProjectFile(string path, XDocument document, IProjectTransformer transformer)
         {
@@ -49,12 +61,24 @@ namespace Buildalyzer.Construction
         /// If TargetFramework or TargetFrameworks contains a property that
         /// needs to be evaluated, this will contain the pre-evaluated value(s).
         /// </remarks>
-        public string[] TargetFrameworks =>
-            GetTargetFrameworks(
-                _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).FirstOrDefault()?.Value,
-                _projectElement.GetDescendants(ProjectFileNames.TargetFramework).FirstOrDefault()?.Value,
-                _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion).FirstOrDefault()?.Value);
-        
+        public string[] TargetFrameworks
+        {
+            get
+            {
+                if(_targetFrameworks == null)
+                {
+                    _targetFrameworks = GetTargetFrameworks(
+                        _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
+                        _projectElement.GetDescendants(ProjectFileNames.TargetFramework).Select(x => x.Value),
+                        _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
+                            // Try to find a TargetFrameworkIdentifier in the same PropertyGroup
+                            // If no TargetFrameworkIdentifier was found, assume ".NETFramework"
+                            .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value)));
+                }
+                return _targetFrameworks;
+            }
+        }
+
         /// <summary>
         /// Whether the project file uses an SDK.
         /// </summary>
@@ -66,16 +90,18 @@ namespace Buildalyzer.Construction
             _projectElement.GetAttributeValue(ProjectFileNames.Sdk) != null
                 || _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Sdk) != null);
 
+
         /// <summary>
-        /// Whether the project file is portable.
+        /// Whether the project file requires a .NET Framework host and build tools to build.
         /// </summary>
         /// <remarks>
-        /// Checks for an <c>Import</c> element with a <c>Project</c> attribute of <c>Microsoft.Portable.CSharp.targets</c>.
-        /// Also looks for a <c>LanguageTargets</c> with a <c>Microsoft.Portable.CSharp.targets</c> target.
+        /// Checks for an <c>Import</c> element with a <c>Project</c> attribute ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
+        /// Also looks for a <c>LanguageTargets</c> ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
+        /// Projects that use these targets are known not to build under a .NET Core host or build tools.
         /// </remarks>
-        public bool IsPortable =>
-            _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Project).EndsWith("Microsoft.Portable.CSharp.targets", StringComparison.OrdinalIgnoreCase))
-            || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => x.Value.EndsWith("Microsoft.Portable.CSharp.targets", StringComparison.OrdinalIgnoreCase));
+        public bool RequiresNetFramework =>
+            _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => ImportsThatRequireNetFramework.Any(i => x.GetAttributeValue(ProjectFileNames.Project).EndsWith(i, StringComparison.OrdinalIgnoreCase)))
+            || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Any(i => x.Value.EndsWith(i, StringComparison.OrdinalIgnoreCase)));
 
         /// <summary>
         /// Whether the project file is multi-targeted.
@@ -94,29 +120,84 @@ namespace Buildalyzer.Construction
         /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).
         /// </summary>
         public string ToolsVersion => _projectElement.GetAttributeValue(ProjectFileNames.ToolsVersion);
-
+        
         internal XmlReader CreateReader()
         {
             XDocument document = new XDocument(_document);
             _transformer?.Transform(document);
             return document.CreateReader();
         }
-
-        internal static string[] GetTargetFrameworks(string targetFrameworks, string targetFramework, string targetFrameworkVersion)
+        
+        internal static string[] GetTargetFrameworks(
+            IEnumerable<string> targetFrameworksValues,
+            IEnumerable<string> targetFrameworkValues,
+            IEnumerable<(string, string)> targetFrameworkIdentifierAndVersionValues)
         {
-            if (!string.IsNullOrEmpty(targetFrameworks))
+            // Use TargetFrameworks and/or TargetFramework if either were found
+            IEnumerable<string> allTargetFrameworks = null;
+            if(targetFrameworksValues != null)
             {
-                return targetFrameworks.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+                allTargetFrameworks = targetFrameworksValues
+                    .Where(x => x != null)
+                    .SelectMany(x => x.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(v => v.Trim()));
             }
-            if (!string.IsNullOrEmpty(targetFramework))
+            if (targetFrameworkValues != null)
             {
-                return new[] { targetFramework.Trim() };
+                allTargetFrameworks = allTargetFrameworks == null
+                    ? targetFrameworkValues.Where(x => x != null).Select(x => x.Trim())
+                    : allTargetFrameworks.Concat(targetFrameworkValues.Where(x => x != null).Select(x => x.Trim()));
             }
-            if (!string.IsNullOrEmpty(targetFrameworkVersion))
+            if(allTargetFrameworks != null)
             {
-                return new[] { "net" + new string(targetFrameworkVersion.Where(x => char.IsDigit(x)).ToArray()) };
+                string[] distinctTargetFrameworks = allTargetFrameworks.Distinct().ToArray();
+                if(distinctTargetFrameworks.Length > 0)
+                {
+                    // Only return if we actually found any
+                    return distinctTargetFrameworks;
+                }
             }
-            return Array.Empty<string>();
+
+            // Otherwise, try to find a TargetFrameworkIdentifier and/or TargetFrameworkVersion and puzzle it out
+            // This is really hacky, would be great to find an official mapping
+            // This is also unreliable because a particular TargetFrameworkIdentifier could result from different TargetFramework
+            // For example, both "win" and "uap" TargetFramework map back to ".NETCore" TargetFrameworkIdentifier
+            return targetFrameworkIdentifierAndVersionValues?
+                .Where(value => value.Item1 != null && value.Item2 != null)
+                .Select(value =>
+                {
+                    // If we have a mapping, use it
+                    (string, bool) targetFramework;
+                    if(TargetFrameworkIdentifierToTargetFramework.TryGetValue(value.Item1, out targetFramework))
+                    {
+                        // Append the TargetFrameworkVersion, stripping non-digits (this probably isn't correct in some cases)
+                        return targetFramework.Item1 + new string(value.Item2.Where(x => char.IsDigit(x) || (targetFramework.Item2 ? x == '.' : false)).ToArray());
+                    }
+
+                    // Otherwise ¯\_(ツ)_/¯
+                    return null;
+                })
+                .Where(x => x != null).ToArray()
+                    ?? Array.Empty<string>();
         }
+
+        // Map from TargetFrameworkIdentifier back to a TargetFramework
+        // Partly from https://github.com/onovotny/sdk/blob/83d93a58c0955386218d536580eac2ab1582b397/src/Tasks/Microsoft.NET.Build.Tasks/build/Microsoft.NET.TargetFrameworkInference.targets
+        // See also https://blog.stephencleary.com/2012/05/framework-profiles-in-net.html
+        // Can't handle ".NETPortable" because those split out as complex "portable-" TargetFramework
+        // Value = (TargetFramework, preserve dots in version)
+        private static readonly Dictionary<string, (string, bool)> TargetFrameworkIdentifierToTargetFramework = new Dictionary<string, (string, bool)>
+        {
+            { ".NETSTandard", ("netstandard", true) },
+            { ".NETCoreApp", ("netcoreapp", true) },
+            { ".NETFramework", ("net", false) },
+            { ".NETCore", ("uap", true) },
+            { "WindowsPhoneApp", ("wpa", false) },
+            { "WindowsPhone", ("wp", false) },
+            { "Xamarin.iOS", ("xamarinios", false) },
+            { "MonoAndroid", ("monoandroid", false) },
+            { "Xamarin.TVOS", ("xamarintvos", false) },
+            { "Xamarin.WatchOS", ("xamarinwatchos", false) },
+            { "Xamarin.Mac", ("xamarinmac", false) }
+        };
     }
 }

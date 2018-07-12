@@ -6,6 +6,7 @@
         public const string Project = nameof(Project);
         public const string TargetFramework = nameof(TargetFramework);
         public const string TargetFrameworks = nameof(TargetFrameworks);
+        public const string TargetFrameworkIdentifier = nameof(TargetFrameworkIdentifier);
         public const string TargetFrameworkVersion = nameof(TargetFrameworkVersion);
         public const string Import = nameof(Import);
         public const string PackageReference = nameof(PackageReference);

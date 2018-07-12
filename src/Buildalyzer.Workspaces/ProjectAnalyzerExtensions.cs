@@ -48,8 +48,26 @@ namespace Buildalyzer.Workspaces
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            // Build this project
-            AnalyzerResult analyzerResult = analyzer.Build();
+            return AddToWorkspace(analyzer.Build(), workspace, addProjectReferences);
+        }
+
+        /// <summary>
+        /// Adds a project to an existing Roslyn workspace.
+        /// </summary>
+        /// <param name="analyzerResult">The results from building a Buildalyzer project analyzer.</param>
+        /// <param name="workspace">A Roslyn workspace.</param>
+        /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
+        /// <returns>The newly added Roslyn project.</returns>
+        public static Project AddToWorkspace(this AnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
+        {
+            if (analyzerResult == null)
+            {
+                throw new ArgumentNullException(nameof(analyzerResult));
+            }
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
 
             // Get or create an ID for this project
             string projectGuid = analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid");
@@ -66,8 +84,8 @@ namespace Buildalyzer.Workspaces
             foreach (Project existingProject in solution.Projects.ToArray())
             {
                 if (!existingProject.Id.Equals(projectId)
-                    && analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
-                    && (existingAnalyzer.Build().GetProjectReferences()?.Contains(analyzer.ProjectFile.Path) ?? false))
+                    && analyzerResult.Analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
+                    && (existingAnalyzer.Build().GetProjectReferences()?.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);

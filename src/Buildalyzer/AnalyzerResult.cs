@@ -40,8 +40,8 @@ namespace Buildalyzer
         public string TargetFramework =>
             ProjectFile.GetTargetFrameworks(
                 null,  // Don't want all target frameworks since the result is just for one
-                ProjectInstance?.GetProperty(ProjectFileNames.TargetFramework)?.EvaluatedValue,
-                ProjectInstance?.GetProperty(ProjectFileNames.TargetFrameworkVersion)?.EvaluatedValue)
+                new[] { ProjectInstance?.GetProperty(ProjectFileNames.TargetFramework)?.EvaluatedValue },
+                new[] { (ProjectInstance?.GetProperty(ProjectFileNames.TargetFrameworkIdentifier)?.EvaluatedValue, ProjectInstance?.GetProperty(ProjectFileNames.TargetFrameworkVersion)?.EvaluatedValue) })
             .FirstOrDefault();
 
         public IReadOnlyList<string> GetSourceFiles() =>

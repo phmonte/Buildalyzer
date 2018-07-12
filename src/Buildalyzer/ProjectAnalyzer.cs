@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
@@ -106,13 +107,16 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(buildEnvironment));
             }
 
+            // Need a fresh BuildEnvironmentHelper for every load/build
+            ResetBuildEnvironmentHelper(buildEnvironment);
+
             // Some project types can't be built from .NET Core
             if (BuildEnvironment.IsRunningOnCore)
             {
                 // Portable projects
-                if (ProjectFile.IsPortable)
+                if (ProjectFile.RequiresNetFramework)
                 {
-                    throw new Exception("Can't build portable class library projects from a .NET Core host");
+                    throw new Exception("This project requires the .NET Framework and can't be built from a .NET Core host");
                 }
 
                 // Legacy framework projects with PackageReference
@@ -142,11 +146,15 @@ namespace Buildalyzer
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                     root.FullPath = ProjectFile.Path;
 
-                    return new Project(
-                        root,
-                        effectiveGlobalProperties,
-                        ToolLocationHelper.CurrentToolsVersion,
-                        projectCollection);
+                    using (new AssemblyResolver(buildEnvironment))
+                    {
+                        return new Project(
+                            root,
+                            effectiveGlobalProperties,
+                            ToolLocationHelper.CurrentToolsVersion,
+                            projectCollection,
+                            ProjectLoadSettings.IgnoreEmptyImports | ProjectLoadSettings.IgnoreInvalidImports | ProjectLoadSettings.IgnoreMissingImports);
+                    }
                 }
             }
         }
@@ -175,7 +183,7 @@ namespace Buildalyzer
             // Get all evaluated target frameworks from the Project and build them
             // but don't worry about getting a single target framework, it'll build the default
             string[] targetFrameworks = ProjectFile.GetTargetFrameworks(
-                project.GetPropertyValue(ProjectFileNames.TargetFrameworks), null, null);
+                new[] { project.GetPropertyValue(ProjectFileNames.TargetFrameworks) }, null, null);
 
             return Build(targetFrameworks, environmentOptions);
         }
@@ -198,7 +206,7 @@ namespace Buildalyzer
             // Get all evaluated target frameworks from the Project and build them
             // but don't worry about getting a single target framework, it'll build the default
             string[] targetFrameworks = ProjectFile.GetTargetFrameworks(
-                project.GetPropertyValue(ProjectFileNames.TargetFrameworks), null, null);
+                new[] { project.GetPropertyValue(ProjectFileNames.TargetFrameworks) }, null, null);
 
             return Build(targetFrameworks, buildEnvironment);
         }
@@ -376,16 +384,33 @@ namespace Buildalyzer
                 //ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
                 ProjectInstance projectInstance = project.CreateProjectInstance();
 
-                BuildResult buildResult = Manager.BuildManager.Build(
-                    new BuildParameters(project.ProjectCollection)
-                    {
-                        Loggers = Loggers,
-                        ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
-                    },
-                    new BuildRequestData(projectInstance, targetsToBuild));
-
-                return new AnalyzerResult(this, project, projectInstance, buildResult, buildEnvironment);
+                using (new AssemblyResolver(buildEnvironment))
+                {
+                    BuildResult buildResult = Manager.BuildManager.Build(
+                        new BuildParameters(project.ProjectCollection)
+                        {
+                            Loggers = Loggers,
+                            ProjectLoadSettings = ProjectLoadSettings.RecordEvaluatedItemElements
+                        },
+                        new BuildRequestData(projectInstance, targetsToBuild));
+                    return new AnalyzerResult(this, project, projectInstance, buildResult, buildEnvironment);
+                }
             }
+        }
+
+        /// <summary>
+        /// A glorious hack to work around the fact that BuildEnvironmentHelper is a static singleton
+        /// that won't change for different build environments in the same process
+        /// (see https://github.com/Microsoft/msbuild/blob/ffa7f408e8d00bda677cfb0ec15d547acf2aea06/src/Shared/BuildEnvironmentHelper.cs#L410-L426).
+        /// It also won't calculate BuildEnvironmentHelper.MSBuildToolsDirectory32 correctly for API-based
+        /// builds uding defaults, which screws up things like SDK resolver resolution
+        /// (see https://github.com/Microsoft/msbuild/blob/ffa7f408e8d00bda677cfb0ec15d547acf2aea06/src/Build/BackEnd/Components/SdkResolution/SdkResolverLoader.cs#L29-L30).
+        /// </summary>
+        private void ResetBuildEnvironmentHelper(BuildEnvironment buildEnvironment)
+        {
+            Type type = Assembly.GetAssembly(typeof(Project)).GetType("Microsoft.Build.Shared.BuildEnvironmentHelper");
+            MethodInfo resetMethod = type.GetMethod("ResetInstance_ForUnitTestsOnly", BindingFlags.Static | BindingFlags.NonPublic);
+            resetMethod.Invoke(null, new object[] { (Func<string>)(() => buildEnvironment.MsBuildExePath), null, null, null, null, null });
         }
 
         public void SetGlobalProperty(string key, string value)

@@ -32,9 +32,8 @@ namespace Buildalyzer.Environment
         {
             options = options ?? new EnvironmentOptions();
 
-            // If this is a portable project, use the framework, regardless of anything else
-            // Portable projects can't currently be build with the .NET SDK
-            if (_projectFile.IsPortable)
+            // If this project file uses a target known to require .NET Framework, use the framework regardless of anything else
+            if (_projectFile.RequiresNetFramework)
             {
                 return CreateFrameworkEnvironment(options);
             }

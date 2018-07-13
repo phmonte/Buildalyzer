@@ -42,7 +42,7 @@ namespace Buildalyzer.Environment
             if (BuildEnvironment.IsRunningOnCore)
             {
                 return CreateCoreEnvironment(options);
-            }
+            }           
 
             // If this is an SDK project, check the target framework
             if (_projectFile.UsesSdk)
@@ -96,6 +96,18 @@ namespace Buildalyzer.Environment
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
             string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
+            if(!BuildEnvironment.IsRunningOnCore)
+            {
+                // If the host is .NET Framework, we need to try and set the MSBuild path to the framework if we can
+                // See https://github.com/Microsoft/msbuild/issues/3510#issuecomment-404671740
+                if (GetFrameworkMsBuildExePath(out string frameworkMsBuildExePath))
+                {
+                    msBuildExePath = frameworkMsBuildExePath;
+
+                    // Also need to set the Roslyn path to match
+                    roslynTargetsPath = Path.Combine(Path.GetDirectoryName(msBuildExePath), "Roslyn");
+                }
+            }
 
             // Required to find and import the Restore target
             additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets");
@@ -133,26 +145,10 @@ namespace Buildalyzer.Environment
             }
 
             // Get paths
-            string msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
-            if (string.IsNullOrEmpty(msBuildExePath))
-            {
-                // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
-                // Try to poll for it. From https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/4649f55f900a324421bad5a714a2584926a02138/src/StructuredLogViewer/MSBuildLocator.cs
-                string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
-                msBuildExePath = new[]
-                {
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
-                }
-                .Where(File.Exists)
-                .FirstOrDefault();
-            }
-            if (string.IsNullOrEmpty(msBuildExePath))
+            if (!GetFrameworkMsBuildExePath(out string msBuildExePath))
             {
                 throw new InvalidOperationException("Could not locate the tools (msbuild.exe) path");
             }
-
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
             string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
             string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
@@ -184,5 +180,29 @@ namespace Buildalyzer.Environment
             targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                 && targetFramework.Length > 3
                 && char.IsDigit(targetFramework[4]);
+
+        private bool GetFrameworkMsBuildExePath(out string msBuildExePath)
+        {
+            msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
+            if (string.IsNullOrEmpty(msBuildExePath))
+            {
+                // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
+                // Try to poll for it. From https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/4649f55f900a324421bad5a714a2584926a02138/src/StructuredLogViewer/MSBuildLocator.cs
+                string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
+                msBuildExePath = new[]
+                {
+                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"),
+                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"),
+                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
+                }
+                .Where(File.Exists)
+                .FirstOrDefault();
+            }
+            if (string.IsNullOrEmpty(msBuildExePath))
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

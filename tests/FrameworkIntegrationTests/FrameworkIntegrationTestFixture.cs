@@ -47,7 +47,25 @@ namespace FrameworkIntegrationTests
             new TestRepository("https://github.com/nodatime/nodatime.git"),
             new TestRepository("https://github.com/JasonBock/Rocks.git"),
             new TestRepository("https://github.com/dotnet/roslyn.git"),
-            new TestRepository("https://github.com/Reactive-Extensions/Rx.NET.git"),
+            new TestRepository("https://github.com/Reactive-Extensions/Rx.NET.git",
+                @"\Ix.NET\Integration\Uwp\Uwp.csproj",  // Can't build XAML projects
+                @"\Ix.NET\Integration\Win81\Win81.csproj",  // Can't build XAML projects
+                @"\Ix.NET\Integration\Wpa81\Wpa81.csproj",  // Can't build XAML projects
+                @"\Ix.NET\Integration\Wp8\Wp8.csproj",  // Can't build Windows Phone projects
+                @"\Ix.NET\Integration\tvOS\tvOS.csproj", // Can't build tvOS projects
+                @"\Ix.NET\Integration\Android\Android.csproj", // Can't build Android projects
+                @"\Ix.NET\Integration\iOS\iOS.csproj", // Can't build iOS projects
+                @"\Rx.NET\Integration\Installation\Uwp\Uwp.csproj",  // Can't build XAML projects,
+                @"\Rx.NET\Integration\Installation\Win81\Win81.csproj",  // Can't build XAML projects
+                @"\Rx.NET\Integration\Installation\Wpa81\Wpa81.csproj",  // Can't build XAML projects
+                @"\Rx.NET\Integration\Installation\Wp8\Wp8.csproj",  // Can't build Windows Phone projects
+                @"\Rx.NET\Integration\Installation\tvOS\tvOS.csproj", // Can't build tvOS projects
+                @"\Rx.NET\Integration\Installation\Android\Android.csproj", // Can't build Android projects
+                @"\Rx.NET\Integration\Installation\iOS\iOS.csproj", // Can't build iOS projects
+                @"\Rx.NET\Samples\Portable\SilverlightApplication\SilverlightApplication.csproj",  // Can't build Silverlight projects
+                @"\Rx.NET\Source\src\System.Reactive\System.Reactive.csproj", // Something is resetting MSBuildToolsPath when Sdk.targets is called, points to the wrong location
+                @"_NuGet.csproj"  // These projects uses local packages,
+            ),
             new TestRepository("https://github.com/serilog/serilog.git"),
             new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),
             new TestRepository("https://github.com/cake-build/cake"),

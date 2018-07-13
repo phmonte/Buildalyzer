@@ -16,6 +16,7 @@ using Buildalyzer.Environment;
 namespace NetCoreTests
 {
     [TestFixture]
+    [NonParallelizable]
     public class NetCoreTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;

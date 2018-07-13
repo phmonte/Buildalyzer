@@ -11,6 +11,7 @@ using Shouldly;
 namespace Buildalyzer.Workspaces.Tests
 {
     [TestFixture]
+    [NonParallelizable]
     public class ProjectAnalyzerExtensionsFixture
     {
         [Test]

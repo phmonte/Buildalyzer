@@ -94,6 +94,7 @@ namespace Buildalyzer.Environment
             // Get paths
             string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path);
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
+            string extensionsPath = dotnetPath;
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
             string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
             if(!BuildEnvironment.IsRunningOnCore)
@@ -104,8 +105,10 @@ namespace Buildalyzer.Environment
                 {
                     msBuildExePath = frameworkMsBuildExePath;
 
-                    // Also need to set the Roslyn path to match
-                    roslynTargetsPath = Path.Combine(Path.GetDirectoryName(msBuildExePath), "Roslyn");
+                    // Also need to set the Roslyn and Extensions paths to match
+                    string toolsPath = Path.GetDirectoryName(msBuildExePath);
+                    roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
+                    extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
                 }
             }
 
@@ -116,7 +119,7 @@ namespace Buildalyzer.Environment
                 options.DesignTime,
                 targets.ToArray(),
                 msBuildExePath,
-                dotnetPath,
+                extensionsPath,
                 sdksPath,
                 roslynTargetsPath,
                 additionalGlobalProperties,

@@ -51,6 +51,11 @@ namespace Buildalyzer
         
         public IEnumerable<ILogger> Loggers => _loggers;
 
+        /// <summary>
+        /// Controls whether empty, invalid, and missing targets should be ignored during project load.
+        /// </summary>
+        public bool IgnoreFaultyImports { get; set; } = true;
+
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument)
         {
             // Preload/enforce referencing some required asemblies
@@ -153,7 +158,9 @@ namespace Buildalyzer
                             effectiveGlobalProperties,
                             ToolLocationHelper.CurrentToolsVersion,
                             projectCollection,
-                            ProjectLoadSettings.IgnoreEmptyImports | ProjectLoadSettings.IgnoreInvalidImports | ProjectLoadSettings.IgnoreMissingImports);
+                            IgnoreFaultyImports
+                                ? ProjectLoadSettings.IgnoreEmptyImports | ProjectLoadSettings.IgnoreInvalidImports | ProjectLoadSettings.IgnoreMissingImports
+                                : ProjectLoadSettings.Default);
                     }
                 }
             }

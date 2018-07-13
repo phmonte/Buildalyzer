@@ -50,7 +50,9 @@ namespace Buildalyzer
 
             // Get all candidate paths
             string[] candidatePaths = Directory.GetFiles(Path.GetDirectoryName(_buildEnvironment.MsBuildExePath), simpleName + ".dll", SearchOption.AllDirectories)
-                .Concat(Directory.GetFiles(_buildEnvironment.SDKsPath, simpleName + ".dll", SearchOption.AllDirectories))
+                .Concat(Directory.GetFiles(Path.GetFullPath(Path.Combine(_buildEnvironment.SDKsPath, @"..\")), simpleName + ".dll", SearchOption.AllDirectories))
+                .Concat(Directory.GetFiles(_buildEnvironment.ExtensionsPath, simpleName + ".dll", SearchOption.AllDirectories))
+                .Distinct()
                 .Where(x => File.Exists(x))
                 .ToArray();
 

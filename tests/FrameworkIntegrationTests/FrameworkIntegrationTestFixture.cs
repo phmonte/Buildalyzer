@@ -15,6 +15,7 @@ namespace FrameworkIntegrationTests
 {
 #if Is_Windows
     [TestFixture]
+    [NonParallelizable]
     public class FrameworkIntegrationTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
@@ -63,7 +64,7 @@ namespace FrameworkIntegrationTests
                 @"\Rx.NET\Integration\Installation\Android\Android.csproj", // Can't build Android projects
                 @"\Rx.NET\Integration\Installation\iOS\iOS.csproj", // Can't build iOS projects
                 @"\Rx.NET\Samples\Portable\SilverlightApplication\SilverlightApplication.csproj",  // Can't build Silverlight projects
-                @"\Rx.NET\Source\src\System.Reactive\System.Reactive.csproj", // Something is resetting MSBuildToolsPath when Sdk.targets is called, points to the wrong location
+                @"\Rx.NET\Source\src\System.Reactive\System.Reactive.csproj", // Multi-targets UAP projects which Restore can't handle (since Restore scans all frameworks for each build in the _GetRestoreSettingsPerFramework target)
                 @"_NuGet.csproj"  // These projects uses local packages,
             ),
             new TestRepository("https://github.com/serilog/serilog.git"),
@@ -92,16 +93,17 @@ namespace FrameworkIntegrationTests
                 {
                     // When
                     Console.WriteLine(analyzer.ProjectFile.Path);
+                    analyzer.IgnoreFaultyImports = false;
                     if (BinaryLog)
                     {
-                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.integration.framework.binlog");
+                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.framework.binlog");
                     }
                     AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
 
                     // Then
                     results.Count.ShouldBeGreaterThan(0, log.ToString());
-                    results.First().OverallSuccess.ShouldBeTrue(log.ToString());
-                    results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+                    results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+                    results.ShouldAllBe(x => x.ProjectInstance != null, log.ToString());
                 }
             }
         }

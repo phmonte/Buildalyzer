@@ -13,6 +13,7 @@ using System.Text;
 namespace NetCoreIntegrationTests
 {
     [TestFixture]
+    [NonParallelizable]
     public class NetCoreIntegrationTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
@@ -92,16 +93,17 @@ namespace NetCoreIntegrationTests
                 {
                     // When
                     Console.WriteLine(analyzer.ProjectFile.Path);
+                    analyzer.IgnoreFaultyImports = false;
                     if (BinaryLog)
                     {
-                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.integration.core.binlog");
+                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
                     }
                     AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
 
                     // Then
                     results.Count.ShouldBeGreaterThan(0, log.ToString());
-                    results.First().OverallSuccess.ShouldBeTrue(log.ToString());
-                    results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+                    results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+                    results.ShouldAllBe(x => x.ProjectInstance != null, log.ToString());
                 }
             }
         }

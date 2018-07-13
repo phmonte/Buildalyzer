@@ -18,6 +18,7 @@ namespace FrameworkTests
 {
 #if Is_Windows
     [TestFixture]
+    [NonParallelizable]
     public class FrameworkTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;

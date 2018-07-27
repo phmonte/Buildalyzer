@@ -39,13 +39,13 @@ namespace NetCoreIntegrationTests
             //new TestRepository("https://github.com/AngleSharp/AngleSharp.git"),  contains portable project, can't build
             new TestRepository("https://github.com/autofac/Autofac.git"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
-            //new TestRepository("https://github.com/MarimerLLC/csla.git"),  contains portable project, can't build
             new TestRepository("https://github.com/SixLabors/ImageSharp.git"),
             //new TestRepository("https://github.com/moq/moq.git"),  does not use Build as the default target, see https://github.com/moq/moq/issues/21
             //new TestRepository("https://github.com/JamesNK/Newtonsoft.Json.git"),  contains portable project, can't build
-            //new TestRepository("https://github.com/nodatime/nodatime.git"),  fails when running Blazor commands due to design-time build and missing artifacts at E:\NuGet\microsoft.aspnetcore.blazor.build\0.4.0\targets\Blazor.MonoRuntime.targets(529,5)
+            new TestRepository("https://github.com/nodatime/nodatime.git",
+                @"\src\NodaTime.Web.Blazor\NodaTime.Web.Blazor.csproj"),
             new TestRepository("https://github.com/JasonBock/Rocks.git"),
-            new TestRepository("https://github.com/dotnet/roslyn.git"),
+            //new TestRepository("https://github.com/dotnet/roslyn.git"),  uses a special Restore.cmd prior to build
             new TestRepository("https://github.com/Reactive-Extensions/Rx.NET.git",
                 @"\Ix.NET\Integration\Uwp\Uwp.csproj",  // Can't build XAML projects
                 @"\Ix.NET\Integration\Win81Wpa81\Win81Wpa81.csproj",  // Can't build portable projects from a .NET Core host
@@ -65,7 +65,23 @@ namespace NetCoreIntegrationTests
                 @"\Rx.NET\Integration\Installation\iOS\iOS.csproj", // Can't build iOS projects
                 @"\Rx.NET\Samples\Portable\SilverlightApplication\SilverlightApplication.csproj",  // Can't build Silverlight projects
                 @"\Rx.NET\Source\src\System.Reactive\System.Reactive.csproj", // Can't restore from .NET Core when using MSBuild.Sdk.Extras (see https://github.com/onovotny/MSBuildSdkExtras/issues/85)
-                @"_NuGet.csproj"  // These projects uses local packages
+                @"_NuGet.csproj",  // These projects use local packages
+                @"\Rx.NET\Source\src\Microsoft.Reactive.Testing\Microsoft.Reactive.Testing.csproj",
+                @"\Rx.NET\Source\tests\Tests.System.Reactive\Tests.System.Reactive.csproj",
+                @"\Rx.NET\Source\src\System.Reactive.Observable.Aliases\System.Reactive.Observable.Aliases.csproj",
+                @"\Rx.NET\Source\tests\Tests.System.Reactive.Uwp.DeviceRunner\Tests.System.Reactive.Uwp.DeviceRunner.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.Core\System.Reactive.Core.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.Linq\System.Reactive.Linq.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.PlatformServices\System.Reactive.PlatformServices.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.Providers\System.Reactive.Providers.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.Windows.Threading\System.Reactive.Windows.Threading.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.WindowsRuntime\System.Reactive.WindowsRuntime.csproj",
+                @"\Rx.NET\Source\facades\System.Reactive.Interfaces\System.Reactive.Interfaces.csproj",
+                @"\Rx.NET\Integration\BindingRedirects\CommonCodeInPcl\CommonCodeInPcl.csproj",
+                @"\Rx.NET\Integration\FacadeTest\FacadeTest.csproj",
+                @"\Rx.NET\Integration\Installation\Win81Wpa81\Win81Wpa81.csproj",
+                @"\Rx.NET\Integration\Installation\Pcl259\Pcl259.csproj",
+                @"\Rx.NET\Samples\Portable\PortableClassLibrary\PortableClassLibrary.csproj"
             ),  
             new TestRepository("https://github.com/serilog/serilog.git"),
             new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),

@@ -1,5 +1,6 @@
-# 0.6.0
+# 1.0.0
 
+- **[Breaking Change]** [Refactoring] Entire API. Most of the concepts are the same, but the API has changed significantly since the last release (too many changes to enumerate). Documentation is forthcoming, but I wanted to get this release out the door as soon as possible.
 - [Refactoring] Introduces a `ProjectTransformer` base class for specifying project file adjustments instead of a delegate
 - [Fix] Converts multi-targeted projects into a single target so Buildalyzer can build them (#29, #57)
 - [Fix] Calling `ProjectAnalyzer.SetGlobalProperty` and `ProjectAnalyzer.RemoveGlobalProperty` no longer leaks to projects sharing the same `BuildManager`

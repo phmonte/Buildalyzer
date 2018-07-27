@@ -1,6 +1,10 @@
 # Buildalyzer
 
-![buildalyzer logo](./docs/buildalyzer.png)
+![buildalyzer logo](./docs/input/assets/img/buildalyzer.png)
+
+**NOTE:** Major changes in the recent 1.0 release. Most of the concepts are the same, but the API has changed significantly since the last release (too many changes to enumerate). Revised documentation is forthcoming, but I wanted to get this release out the door as soon as possible. The information below is probably out of date right now and won't work as-written. You've been warned.
+
+---
 
 A little utility to perform design-time builds of .NET projects without having to think too hard about it:
 

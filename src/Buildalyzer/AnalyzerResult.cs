@@ -2,6 +2,7 @@
 using Buildalyzer.Environment;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,7 +47,10 @@ namespace Buildalyzer
 
         public IReadOnlyList<string> GetSourceFiles() =>
             ProjectInstance?.Items
-                .Where(x => x.ItemType == "CscCommandLineArgs" && !x.EvaluatedInclude.StartsWith("/"))
+                .Where(x => x.ItemType == "CscCommandLineArgs"
+                    && !x.EvaluatedInclude.StartsWith("/")
+                    && !string.Equals(Path.GetFileName(x.EvaluatedInclude), "csc.dll", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(Path.GetFileName(x.EvaluatedInclude), "csc.exe", StringComparison.OrdinalIgnoreCase))
                 .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.EvaluatedInclude)))
                 .ToList();
 

@@ -71,11 +71,16 @@ Task("Restore")
         DotNetCoreRestore("./Buildalyzer.sln", new DotNetCoreRestoreSettings
         {
             MSBuildSettings = msBuildSettings
-        });        
-        MSBuild("./Buildalyzer.sln", new MSBuildSettings()
-            .WithTarget("restore")
-            .SetConfiguration(configuration)
-        );
+        });       
+
+        // Have to restore the .NET Framework projects using MSBuild        
+        foreach (var project in GetFiles("./tests/Framework*Tests/*.csproj"))
+        {
+            MSBuild(MakeAbsolute(project).ToString(), new MSBuildSettings()
+                .WithTarget("restore")
+                .SetConfiguration(configuration)
+            );
+        }
     });
 
 Task("Build")

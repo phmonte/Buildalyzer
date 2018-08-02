@@ -109,7 +109,8 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
                 { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
                 { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { Environment.EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
+                { Environment.EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath },
+                { Environment.EnvironmentVariables.MSBUILDDISABLENODEREUSE, "1" }
             };
             if (additionalEnvironmentVariables != null)
             {

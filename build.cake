@@ -68,19 +68,8 @@ Task("Restore")
     .IsDependentOn("Clean")
     .Does(() =>
     {        
-        DotNetCoreRestore("./Buildalyzer.sln", new DotNetCoreRestoreSettings
-        {
-            MSBuildSettings = msBuildSettings
-        });       
-
-        // Have to restore the .NET Framework projects using MSBuild        
-        foreach (var project in GetFiles("./tests/Framework*Tests/*.csproj"))
-        {
-            MSBuild(MakeAbsolute(project).ToString(), new MSBuildSettings()
-                .WithTarget("restore")
-                .SetConfiguration(configuration)
-            );
-        }
+        // Run NuGet CLI restore to handle the Framework test projects       
+        NuGetRestore("./Buildalyzer.sln"); 
     });
 
 Task("Build")

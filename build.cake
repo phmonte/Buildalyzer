@@ -1,5 +1,6 @@
 // The following environment variables need to be set for Publish target:
 // BUILDALYZER_NUGET_KEY
+// BUILDALYZER_MYGET_KEY
 // BUILDALYZER_GITHUB_TOKEN
 // BUILDALYZER_NETLIFY_TOKEN
 
@@ -24,7 +25,7 @@ var configuration = Argument("configuration", "Release");
 //////////////////////////////////////////////////////////////////////
 
 var isLocal = BuildSystem.IsLocalBuild;
-var isRunningOnAppVeyor = AppVeyor.IsRunningOnAppVeyor;
+var isRunningOnBuildServer = AppVeyor.IsRunningOnAppVeyor;
 var isPullRequest = AppVeyor.Environment.PullRequest.IsPullRequest;
 var buildNumber = AppVeyor.Environment.Build.Number;
 
@@ -37,12 +38,8 @@ var msBuildSettings = new DotNetCoreMSBuildSettings()
     .WithProperty("AssemblyVersion", version)
     .WithProperty("FileVersion", version);
 
-var buildDir = Directory("./src/Buildalyzer/bin") + Directory(configuration);
-var releaseDir = Directory("./build");
+var buildDir = Directory("./build");
 var docsDir = Directory("./docs");
-
-var zipFile = "Buildalyzer-v" + semVersion + ".zip";
-var zipPath = releaseDir + File(zipFile);
 
 ///////////////////////////////////////////////////////////////////////////////
 // SETUP / TEARDOWN
@@ -58,10 +55,12 @@ Setup(context =>
 //////////////////////////////////////////////////////////////////////
 
 Task("Clean")
-    .Description("Cleans the build directory.")
+    .Description("Cleans the build directories.")
     .Does(() =>
     {
-        CleanDirectories(new DirectoryPath[] { buildDir });
+        CleanDirectories(GetDirectories($"./src/*/bin/{ configuration }"));
+        CleanDirectories(GetDirectories($"./tests/*Tests/*/bin/{ configuration }"));
+        CleanDirectories(buildDir);
     });
 
 Task("Restore")
@@ -99,9 +98,9 @@ Task("Test")
             NoRestore = true,
             Configuration = configuration
         };
-        if (isRunningOnAppVeyor)
+        if (isRunningOnBuildServer)
         {
-            testSettings.Filter = "TestCategory!=ExcludeFromAppVeyor";
+            testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
         }
 
         foreach (var project in GetFiles("./tests/*Tests/*.csproj"))
@@ -116,12 +115,17 @@ Task("Pack")
     .IsDependentOn("Build")
     .Does(() =>
     {
-        MSBuild("./Buildalyzer.sln", new MSBuildSettings()
-            .WithTarget("pack")
-            .SetConfiguration(configuration)
-            .WithProperty("Version", semVersion)
-            .WithProperty("FileVersion", version)
-        );
+        DotNetCorePackSettings packSettings = new DotNetCorePackSettings
+        {
+            Configuration = configuration,
+            OutputDirectory = buildDir,            
+            MSBuildSettings = msBuildSettings
+        };
+        
+        foreach (var project in GetFiles("./src/*/*.csproj"))
+        {
+            DotNetCorePack(MakeAbsolute(project).ToString(), packSettings);
+        }
     });
 
 Task("Zip")
@@ -129,13 +133,43 @@ Task("Zip")
     .IsDependentOn("Build")
     .Does(() =>
     {  
-        CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, buildDir);        
-        var files = GetFiles(buildDir.Path.FullPath + "/**/*");
-        files.Remove(files.Where(x => x.GetExtension() == "nupkg").ToList());
-        Zip(buildDir, zipPath, files);
+        foreach(var projectDir in GetDirectories("./src/*"))
+        {
+            CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, $"{ projectDir.FullPath }/bin/{ configuration }");  
+            var files = GetFiles($"{ projectDir.FullPath }/bin/{ configuration }/**/*");
+            files.Remove(files.Where(x => x.GetExtension() == "nupkg").ToList());
+            var zipFile = File($"{ projectDir.GetDirectoryName() }-v{ semVersion }.zip");
+            Zip(
+                $"{ projectDir.FullPath }/bin/{ configuration }",
+                $"{ buildDir }/{ zipFile }",
+                files);
+        }   
     });
 
-Task("Push")
+Task("MyGet")
+    .Description("Pushes the packages to the MyGet feed.")
+    .IsDependentOn("Pack")
+    .WithCriteria(() => !isPullRequest)
+    .Does(() =>
+    {
+        // Resolve the API key.
+        var mygetKey = EnvironmentVariable("BUILDALYZER_MYGET_KEY");
+        if (string.IsNullOrEmpty(mygetKey))
+        {
+            throw new InvalidOperationException("Could not resolve MyGet API key.");
+        }
+
+        foreach (var nupkg in GetFiles($"{ buildDir }/*.nupkg"))
+        {
+            NuGetPush(nupkg, new NuGetPushSettings 
+            {
+                ApiKey = mygetKey,
+                Source = "https://www.myget.org/F/buildalyzer/api/v2/package"
+            });
+        }
+    });
+
+Task("NuGet")
     .Description("Pushes the packages to the NuGet gallery.")
     .IsDependentOn("Pack")
     .WithCriteria(() => isLocal)
@@ -147,7 +181,7 @@ Task("Push")
             throw new InvalidOperationException("Could not resolve NuGet API key.");
         }
 
-        foreach (var nupkg in GetFiles(buildDir.Path.FullPath + "/*.nupkg"))
+        foreach (var nupkg in GetFiles($"{ buildDir }/*.nupkg"))
         {
             NuGetPush(nupkg, new NuGetPushSettings 
             {
@@ -157,7 +191,7 @@ Task("Push")
         }
     });
 
-Task("Release")
+Task("GitHub")
     .Description("Generates a release on GitHub.")
     .IsDependentOn("Zip")
     .WithCriteria(() => isLocal)
@@ -180,9 +214,14 @@ Task("Release")
             TargetCommitish = "master"
         }).Result;
         
-        using (var zipStream = System.IO.File.OpenRead(zipPath.Path.FullPath))
+        foreach(var zipFile in GetFiles($"{ buildDir }/*.zip"))
         {
-            var releaseAsset = github.Repository.Release.UploadAsset(release, new ReleaseAssetUpload(zipFile, "application/zip", zipStream, null)).Result;
+            using (var zipStream = System.IO.File.OpenRead(zipFile.FullPath))
+            {
+                var releaseAsset = github.Repository.Release.UploadAsset(
+                    release,
+                    new ReleaseAssetUpload(zipFile.GetFilename().FullPath, "application/zip", zipStream, null)).Result;
+            }
         }
     });
 
@@ -200,7 +239,7 @@ Task("Docs")
         });  
     });
 
-Task("Web")
+Task("Netlify")
     .Description("Generates and deploys the docs.")
     .IsDependentOn("Build")
     .Does(() =>
@@ -219,6 +258,24 @@ Task("Web")
         client.UpdateSite("buildalyzer.netlify.com", MakeAbsolute(docsDir).FullPath + "/output").SendAsync().Wait();
     });
 
+Task("AppVeyor")
+    .Description("Runs a build from the build server and updates build server data.")
+    .IsDependentOn("Test")
+    .IsDependentOn("Pack")
+    .IsDependentOn("Zip")
+    .IsDependentOn("MyGet")
+    .WithCriteria(() => isRunningOnBuildServer)
+    .Does(() =>
+    {
+        AppVeyor.UpdateBuildVersion(semVersion);
+        
+        foreach(var file in GetFiles($"{ buildDir }/**/*"))
+        {
+            Information(file.FullPath);
+            AppVeyor.UploadArtifact(file);
+        }
+    });
+
 
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
@@ -226,12 +283,12 @@ Task("Web")
     
 Task("Default")
     .IsDependentOn("Test");
-
-Task("Publish")
+    
+Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
-    .IsDependentOn("Release")
-    .IsDependentOn("Push")
-    .IsDependentOn("Web");
+    .IsDependentOn("GitHub")
+    .IsDependentOn("NuGet")
+    .IsDependentOn("Netlify");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

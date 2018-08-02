@@ -1,0 +1,17 @@
+branches:
+  only:
+    - master
+    
+environment:
+  BUILDALYZER_NUGET_KEY:
+    secure: 3eTSvTaJTVGN0s2AOvYouZbUHjlp9h7pT+JFMgORZovDDD2i4q8L3Ln5ks7wBU+d
+  BUILDALYZER_MYGET_KEY:
+    secure: PAD80ZOLND+R6d20Bih7Vi9pN8taJKPIMGvtCvFmKh0=
+  BUILDALYZER_GITHUB_TOKEN:
+    secure: RPNadUVcxNcoERSyRyhYNpOBWV7H+d9iD4La44gyZsPgBjnHM2OU6TCzdSA+PSWH0eppMaCIgUm/2aVhmq8ixJq5tje5s3w2RRTwzXVwx8I=
+  BUILDALYZER_NETLIFY_TOKEN:
+    secure: AOo43zW9J/1tb72nGKo9dzapVge0KjiptMc7ntxDYqqtV+aj2I6HnOaIOLF1/2Dw
+
+build_script:
+  - ps: .\build.ps1 -Target "AppVeyor"
+  

@@ -16,6 +16,7 @@ namespace FrameworkIntegrationTests
 #if Is_Windows
     [TestFixture]
     [NonParallelizable]
+    [Category("ExcludeFromBuildServer")]
     public class FrameworkIntegrationTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
@@ -93,10 +94,13 @@ namespace FrameworkIntegrationTests
         {
             // Given
             string path = GetRepositoryPath(repository.Url);
+            TestContext.Progress.WriteLine($"Cloning { path }");
             string[] solutionFiles = CloneOrFetchRepository(repository.Url, path);
             foreach (string solutionFile in solutionFiles
                 .Where(x => !repository.Excluded.Any(e => x.EndsWith(e))))
             {
+                TestContext.Progress.WriteLine($"Processing { solutionFile }");
+
                 StringWriter log = new StringWriter();
                 AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
                 {
@@ -108,7 +112,9 @@ namespace FrameworkIntegrationTests
                     .Where(x => !repository.Excluded.Any(e => x.ProjectFile.Path.EndsWith(e))))
                 {
                     // When
-                    Console.WriteLine(analyzer.ProjectFile.Path);
+                    TestContext.Progress.WriteLine($"Building { analyzer.ProjectFile.Path }");
+                    DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
+                    DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
                     analyzer.IgnoreFaultyImports = false;
                     if (BinaryLog)
                     {
@@ -151,6 +157,15 @@ namespace FrameworkIntegrationTests
                     @"..\..\..\repos\" + Path.GetFileNameWithoutExtension(repository)));
 
             return path.Replace('\\', Path.DirectorySeparatorChar);
+        }
+
+        private static void DeleteProjectDirectory(string projectPath, string directory)
+        {
+            string path = Path.Combine(Path.GetDirectoryName(projectPath), directory);
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
         }
     }
 #endif

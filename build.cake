@@ -71,7 +71,11 @@ Task("Restore")
         DotNetCoreRestore("./Buildalyzer.sln", new DotNetCoreRestoreSettings
         {
             MSBuildSettings = msBuildSettings
-        });
+        });        
+        MSBuild("./Buildalyzer.sln", new MSBuildSettings()
+            .WithTarget("restore")
+            .SetConfiguration(configuration)
+        );
     });
 
 Task("Build")

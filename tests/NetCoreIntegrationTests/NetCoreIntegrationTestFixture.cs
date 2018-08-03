@@ -14,7 +14,6 @@ namespace NetCoreIntegrationTests
 {
     [TestFixture]
     [NonParallelizable]
-    [Category("ExcludeFromBuildServer")]
     public class NetCoreIntegrationTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;

@@ -16,7 +16,6 @@ namespace FrameworkIntegrationTests
 #if Is_Windows
     [TestFixture]
     [NonParallelizable]
-    [Category("ExcludeFromBuildServer")]
     public class FrameworkIntegrationTestFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;

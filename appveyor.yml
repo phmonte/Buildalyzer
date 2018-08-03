@@ -1,6 +1,8 @@
 branches:
   only:
     - master
+
+image: Visual Studio 2017
     
 environment:
   BUILDALYZER_NUGET_KEY:

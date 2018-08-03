@@ -9,6 +9,10 @@
 #addin "Octokit"
 #addin "NetlifySharp"
 #addin "Newtonsoft.Json"
+            
+// The built-in AppVeyor logger doesn't work yet,
+// but when it does we can remove the tool directive and TestAdapterPath property
+// https://github.com/appveyor/ci/issues/1601
 #tool "Appveyor.TestLogger&version=2.0.0"
 
 using Octokit;
@@ -104,12 +108,10 @@ Task("Test")
         if (AppVeyor.IsRunningOnAppVeyor)
         {
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
+            testSettings.Logger = "Appveyor";
 
-            // Doesn't work yet, but when it does we can remove the trx logger
-            // https://github.com/appveyor/ci/issues/1601
-             testSettings.Logger = "Appveyor";
-
-            //testSettings.Logger = "trx";
+            // Remove this when no longer using the tool (see above)
+            testSettings.TestAdapterPath = GetDirectories($"./tools/Appveyor.TestLogger.*/build/_common").First();
         }
 
         foreach (var project in GetFiles("./tests/*Tests/*.csproj"))

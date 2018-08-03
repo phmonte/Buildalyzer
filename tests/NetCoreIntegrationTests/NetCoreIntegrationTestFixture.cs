@@ -83,7 +83,7 @@ namespace NetCoreIntegrationTests
                 @"\Rx.NET\Integration\Installation\Pcl259\Pcl259.csproj",
                 @"\Rx.NET\Samples\Portable\PortableClassLibrary\PortableClassLibrary.csproj"
             ),  
-            new TestRepository("https://github.com/serilog/serilog.git"),
+            //new TestRepository("https://github.com/serilog/serilog.git"), SourceLink messed up from AppVeyor: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
             new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),
             new TestRepository("https://github.com/cake-build/cake"),
         };

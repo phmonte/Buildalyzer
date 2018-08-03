@@ -67,7 +67,12 @@ Task("Restore")
     .Description("Restores all NuGet packages.")
     .IsDependentOn("Clean")
     .Does(() =>
-    {        
+    {                
+        DotNetCoreRestore("./Buildalyzer.sln", new DotNetCoreRestoreSettings
+        {
+            MSBuildSettings = msBuildSettings
+        });  
+        
         // Run NuGet CLI restore to handle the Framework test projects       
         NuGetRestore("./Buildalyzer.sln"); 
     });

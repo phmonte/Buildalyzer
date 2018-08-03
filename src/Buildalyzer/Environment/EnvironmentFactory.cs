@@ -88,7 +88,7 @@ namespace Buildalyzer.Environment
             {
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
             // Get paths
@@ -108,12 +108,12 @@ namespace Buildalyzer.Environment
                     // Also need to set the Roslyn and Extensions paths to match
                     string toolsPath = Path.GetDirectoryName(msBuildExePath);
                     roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
-                    extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
+                    extensionsPath = Path.GetFullPath(Directory.GetParent(Directory.GetParent(toolsPath).FullName).FullName);
                 }
             }
 
             // Required to find and import the Restore target
-            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets");
+            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, Path.Combine(dotnetPath, "NuGet.targets"));
 
             return new BuildEnvironment(
                 options.DesignTime,
@@ -144,7 +144,7 @@ namespace Buildalyzer.Environment
             {
                 // Required to force CoreCompile target when it calculates everything is already built
                 // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
             // Get paths
@@ -153,20 +153,25 @@ namespace Buildalyzer.Environment
                 throw new InvalidOperationException("Could not locate the tools (msbuild.exe) path");
             }
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
-            string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
+            string extensionsPath = Path.GetFullPath(Directory.GetParent(Directory.GetParent(toolsPath).FullName).FullName);
+            Console.WriteLine("ex path: " + extensionsPath);
             string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
             
             // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
-            string vsRoot = Path.Combine(extensionsPath, @"..\");
-            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")));
-            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")));
+            string vsRoot = Directory.GetParent(extensionsPath).FullName;
+            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleDirectories,
+                                           Path.GetFullPath(Path.Combine(vsRoot, "Team Tools", "Static Analysis Tools", "FxCop", "Rules")));
+            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleSetDirectories,
+                                           Path.GetFullPath(Path.Combine(vsRoot, "Team Tools", "Static Analysis Tools", "Rule Sets")));
 
             // This is required to trigger NuGet package resolution and regeneration of project.assets.json
             additionalGlobalProperties.Add(MsBuildProperties.ResolveNuGetPackages, "true");
 
             // Required to find and import the Restore target
-            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets");
+            string toolsPathUp = Directory.GetParent(Directory.GetParent(Directory.GetParent(toolsPath).FullName).FullName).FullName;
+            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets,
+                                           Path.Combine(toolsPathUp, "Common7", "IDE", "CommonExtensions", "Microsoft", "NuGet", "NuGet.targets"));
 
             return new BuildEnvironment(
                 options.DesignTime,
@@ -194,9 +199,9 @@ namespace Buildalyzer.Environment
                 string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
                 msBuildExePath = new[]
                 {
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Enterprise", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Professional", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Community", "MSBuild", "15.0", "Bin", "MSBuild.exe")
                 }
                 .Where(File.Exists)
                 .FirstOrDefault();

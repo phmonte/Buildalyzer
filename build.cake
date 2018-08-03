@@ -9,7 +9,7 @@
 #addin "Octokit"
 #addin "NetlifySharp"
 #addin "Newtonsoft.Json"
-#addin "Appveyor.TestLogger&version=2.0.0"
+#tool "Appveyor.TestLogger&version=2.0.0"
 
 using Octokit;
 using NetlifySharp;

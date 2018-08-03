@@ -25,7 +25,6 @@ var configuration = Argument("configuration", "Release");
 //////////////////////////////////////////////////////////////////////
 
 var isLocal = BuildSystem.IsLocalBuild;
-var isRunningOnBuildServer = AppVeyor.IsRunningOnAppVeyor;
 var isPullRequest = AppVeyor.Environment.PullRequest.IsPullRequest;
 var buildNumber = AppVeyor.Environment.Build.Number;
 
@@ -101,8 +100,9 @@ Task("Test")
             NoRestore = true,
             Configuration = configuration
         };
-        if (isRunningOnBuildServer)
+        if (AppVeyor.IsRunningOnAppVeyor)
         {
+            testSettings.Logger = "Appveyor";
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
         }
 
@@ -267,7 +267,7 @@ Task("AppVeyor")
     .IsDependentOn("Pack")
     .IsDependentOn("Zip")
     .IsDependentOn("MyGet")
-    .WithCriteria(() => isRunningOnBuildServer)
+    .WithCriteria(() => AppVeyor.IsRunningOnAppVeyor)
     .Does(() =>
     {
         AppVeyor.UpdateBuildVersion(semVersion);

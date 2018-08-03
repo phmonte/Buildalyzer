@@ -10,4 +10,5 @@ environment:
 
 build_script:
   - ps: .\build.ps1 -Target "AppVeyor"
-  
+
+test: off

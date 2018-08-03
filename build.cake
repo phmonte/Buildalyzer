@@ -9,6 +9,7 @@
 #addin "Octokit"
 #addin "NetlifySharp"
 #addin "Newtonsoft.Json"
+#addin "Appveyor.TestLogger&version=2.0.0"
 
 using Octokit;
 using NetlifySharp;
@@ -102,8 +103,13 @@ Task("Test")
         };
         if (AppVeyor.IsRunningOnAppVeyor)
         {
-            testSettings.Logger = "Appveyor";
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
+
+            // Doesn't work yet, but when it does we can remove the trx logger
+            // https://github.com/appveyor/ci/issues/1601
+             testSettings.Logger = "Appveyor";
+
+            //testSettings.Logger = "trx";
         }
 
         foreach (var project in GetFiles("./tests/*Tests/*.csproj"))

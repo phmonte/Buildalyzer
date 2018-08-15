@@ -256,6 +256,11 @@ Task("Netlify")
     .Does(() =>
     {
         var netlifyToken = EnvironmentVariable("BUILDALYZER_NETLIFY_TOKEN");
+        if(string.IsNullOrEmpty(netlifyToken))
+        {
+            throw new Exception("Could not get Netlify token environment variable");
+        }
+        
         Wyam(new WyamSettings
         {
             RootPath = docsDir,

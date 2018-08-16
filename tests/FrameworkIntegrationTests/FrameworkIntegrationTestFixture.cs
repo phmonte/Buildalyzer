@@ -86,6 +86,7 @@ namespace FrameworkIntegrationTests
             new TestRepository("https://github.com/serilog/serilog.git"),
             new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),
             new TestRepository("https://github.com/cake-build/cake"),
+            new TestRepository("https://github.com/Wyamio/Wyam.git"),
         };
 
         [TestCaseSource(nameof(_repositories))]

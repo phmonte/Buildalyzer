@@ -86,6 +86,7 @@ namespace NetCoreIntegrationTests
             //new TestRepository("https://github.com/serilog/serilog.git"), SourceLink messed up from AppVeyor: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
             new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),
             new TestRepository("https://github.com/cake-build/cake"),
+            new TestRepository("https://github.com/Wyamio/Wyam.git"),
         };
 
         [TestCaseSource(nameof(_repositories))]

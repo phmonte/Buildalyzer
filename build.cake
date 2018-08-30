@@ -148,7 +148,7 @@ Task("Zip")
         {
             CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, $"{ projectDir.FullPath }/bin/{ configuration }");  
             var files = GetFiles($"{ projectDir.FullPath }/bin/{ configuration }/**/*");
-            files.Remove(files.Where(x => x.GetExtension() == "nupkg").ToList());
+            files.Remove(files.Where(x => x.GetExtension() == ".nupkg").ToList());
             var zipFile = File($"{ projectDir.GetDirectoryName() }-v{ semVersion }.zip");
             Zip(
                 $"{ projectDir.FullPath }/bin/{ configuration }",
@@ -303,8 +303,8 @@ Task("Default")
 Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
     .IsDependentOn("GitHub")
-    .IsDependentOn("NuGet")
-    .IsDependentOn("Netlify");
+    .IsDependentOn("NuGet");
+    //.IsDependentOn("Netlify");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

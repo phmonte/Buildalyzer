@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using Microsoft.Build.Execution;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Buildalyzer.Workspaces
@@ -51,7 +50,7 @@ namespace Buildalyzer.Workspaces
             // Get or create an ID for this project
             string projectGuid = analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid");
             ProjectId projectId = !string.IsNullOrEmpty(projectGuid)
-                && Guid.TryParse(analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid"), out var projectIdGuid) 
+                                  && Guid.TryParse(analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid"), out var projectIdGuid) 
                 ? ProjectId.CreateFromSerialized(projectIdGuid) 
                 : ProjectId.CreateNewId();
 
@@ -158,8 +157,8 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<ProjectAnalyzer> GetReferencedAnalyzerProjects(AnalyzerResult analyzerResult) =>
             analyzerResult.GetProjectReferences()
-                    ?.Select(x => analyzerResult.Analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
-                    .Where(x => x != null)
+                ?.Select(x => analyzerResult.Analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
+                .Where(x => x != null)
             ?? Array.Empty<ProjectAnalyzer>();
         private static IEnumerable<DocumentInfo> GetDocuments(AnalyzerResult analyzerResult, ProjectId projectId) =>
             analyzerResult
@@ -170,7 +169,7 @@ namespace Buildalyzer.Workspaces
                     Path.GetFileName(x),
                     loader: TextLoader.From(
                         TextAndVersion.Create(
-                            SourceText.From(File.ReadAllText(x)), VersionStamp.Create())),
+                            SourceText.From(File.ReadAllText(x), Encoding.Default), VersionStamp.Create())),
                     filePath: x))
             ?? Array.Empty<DocumentInfo>();
 

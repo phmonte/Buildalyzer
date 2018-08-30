@@ -60,7 +60,7 @@ namespace Buildalyzer
             {
                 // Get all candidate paths, reflection-only load them (the get the version), and then take the one with the highest version
                 (string, Version)[] candidates = Directory.GetFiles(Path.GetDirectoryName(_buildEnvironment.MsBuildExePath), simpleName + ".dll", SearchOption.AllDirectories)
-                    .Concat(Directory.GetFiles(Path.GetFullPath(Path.Combine(_buildEnvironment.SDKsPath, @"..\")), simpleName + ".dll", SearchOption.AllDirectories))
+                    .Concat(Directory.GetFiles(Path.GetFullPath(Directory.GetParent(_buildEnvironment.SDKsPath).FullName), simpleName + ".dll", SearchOption.AllDirectories))
                     .Concat(Directory.GetFiles(_buildEnvironment.ExtensionsPath, simpleName + ".dll", SearchOption.AllDirectories))
                     .Distinct()
                     .Where(x => File.Exists(x))

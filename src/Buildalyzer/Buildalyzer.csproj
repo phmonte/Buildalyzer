@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="NuGet.Build.Tasks" Version="4.7.0" />
+    <PackageReference Include="NuGet.Build.Tasks" Version="4.8.0" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

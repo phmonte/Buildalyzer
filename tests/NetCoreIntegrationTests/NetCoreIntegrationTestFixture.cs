@@ -112,7 +112,7 @@ namespace NetCoreIntegrationTests
                     .Where(x => !repository.Excluded.Any(e => x.ProjectFile.Path.EndsWith(e))))
                 {
                     // When
-                    TestContext.Progress.WriteLine($"Building { analyzer.ProjectFile.Path }");
+                    TestContext.Progress.WriteLine($"**** Building { analyzer.ProjectFile.Path }");
                     DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
                     DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
                     analyzer.IgnoreFaultyImports = false;

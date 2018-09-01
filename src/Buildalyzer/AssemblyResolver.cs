@@ -25,6 +25,12 @@ namespace Buildalyzer
             _buildEnvironment = buildEnvironment;
             _logger = logger;
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
+            
+            logger?.LogDebug($"Currently loaded assemblies:{System.Environment.NewLine}");
+            foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                logger?.LogDebug($"    {assembly.FullName} at {assembly.Location}{System.Environment.NewLine}");
+            }
         }
 
         public void Dispose()

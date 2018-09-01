@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,7 +29,7 @@ namespace Buildalyzer
             logger?.LogDebug($"Currently loaded assemblies:{System.Environment.NewLine}");
             foreach(Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                logger?.LogDebug($"    {assembly.FullName} at {assembly.Location}{System.Environment.NewLine}");
+                logger?.LogDebug($"    {assembly.FullName} at {assembly.IsDynamic ? "dynamic" : assembly.Location}{System.Environment.NewLine}");
             }
         }
 

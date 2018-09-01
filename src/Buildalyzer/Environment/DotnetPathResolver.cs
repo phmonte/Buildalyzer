@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,48 +10,38 @@ namespace Buildalyzer.Environment
 {
     internal static class DotnetPathResolver
     {
-        private static readonly object BasePathLock = new object();
-        private static string BasePath = null;
-
+        // Don't cache the result because it might change project to project due to global.json
         public static string ResolvePath(string projectPath, ILogger logger)
         {
-            lock(BasePathLock)
+            // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
+            List<string> lines = GetInfo(projectPath);
+            int retry = 0;
+            do
             {
-                if(BasePath != null)
+                if(retry == 0)
                 {
-                    return BasePath;
+                    Thread.Sleep(500);
                 }
+                lines = GetInfo(projectPath);
+                retry++;
+            } while ((lines == null || lines.Count == 0) && retry < 5);
 
-                // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
-                List<string> lines = GetInfo(projectPath);
-                int retry = 0;
-                do
-                {
-                    if(retry == 0)
-                    {
-                        Thread.Sleep(500);
-                    }
-                    lines = GetInfo(projectPath);
-                    retry++;
-                } while ((lines == null || lines.Count == 0) && retry < 5);
-
-                // Did we get any output?
-                if (lines == null || lines.Count == 0)
-                {
-                    throw new InvalidOperationException("Could not get results from `dotnet --info` call");
-                }
-                
-                logger?.LogDebug($"dotnet --info results:{System.Environment.NewLine}{string.Join(System.Environment.NewLine, lines)}{System.Environment.NewLine}");
-
-                // Try to get a path
-                BasePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
-                if(string.IsNullOrWhiteSpace(BasePath))
-                {
-                    throw new InvalidOperationException("Could not locate SDK path in `dotnet --info` results");
-                }
-
-                return BasePath;
+            // Did we get any output?
+            if (lines == null || lines.Count == 0)
+            {
+                throw new InvalidOperationException("Could not get results from `dotnet --info` call");
             }
+            
+            logger?.LogDebug($"dotnet --info results:{System.Environment.NewLine}{string.Join(System.Environment.NewLine, lines)}{System.Environment.NewLine}");
+
+            // Try to get a path
+            string basePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
+            if(string.IsNullOrWhiteSpace(basePath))
+            {
+                throw new InvalidOperationException("Could not locate SDK path in `dotnet --info` results");
+            }
+
+            return basePath;
         }
 
         private static List<string> GetInfo(string projectPath)

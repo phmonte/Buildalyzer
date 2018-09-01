@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Buildalyzer.Environment
 {
@@ -35,6 +37,21 @@ namespace Buildalyzer.Environment
         public IReadOnlyDictionary<string, string> GlobalProperties { get; }
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+
+        public void LogEnvironment(ILogger logger)
+        {
+            if(logger != null)
+            {
+                logger.LogDebug($"    DesignTime: {DesignTime}{System.Environment.NewLine}");
+                logger.LogDebug($"    MsBuildExePath: {MsBuildExePath}{System.Environment.NewLine}");
+                logger.LogDebug($"    ExtensionsPath: {ExtensionsPath}{System.Environment.NewLine}");
+                logger.LogDebug($"    SDKsPath: {SDKsPath}{System.Environment.NewLine}");
+                logger.LogDebug($"    RoslynTargetsPath: {RoslynTargetsPath}{System.Environment.NewLine}");
+                logger.LogDebug($"    ToolsPath: {ToolsPath}{System.Environment.NewLine}");
+                logger.LogDebug($"    GlobalProperties:{System.Environment.NewLine}        {string.Join(System.Environment.NewLine + "        ", GlobalProperties.Select(x => x.Key + ": " + x.Value))}{System.Environment.NewLine}");
+                logger.LogDebug($"    EnvironmentVariables:{System.Environment.NewLine}        {string.Join(System.Environment.NewLine + "        ", EnvironmentVariables.Select(x => x.Key + ": " + x.Value))}{System.Environment.NewLine}");
+            }
+        }
 
         public BuildEnvironment(
             bool designTime,

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Buildalyzer.Environment;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
 {
@@ -14,13 +15,15 @@ namespace Buildalyzer
     internal class AssemblyResolver : IDisposable
     {
         private readonly BuildEnvironment _buildEnvironment;
+        private readonly ILogger _logger;
 
         // Prevents recursion of OnAssemblyResolve -> LoadFrom -> OnAssemblyResolve -> etc.
         private readonly HashSet<string> _currentlyLoading = new HashSet<string>();
 
-        public AssemblyResolver(BuildEnvironment buildEnvironment)
+        public AssemblyResolver(BuildEnvironment buildEnvironment, ILogger logger)
         {
             _buildEnvironment = buildEnvironment;
+            _logger = logger;
             AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
         }
 
@@ -41,9 +44,18 @@ namespace Buildalyzer
             }
 
             Assembly[] loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            return loadedAssemblies.FirstOrDefault(x => x.FullName == args.Name)
+            Assembly result = loadedAssemblies.FirstOrDefault(x => x.FullName == args.Name)
                 ?? loadedAssemblies.FirstOrDefault(x => x.GetName().Name == simpleName)
                 ?? LoadFrom(simpleName, version);
+            if (result == null)
+            {
+                _logger?.LogDebug($"Resolving assembly {args.Name} requested by {args.RequestingAssembly?.GetName()?.Name ?? "null"} failed{System.Environment.NewLine}");
+            }
+            else
+            {
+                _logger?.LogDebug($"Resolving assembly {args.Name} requested by {args.RequestingAssembly?.GetName()?.Name ?? "null"} to {result.FullName} at {result.Location ?? "null"}{System.Environment.NewLine}");
+            }
+            return result;
         }
 
         // Attempt to load the assembly from build environment folders

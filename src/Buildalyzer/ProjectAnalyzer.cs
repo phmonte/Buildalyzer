@@ -112,6 +112,9 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(buildEnvironment));
             }
 
+            Manager.ProjectLogger?.LogDebug($"Loading {(string.IsNullOrEmpty(targetFramework) ? "default " : string.Empty)}target{(string.IsNullOrEmpty(targetFramework) ? string.Empty : " " + targetFramework)} from {ProjectFile.Path}{System.Environment.NewLine}");
+            buildEnvironment.LogEnvironment(Manager.ProjectLogger);
+
             // Need a fresh BuildEnvironmentHelper for every load/build
             ResetBuildEnvironmentHelper(buildEnvironment);
 
@@ -151,7 +154,7 @@ namespace Buildalyzer
                     // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                     root.FullPath = ProjectFile.Path;
 
-                    using (new AssemblyResolver(buildEnvironment))
+                    using (new AssemblyResolver(buildEnvironment, Manager.ProjectLogger))
                     {
                         return new Project(
                             root,
@@ -391,7 +394,7 @@ namespace Buildalyzer
                 //ProjectInstance projectInstance = Manager.BuildManager.GetProjectInstanceForBuild(project);
                 ProjectInstance projectInstance = project.CreateProjectInstance();
 
-                using (new AssemblyResolver(buildEnvironment))
+                using (new AssemblyResolver(buildEnvironment, Manager.ProjectLogger))
                 {
                     BuildResult buildResult = Manager.BuildManager.Build(
                         new BuildParameters(project.ProjectCollection)

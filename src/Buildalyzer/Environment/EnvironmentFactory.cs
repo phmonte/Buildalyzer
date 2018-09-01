@@ -92,7 +92,7 @@ namespace Buildalyzer.Environment
             }
 
             // Get paths
-            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path);
+            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path, _manager.ProjectLogger);
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
             string extensionsPath = dotnetPath;
             string sdksPath = Path.Combine(dotnetPath, "Sdks");
@@ -155,7 +155,7 @@ namespace Buildalyzer.Environment
             string toolsPath = Path.GetDirectoryName(msBuildExePath);
             string extensionsPath = Path.GetFullPath(Directory.GetParent(Directory.GetParent(toolsPath).FullName).FullName);
             Console.WriteLine("ex path: " + extensionsPath);
-            string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
+            string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path, _manager.ProjectLogger) : extensionsPath, "Sdks");
             string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
             
             // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)

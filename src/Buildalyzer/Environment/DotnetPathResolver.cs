@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
 {
@@ -12,7 +13,7 @@ namespace Buildalyzer.Environment
         private static readonly object BasePathLock = new object();
         private static string BasePath = null;
 
-        public static string ResolvePath(string projectPath)
+        public static string ResolvePath(string projectPath, ILogger logger)
         {
             lock(BasePathLock)
             {
@@ -39,6 +40,8 @@ namespace Buildalyzer.Environment
                 {
                     throw new InvalidOperationException("Could not get results from `dotnet --info` call");
                 }
+                
+                logger?.LogDebug($"dotnet --info results:{System.Environment.NewLine}{string.Join(System.Environment.NewLine, lines)}{System.Environment.NewLine}");
 
                 // Try to get a path
                 BasePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);

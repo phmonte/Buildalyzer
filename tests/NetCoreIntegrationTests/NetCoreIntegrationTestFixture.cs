@@ -89,48 +89,56 @@ namespace NetCoreIntegrationTests
             new TestRepository("https://github.com/Wyamio/Wyam.git"),
         };
 
-        [TestCaseSource(nameof(_repositories))]
-        public void CompilesProject(TestRepository repository)
+        private static IEnumerable<(string, string)> SolutionAndProjectPaths =>
+            _repositories
+                .SelectMany(repository =>
+                    Directory.GetFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories)
+                        .Where(solutionPath => !repository.Excluded.Any(e => solutionPath.EndsWith(e)))
+                        .SelectMany(solutionPath => AnalyzerManager.GetProjectsInSolution(solutionPath)
+                            .Select(project => project.AbsolutePath)
+                            .Where(projectPath => !repository.Excluded.Any(e => projectPath.EndsWith(e)))
+                            .Select(projectPath => (solutionPath, projectPath))));
+
+        [OneTimeSetUp]
+        public void SetUp()
         {
-            // Given
-            string path = GetRepositoryPath(repository.Url);
-            TestContext.Progress.WriteLine($"Cloning { path }");
-            string[] solutionFiles = CloneOrFetchRepository(repository.Url, path);
-            foreach (string solutionFile in solutionFiles
-                .Where(x => !repository.Excluded.Any(e => x.EndsWith(e))))
+            foreach (TestRepository repository in _repositories)
             {
-                TestContext.Progress.WriteLine($"Processing { solutionFile }");
-
-                StringWriter log = new StringWriter();
-                AnalyzerManager manager = new AnalyzerManager(solutionFile, new AnalyzerManagerOptions
-                {
-                    LogWriter = log,
-                    LoggerVerbosity = Verbosity
-                });
-
-                foreach (ProjectAnalyzer analyzer in manager.Projects.Values
-                    .Where(x => !repository.Excluded.Any(e => x.ProjectFile.Path.EndsWith(e))))
-                {
-                    // When
-                    TestContext.Progress.WriteLine($"**** Building { analyzer.ProjectFile.Path }");
-                    DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
-                    DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
-                    analyzer.IgnoreFaultyImports = false;
-                    if (BinaryLog)
-                    {
-                        analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionFile)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
-                    }
-                    AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
-
-                    // Then
-                    results.Count.ShouldBeGreaterThan(0, log.ToString());
-                    results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
-                    results.ShouldAllBe(x => x.ProjectInstance != null, log.ToString());
-                }
+                string path = GetRepositoryPath(repository.Url);
+                CloneRepository(repository.Url, path);
             }
         }
 
-        private static string[] CloneOrFetchRepository(string repository, string path)
+        [TestCaseSource(nameof(SolutionAndProjectPaths))]
+        public void CompilesProject((string, string) solutionAndProjectPath)
+        {
+
+            // Given
+            StringWriter log = new StringWriter();
+            AnalyzerManager manager = new AnalyzerManager(solutionAndProjectPath.Item1, new AnalyzerManagerOptions
+            {
+                LogWriter = log,
+                LoggerVerbosity = Verbosity
+            });
+            ProjectAnalyzer analyzer = manager.GetProject(solutionAndProjectPath.Item2);
+
+            // When
+            DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
+            DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
+            analyzer.IgnoreFaultyImports = false;
+            if (BinaryLog)
+            {
+                analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionAndProjectPath.Item1)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
+            }
+            AnalyzerResults results = analyzer.BuildAllTargetFrameworks();
+
+            // Then
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+            results.ShouldAllBe(x => x.ProjectInstance != null, log.ToString());
+        }
+
+        private static void CloneRepository(string repository, string path)
         {
             if(!Directory.Exists(path))
             {
@@ -145,8 +153,7 @@ namespace NetCoreIntegrationTests
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
                     Commands.Fetch(repo, remote.Name, refSpecs, null, string.Empty);
                 }
-            }
-            return Directory.GetFiles(path, "*.sln", SearchOption.AllDirectories).ToArray();            
+            }          
         }
 
         private static string GetRepositoryPath(string repository)

@@ -59,18 +59,26 @@ namespace Buildalyzer
             }
         }        
 
-        private void GetProjectsInSolution(string solutionFilePath, string[] projects)
+        public static IEnumerable<ProjectInSolution> GetProjectsInSolution(string solutionFilePath)
         {
-            var supportedType = new[]
+            SolutionProjectType[] supportedType = new[]
             {
                 SolutionProjectType.KnownToBeMSBuildFormat,
                 SolutionProjectType.WebProject
             };
 
             SolutionFile solution = SolutionFile.Parse(solutionFilePath);
-            foreach(ProjectInSolution project in solution.ProjectsInOrder)
+            foreach (ProjectInSolution project in solution.ProjectsInOrder)
             {
                 if (!supportedType.Contains(project.ProjectType)) continue;
+                yield return project;
+            }
+        }
+
+        private void GetProjectsInSolution(string solutionFilePath, string[] projects)
+        {
+            foreach(ProjectInSolution project in GetProjectsInSolution(solutionFilePath))
+            {
                 if (projects != null && !projects.Contains(project.ProjectName)) continue;
                 GetProject(project.AbsolutePath);
             }

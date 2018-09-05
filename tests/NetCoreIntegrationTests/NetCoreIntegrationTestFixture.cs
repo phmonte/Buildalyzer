@@ -105,6 +105,7 @@ namespace NetCoreIntegrationTests
             foreach (TestRepository repository in _repositories)
             {
                 string path = GetRepositoryPath(repository.Url);
+                TestContext.Progress.WriteLine($"Cloning { path }");
                 CloneRepository(repository.Url, path);
             }
         }

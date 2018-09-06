@@ -11,7 +11,20 @@ namespace Buildalyzer
         {
         }
 
+        internal AnalyzerResults(IEnumerable<AnalyzerResult> results)
+        {
+            Add(results);
+        }
+
         internal void Add(AnalyzerResult result) => _results.Add(result.TargetFramework ?? string.Empty, result);
+
+        internal void Add(IEnumerable<AnalyzerResult> results)
+        {
+            foreach (AnalyzerResult result in results)
+            {
+                Add(result);
+            }
+        }
 
         public AnalyzerResult this[string targetFramework] => _results[targetFramework];
 

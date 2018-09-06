@@ -14,7 +14,7 @@ namespace Buildalyzer.Environment
         public static string ResolvePath(string projectPath, ILogger logger)
         {
             // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
-            List<string> lines = GetInfo(projectPath);
+            List<string> lines = GetInfo(projectPath, logger);
             int retry = 0;
             do
             {
@@ -22,7 +22,7 @@ namespace Buildalyzer.Environment
                 {
                     Thread.Sleep(500);
                 }
-                lines = GetInfo(projectPath);
+                lines = GetInfo(projectPath, logger);
                 retry++;
             } while ((lines == null || lines.Count == 0) && retry < 5);
 
@@ -32,8 +32,6 @@ namespace Buildalyzer.Environment
                 throw new InvalidOperationException("Could not get results from `dotnet --info` call");
             }
             
-            logger?.LogDebug($"dotnet --info results:{System.Environment.NewLine}{string.Join(System.Environment.NewLine, lines)}{System.Environment.NewLine}");
-
             // Try to get a path
             string basePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
             if(string.IsNullOrWhiteSpace(basePath))
@@ -44,7 +42,7 @@ namespace Buildalyzer.Environment
             return basePath;
         }
 
-        private static List<string> GetInfo(string projectPath)
+        private static List<string> GetInfo(string projectPath, ILogger logger)
         {
             // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
             // running 'dotnet --info'. Otherwise, we may get localized results
@@ -56,40 +54,10 @@ namespace Buildalyzer.Environment
                 { MsBuildProperties.MSBuildExtensionsPath, null }
             };
 
-            using (new TemporaryEnvironment(environmentVariables))
-            {               
-                // Create the process info
-                Process process = new Process();
-                process.StartInfo.FileName = "dotnet";
-                process.StartInfo.Arguments = "--info";
-                process.StartInfo.WorkingDirectory = Path.GetDirectoryName(projectPath); // global.json may change the version, so need to set working directory
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.UseShellExecute = false;
-
-                // Capture output
-                List<string> lines = new List<string>();
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.OutputDataReceived += (s, e) => lines.Add(e.Data);
-                process.ErrorDataReceived += (s, e) => lines.Add(e.Data);
-
-                // Execute the process
-                process.Start();
-                process.BeginOutputReadLine();
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                while (!process.HasExited)
-                {
-                    Thread.Sleep(100);
-                    if (sw.ElapsedMilliseconds > 4000)
-                    {
-                        break;
-                    }
-                }
-                sw.Stop();
-                process.Close();
-                return lines;
-            }
+            // global.json may change the version, so need to set working directory
+            List<string> lines = new List<string>();
+            ProcessRunner.Run("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, logger, lines);
+            return lines;
         }
 
         // Try to find a base path

@@ -24,9 +24,6 @@ namespace Buildalyzer
         
         internal IProjectTransformer ProjectTransformer { get; }
         
-        // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
-        internal BuildManager BuildManager { get; }
-
         internal Dictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         internal Dictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -49,7 +46,6 @@ namespace Buildalyzer
             LoggerVerbosity = options.LoggerVerbosity;
             ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectTransformer = options.ProjectTransformer;
-            BuildManager = new BuildManager();
 
             if (solutionFilePath != null)
             {

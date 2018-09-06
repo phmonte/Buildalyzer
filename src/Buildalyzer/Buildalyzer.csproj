@@ -27,25 +27,4 @@
       <_Parameter1>Buildalyzer.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-  <Target Name="IncludeBuildLogger" AfterTargets="CoreCompile">
-    <MSBuild Projects="..\Buildalyzer.BuildLogger\Buildalyzer.BuildLogger.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
-    <ItemGroup>
-      <Content Include="..\Buildalyzer.BuildLogger\bin\$(Configuration)\net46\Buildalyzer*.*">
-        <Visible>false</Visible>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <Pack>true</Pack>
-        <PackagePath>contentFiles\</PackagePath>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-      <Content Include="..\Buildalyzer.BuildLogger\bin\$(Configuration)\netstandard2.0\Buildalyzer*.*">
-        <Visible>false</Visible>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <Pack>true</Pack>
-        <PackagePath>contentFiles\</PackagePath>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-    </ItemGroup>
-  </Target>
 </Project>

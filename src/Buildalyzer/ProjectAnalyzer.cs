@@ -10,6 +10,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
+using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
@@ -24,6 +25,8 @@ namespace Buildalyzer
     public class ProjectAnalyzer
     {
         private readonly List<ILogger> _loggers = new List<ILogger>();
+
+        private readonly ProcessRunner _processRunner;
         
         // Project-specific global properties and environment variables
         private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -60,9 +63,8 @@ namespace Buildalyzer
 
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument)
         {
-            // Preload/enforce referencing some required asemblies
-            Copy copy = new Copy();
-
+            _processRunner = new ProcessRunner(manager.ProjectLogger, null);
+            
             Manager = manager;
             ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
@@ -246,10 +248,10 @@ namespace Buildalyzer
                 }
                 string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
                 string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
-                string arguments = $"{initialArguments} /noconsolelogger /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+                string arguments = $"{initialArguments} /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
                 
                 // Run MsBuild
-                if(ProcessRunner.Run(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.ProjectLogger) != 0)
+                if(_processRunner.Run(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment)) != 0)
                 {
                     // Failure
                     return Array.Empty<AnalyzerResult>();
@@ -258,7 +260,9 @@ namespace Buildalyzer
                 // Success
                 if (analyzeResult)
                 {
-                    // TODO
+                    BinaryLogReader logReader = new BinaryLogReader();
+                    logReader.Read(logFile);
+                    return logReader.Results;
                 }
                 return Array.Empty<AnalyzerResult>();
             }

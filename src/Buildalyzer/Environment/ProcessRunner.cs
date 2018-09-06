@@ -9,59 +9,75 @@ namespace Buildalyzer.Environment
 {
     internal class ProcessRunner
     {
-        public static int Run(string fileName, string arguments, string workingDirectory, Dictionary<string, string> environmentVariables, ILogger logger, List<string> lines = null)
+        private readonly ILogger _logger;
+        private readonly List<string> _outputLines;
+        private readonly int _timeout;
+
+        public ProcessRunner(ILogger logger, List<string> outputLines, int timeout = 0)
+        {
+            _logger = logger;
+            _outputLines = outputLines;
+            _timeout = timeout;
+        }
+
+        public int Run(string fileName, string arguments, string workingDirectory, Dictionary<string, string> environmentVariables)
         {
             using (environmentVariables == null ? (IDisposable)new EmptyDisposable() : new TemporaryEnvironment(environmentVariables))
             {
-                // Create the process info
                 Process process = new Process();
-                process.StartInfo.FileName = fileName;
-                process.StartInfo.Arguments = arguments;
-                process.StartInfo.WorkingDirectory = workingDirectory;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.UseShellExecute = false;
-                
-                // Capture output
-                if (lines != null)
+                try
                 {
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.OutputDataReceived += (s, e) => lines.Add(e.Data);
-                    process.ErrorDataReceived += (s, e) => lines.Add(e.Data);
-                }
+                    // Create the process info
+                    process.StartInfo.FileName = fileName;
+                    process.StartInfo.Arguments = arguments;
+                    process.StartInfo.WorkingDirectory = workingDirectory;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.UseShellExecute = false;
 
-                // Execute the process
-                if(logger != null)
-                {
-                    logger.LogDebug($"Starting process {fileName} {arguments}");
-                }
-                process.Start();
-                process.BeginOutputReadLine();
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
-                while (!process.HasExited)
-                {
-                    Thread.Sleep(100);
-                    if (sw.ElapsedMilliseconds > 4000)
+                    // Capture output
+                    if (_logger != null || _outputLines != null)
                     {
-                        break;
+                        process.StartInfo.RedirectStandardOutput = true;
+                        process.StartInfo.RedirectStandardError = true;
+                        process.OutputDataReceived += (s, e) => DataReceived(s, e, process.Id);
+                        process.ErrorDataReceived += (s, e) => DataReceived(s, e, process.Id);
                     }
-                }
-                sw.Stop();
-                process.Close();       
-                
-                // Log the results
-                if(lines != null && logger != null)
-                {
-                    foreach(string line in lines)
-                    {
-                        logger.LogDebug($"{line}{System.Environment.NewLine}");
-                    }
-                    logger.LogDebug(System.Environment.NewLine);
-                }
 
-                return process.ExitCode;
+                    // Execute the process
+                    process.Start();
+                    _logger?.LogDebug($"{System.Environment.NewLine}Started process {process.Id}: {fileName} {arguments}{System.Environment.NewLine}");
+                    if (_logger != null || _outputLines != null)
+                    {
+                        process.BeginOutputReadLine();
+                    }
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+                    while (!process.HasExited)
+                    {
+                        Thread.Sleep(100);
+                        if (_timeout > 0 && sw.ElapsedMilliseconds > _timeout)
+                        {
+                            _logger?.LogDebug($"Process timeout, killing process {process.Id}{System.Environment.NewLine}");
+                            process.Kill();
+                            break;
+                        }
+                    }
+                    sw.Stop();
+                    int exitCode = process.ExitCode;
+                    _logger?.LogDebug($"Process {process.Id} exited with code {exitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
+                    return exitCode;
+                }
+                finally
+                {
+                    process.Close();
+                }
             }
+        }
+
+        private void DataReceived(object sender, DataReceivedEventArgs e, int id)
+        {
+            _outputLines?.Add(e.Data);
+            _logger?.LogDebug($"PID {id}> {e.Data}{System.Environment.NewLine}");
         }
     }
 }

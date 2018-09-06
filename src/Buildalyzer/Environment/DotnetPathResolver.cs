@@ -13,18 +13,18 @@ namespace Buildalyzer.Environment
         // Don't cache the result because it might change project to project due to global.json
         public static string ResolvePath(string projectPath, ILogger logger)
         {
-            // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
             List<string> lines = GetInfo(projectPath, logger);
-            int retry = 0;
-            do
+            if (lines.Count == 0)
             {
-                if(retry == 0)
+                // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
+                int retry = 0;
+                do
                 {
                     Thread.Sleep(500);
-                }
-                lines = GetInfo(projectPath, logger);
-                retry++;
-            } while ((lines == null || lines.Count == 0) && retry < 5);
+                    lines = GetInfo(projectPath, logger);
+                    retry++;
+                } while (lines.Count == 0 && retry < 5);
+            }
 
             // Did we get any output?
             if (lines == null || lines.Count == 0)
@@ -56,7 +56,7 @@ namespace Buildalyzer.Environment
 
             // global.json may change the version, so need to set working directory
             List<string> lines = new List<string>();
-            ProcessRunner.Run("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, logger, lines);
+            new ProcessRunner(logger, lines, 4000).Run("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables);
             return lines;
         }
 

@@ -20,6 +20,7 @@ using Microsoft.Build.Logging;
 using Microsoft.Build.Tasks;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.Logging;
+using MsBuildPipeLogger.Server;
 using ILogger = Microsoft.Build.Framework.ILogger;
 
 namespace Buildalyzer
@@ -227,87 +228,53 @@ namespace Buildalyzer
         // This is where the magic happens - returns one result per result target framework
         private IEnumerable<AnalyzerResult> BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, bool analyzeResult)
         {
-            string logFile = analyzeResult ? Path.ChangeExtension(Path.GetTempFileName(), ".binlog") : null;
-            try
+            EventProcessor eventProcessor = new EventProcessor(Manager.ProjectLogger);
+            using (PipeLoggerServer pipeLogger = new PipeLoggerServer())
             {
-                using (AnonymousPipeServerStream pipe = new AnonymousPipeServerStream(PipeDirection.In, HandleInheritability.Inheritable))
+                eventProcessor.Attach(pipeLogger);
+
+                // Get the filename
+                string fileName = buildEnvironment.MsBuildExePath;
+                string initialArguments = string.Empty;
+                if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Get the filename
-                    string fileName = buildEnvironment.MsBuildExePath;
-                    string initialArguments = string.Empty;
-                    if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // .NET Core MSBuild .dll needs to be run with dotnet
-                        fileName = "dotnet";
-                        initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
-                    }
-
-                    // Get the arguments to use
-                    //string loggerArgument = logFile == null ? string.Empty : $"/bl:{FormatArgument(logFile)};ProjectImports=None";
-                    string loggerPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Buildalyzer.BuildLogger.dll");
-                    string loggerArgument = $"/l:BuildLogger,{FormatArgument(loggerPath)};{pipe.GetClientHandleAsString()}";
-                    Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
-                    if (!string.IsNullOrEmpty(targetFramework))
-                    {
-                        // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
-                        effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
-                    }
-                    string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
-                    string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
-                    string arguments = $"{initialArguments} /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
-
-                    // Read and queue pipe messages
-                    ConcurrentQueue<string> pipeQueue = new ConcurrentQueue<string>();
-                    StreamReader reader = new StreamReader(pipe);
-                    Thread inputThread = new Thread(() =>
-                    {
-                        string message;
-                        while((message = reader.ReadLine()) != null)
-                        {
-                            pipeQueue.Enqueue(message);
-                        }
-                    })
-                    {
-                        IsBackground = true
-                    };
-                    inputThread.Start();
-
-                    // Run MsBuild
-                    try
-                    {
-                        if (_processRunner.Run(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), () => ProcessPipeMessages(pipeQueue)) != 0)
-                        {
-                            // Failure
-                            return Array.Empty<AnalyzerResult>();
-                        }
-                    }
-                    finally
-                    {
-                        inputThread.Abort();
-                        reader.Dispose();
-                    }
+                    // .NET Core MSBuild .dll needs to be run with dotnet
+                    fileName = "dotnet";
+                    initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
                 }
 
-                // Success
-                if (analyzeResult)
+                // Get the arguments to use
+                string loggerPath = typeof(MsBuildPipeLogger.Logger.PipeLogger).Assembly.Location;
+                string loggerArgument = $"/l:{nameof(MsBuildPipeLogger.Logger.PipeLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()}";
+                Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
+                if (!string.IsNullOrEmpty(targetFramework))
                 {
-                    //BinaryLogReader logReader = new BinaryLogReader();
-                    //logReader.Read(logFile);
-                    //return logReader.Results;
+                    // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
+                    effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
                 }
-                return Array.Empty<AnalyzerResult>();
-            }
-            finally
-            {
-                if (logFile != null)
+                string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
+                string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
+                string arguments = $"{initialArguments} /noconsolelogger /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+
+                // Run MsBuild
+                if (_processRunner.Run(
+                    fileName,
+                    arguments,
+                    Path.GetDirectoryName(ProjectFile.Path),
+                    GetEffectiveEnvironmentVariables(buildEnvironment),
+                    () => pipeLogger.Read()) != 0)
                 {
-                    try
-                    {
-                        File.Delete(logFile);
-                    }
-                    catch { }
+                    // Failure
+                    return Array.Empty<AnalyzerResult>();
                 }
             }
+
+            // Success
+            if (analyzeResult)
+            {
+                // TODO
+            }
+            return Array.Empty<AnalyzerResult>();
         }
 
         private void ProcessPipeMessages(ConcurrentQueue<string> pipeQueue)

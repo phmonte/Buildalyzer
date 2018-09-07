@@ -29,7 +29,8 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Buildalyzer.BuildLogger\Buildalyzer.BuildLogger.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\MsBuildPipeLogger.Logger\MsBuildPipeLogger.Logger.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\MsBuildPipeLogger.Server\MsBuildPipeLogger.Server.csproj" />
   </ItemGroup>
   <!-- Workaround to pack project reference - see https://github.com/NuGet/Home/issues/3891 -->
   <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">

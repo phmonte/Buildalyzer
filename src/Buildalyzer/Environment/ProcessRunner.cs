@@ -20,7 +20,7 @@ namespace Buildalyzer.Environment
             _timeout = timeout;
         }
 
-        public int Run(string fileName, string arguments, string workingDirectory, Dictionary<string, string> environmentVariables)
+        public int Run(string fileName, string arguments, string workingDirectory, Dictionary<string, string> environmentVariables, Action waitAction = null)
         {
             using (environmentVariables == null ? (IDisposable)new EmptyDisposable() : new TemporaryEnvironment(environmentVariables))
             {
@@ -39,8 +39,8 @@ namespace Buildalyzer.Environment
                     {
                         process.StartInfo.RedirectStandardOutput = true;
                         process.StartInfo.RedirectStandardError = true;
-                        process.OutputDataReceived += (s, e) => DataReceived(s, e, process.Id);
-                        process.ErrorDataReceived += (s, e) => DataReceived(s, e, process.Id);
+                        process.OutputDataReceived += DataReceived;
+                        process.ErrorDataReceived += DataReceived;
                     }
 
                     // Execute the process
@@ -54,7 +54,14 @@ namespace Buildalyzer.Environment
                     sw.Start();
                     while (!process.HasExited)
                     {
-                        Thread.Sleep(100);
+                        if (waitAction != null)
+                        {
+                            waitAction();
+                        }
+                        else
+                        {
+                            Thread.Sleep(100);
+                        }
                         if (_timeout > 0 && sw.ElapsedMilliseconds > _timeout)
                         {
                             _logger?.LogDebug($"Process timeout, killing process {process.Id}{System.Environment.NewLine}");
@@ -74,10 +81,10 @@ namespace Buildalyzer.Environment
             }
         }
 
-        private void DataReceived(object sender, DataReceivedEventArgs e, int id)
+        private void DataReceived(object sender, DataReceivedEventArgs e)
         {
             _outputLines?.Add(e.Data);
-            _logger?.LogDebug($"PID {id}> {e.Data}{System.Environment.NewLine}");
+            _logger?.LogDebug($"{e.Data}{System.Environment.NewLine}");
         }
     }
 }

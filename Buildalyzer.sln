@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces", "s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A52BD74E-3894-4A6E-8B9A-143A004F07F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buildalyzer.BuildLogger", "src\Buildalyzer.BuildLogger\Buildalyzer.BuildLogger.csproj", "{C2A75674-A93E-413F-8E84-4805F7EF5117}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2A75674-A93E-413F-8E84-4805F7EF5117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2A75674-A93E-413F-8E84-4805F7EF5117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2A75674-A93E-413F-8E84-4805F7EF5117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2A75674-A93E-413F-8E84-4805F7EF5117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{D8493B91-85A7-4AFB-9D88-C348DB555162} = {2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}
 		{2358397E-7B5D-47E7-AC53-10C61574A1B9} = {2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
+		{C2A75674-A93E-413F-8E84-4805F7EF5117} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1716863C-E9E2-4074-B557-E38CEB3B5C84}

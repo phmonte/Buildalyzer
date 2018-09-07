@@ -173,6 +173,10 @@
     <None Include="version.json" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Buildalyzer.BuildLogger\Buildalyzer.BuildLogger.csproj">
+      <Project>{c2a75674-a93e-413f-8e84-4805f7ef5117}</Project>
+      <Name>Buildalyzer.BuildLogger</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj">
       <Project>{252bd05d-80e4-4ae9-ae83-98b8d01ca30c}</Project>
       <Name>Buildalyzer</Name>

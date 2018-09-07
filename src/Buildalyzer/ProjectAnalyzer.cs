@@ -228,10 +228,13 @@ namespace Buildalyzer
         // This is where the magic happens - returns one result per result target framework
         private IEnumerable<AnalyzerResult> BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, bool analyzeResult)
         {
-            EventProcessor eventProcessor = new EventProcessor(Manager.ProjectLogger);
+            EventProcessor eventProcessor = analyzeResult ? new EventProcessor(Manager.ProjectLogger) : null;
             using (PipeLoggerServer pipeLogger = new PipeLoggerServer())
             {
-                eventProcessor.Attach(pipeLogger);
+                // Attach message handlers
+                pipeLogger.WarningRaised += (s, e) => Manager.ProjectLogger.LogWarning($"{e.Message}{System.Environment.NewLine}");
+                pipeLogger.ErrorRaised += (s, e) => Manager.ProjectLogger.LogError($"{e.Message}{System.Environment.NewLine}");
+                eventProcessor?.Attach(pipeLogger);
 
                 // Get the filename
                 string fileName = buildEnvironment.MsBuildExePath;
@@ -270,7 +273,7 @@ namespace Buildalyzer
             }
 
             // Success
-            if (analyzeResult)
+            if (eventProcessor != null)
             {
                 // TODO
             }

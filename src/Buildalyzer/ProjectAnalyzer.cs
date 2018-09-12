@@ -217,11 +217,11 @@ namespace Buildalyzer
         // This is where the magic happens - returns one result per result target framework
         private IEnumerable<AnalyzerResult> BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, bool analyze)
         {
-            EventProcessor eventProcessor = new EventProcessor(ProjectFile.Path, Manager.ProjectLogger, analyze);
+            EventProcessor eventProcessor = new EventProcessor(ProjectFile.Path, analyze);
             using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer())
             {
                 // Attach event handlers
-                eventProcessor.Attach(pipeLogger, analyze);
+                eventProcessor.Initialize(pipeLogger, Loggers);
 
                 // Get the filename
                 string fileName = buildEnvironment.MsBuildExePath;
@@ -341,9 +341,7 @@ namespace Buildalyzer
 
             return effectiveDictionary;
         }
-
-        // TODO: Remove and rewrite binary logger (does it need to be deleted on every build?)
-
+        
         public void AddBinaryLogger(string binaryLogFilePath = null) =>
             AddLogger(new BinaryLogger
             {

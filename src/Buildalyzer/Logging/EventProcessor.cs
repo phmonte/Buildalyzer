@@ -1,7 +1,7 @@
 ﻿using Buildalyzer.Construction;
 using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 using Microsoft.Build.Logging.StructuredLogger;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,34 +10,25 @@ namespace Buildalyzer.Logging
 {
     internal class EventProcessor
     {
-        private static readonly Dictionary<MessageImportance, LogLevel> MessageImportanceToLogLevel =
-            new Dictionary<MessageImportance, LogLevel>()
-            {
-                { MessageImportance.Low, LogLevel.Trace },
-                { MessageImportance.Normal, LogLevel.Debug },
-                { MessageImportance.High, LogLevel.Information }
-            };
-
-        private readonly string _projectFilePath;        
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly string _projectFilePath;
         private readonly Microsoft.Build.Logging.StructuredLogger.Construction _construction;
 
-        public EventProcessor(string projectFilePath, Microsoft.Extensions.Logging.ILogger logger, bool analyze)
+        public EventProcessor(string projectFilePath, bool analyze)
         {
             _projectFilePath = projectFilePath;
-            _logger = logger;
             if(analyze)
             {
                 _construction = new Microsoft.Build.Logging.StructuredLogger.Construction();
             }
         }
 
-        public void Attach(IEventSource eventSource, bool analyze)
+        public void Initialize(IEventSource eventSource, IEnumerable<ILogger> loggers)
         {
-            // Log messages
-            eventSource.MessageRaised += (s, e) => _logger.Log(MessageImportanceToLogLevel[e.Importance], e.Message);
-            eventSource.WarningRaised += (s, e) => _logger.LogWarning($"{e.Message}{System.Environment.NewLine}");
-            eventSource.ErrorRaised += (s, e) => _logger.LogError($"{e.Message}{System.Environment.NewLine}");
+            // Initialize the loggers
+            foreach(ILogger logger in loggers)
+            {
+                logger.Initialize(eventSource);
+            }
 
             // Send events to the tree constructor
             if (_construction != null)

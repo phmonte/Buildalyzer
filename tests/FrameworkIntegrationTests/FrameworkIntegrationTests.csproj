@@ -188,10 +188,6 @@
       <Project>{252bd05d-80e4-4ae9-ae83-98b8d01ca30c}</Project>
       <Name>Buildalyzer</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\MsBuildPipeLogger.Logger\MsBuildPipeLogger.Logger.csproj">
-      <Project>{330514df-c36d-4fc5-91a3-f68fa6dd226b}</Project>
-      <Name>MsBuildPipeLogger.Logger</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

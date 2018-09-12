@@ -12,44 +12,22 @@
     <PackageLicenseUrl>https://github.com/daveaglick/Buildalyzer/blob/master/LICENSE</PackageLicenseUrl>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.8.166" />
     <PackageReference Include="Microsoft.Build.Framework" Version="15.8.166" />
-    <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="1.1.224" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.8.166" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="2.0.41" ExcludeAssets="All" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.0.4" />
+    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.0.0" />
+    <PackageReference Include="MsBuildPipeLogger.Server" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Buildalyzer.Tests</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MsBuildPipeLogger.Logger\MsBuildPipeLogger.Logger.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\MsBuildPipeLogger.Server\MsBuildPipeLogger.Server.csproj" />
-  </ItemGroup>
-  
-  <!-- Workaround to pack project reference - see https://github.com/NuGet/Home/issues/3891 -->
-  <!-- Will no longer need this or the MsBuildPipeLogger ProjectReferences when those are made into packages -->
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('PrivateAssets', 'All'))" />
-    </ItemGroup>
-  </Target>
-  
-  <!-- Workaround for CS0433 errors with Microsoft.Build.* and StructuredLogger - see https://github.com/NuGet/Home/issues/4989#issuecomment-311042085 -->
-  <Target Name="ChangeAliasesOfStructuredLoggerAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
-    <ItemGroup>
-      <ReferencePath Condition="'%(FileName)' == 'StructuredLogger'">
-        <Aliases>MSBuildStructuredLog</Aliases>
-      </ReferencePath>
-    </ItemGroup>
-  </Target>
-  
+  </ItemGroup>  
 </Project>

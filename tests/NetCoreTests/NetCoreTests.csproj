@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
-    <ProjectReference Include="..\..\src\MsBuildPipeLogger.Logger\MsBuildPipeLogger.Logger.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">

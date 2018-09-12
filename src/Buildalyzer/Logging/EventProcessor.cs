@@ -1,5 +1,5 @@
-﻿extern alias MSBuildStructuredLog;
-using Microsoft.Build.Framework;
+﻿using Microsoft.Build.Framework;
+using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,8 @@ namespace Buildalyzer.Logging
 {
     internal class EventProcessor
     {
-        private readonly MSBuildStructuredLog::Microsoft.Build.Logging.StructuredLogger.Construction _construction
-            = new MSBuildStructuredLog::Microsoft.Build.Logging.StructuredLogger.Construction();
+        private readonly Microsoft.Build.Logging.StructuredLogger.Construction _construction
+            = new Microsoft.Build.Logging.StructuredLogger.Construction();
 
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
 

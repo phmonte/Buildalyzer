@@ -1,26 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Xml;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Buildalyzer.Logging;
-using Microsoft.Build.Construction;
-using Microsoft.Build.Evaluation;
-using Microsoft.Build.Execution;
 using Microsoft.Build.Logging;
-using Microsoft.Build.Tasks;
-using Microsoft.Build.Utilities;
 using Microsoft.Extensions.Logging;
-using MsBuildPipeLogger.Server;
+using MsBuildPipeLogger;
 using ILogger = Microsoft.Build.Framework.ILogger;
 
 namespace Buildalyzer
@@ -229,7 +218,7 @@ namespace Buildalyzer
         private IEnumerable<AnalyzerResult> BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, bool analyzeResult)
         {
             EventProcessor eventProcessor = analyzeResult ? new EventProcessor(Manager.ProjectLogger) : null;
-            using (PipeLoggerServer pipeLogger = new PipeLoggerServer())
+            using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer())
             {
                 // Attach message handlers
                 pipeLogger.WarningRaised += (s, e) => Manager.ProjectLogger.LogWarning($"{e.Message}{System.Environment.NewLine}");
@@ -247,8 +236,8 @@ namespace Buildalyzer
                 }
 
                 // Get the arguments to use
-                string loggerPath = typeof(MsBuildPipeLogger.Logger.PipeLogger).Assembly.Location;
-                string loggerArgument = $"/l:{nameof(MsBuildPipeLogger.Logger.PipeLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()}";
+                string loggerPath = typeof(PipeLogger).Assembly.Location;
+                string loggerArgument = $"/l:{nameof(PipeLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()}";
                 Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
                 if (!string.IsNullOrEmpty(targetFramework))
                 {

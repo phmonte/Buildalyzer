@@ -30,7 +30,7 @@ namespace Buildalyzer.Construction
         
         internal ProjectFile(string path, XDocument document, IProjectTransformer transformer)
         {
-            Path = path;
+            Path = NormalizePath(path);  // Normalize the path
             Virtual = document != null;
             _document = document ?? XDocument.Load(path);
             _transformer = transformer;
@@ -180,6 +180,9 @@ namespace Buildalyzer.Construction
                     ?? Array.Empty<string>();
         }
 
+        internal static string NormalizePath(string path) =>
+            path == null ? null : System.IO.Path.GetFullPath(new Uri(path).LocalPath);
+
         // Map from TargetFrameworkIdentifier back to a TargetFramework
         // Partly from https://github.com/onovotny/sdk/blob/83d93a58c0955386218d536580eac2ab1582b397/src/Tasks/Microsoft.NET.Build.Tasks/build/Microsoft.NET.TargetFrameworkInference.targets
         // See also https://blog.stephencleary.com/2012/05/framework-profiles-in-net.html
@@ -187,7 +190,7 @@ namespace Buildalyzer.Construction
         // Value = (TargetFramework, preserve dots in version)
         private static readonly Dictionary<string, (string, bool)> TargetFrameworkIdentifierToTargetFramework = new Dictionary<string, (string, bool)>
         {
-            { ".NETSTandard", ("netstandard", true) },
+            { ".NETStandard", ("netstandard", true) },
             { ".NETCoreApp", ("netcoreapp", true) },
             { ".NETFramework", ("net", false) },
             { ".NETCore", ("uap", true) },

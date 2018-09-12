@@ -4,26 +4,22 @@ using Microsoft.Build.Logging;
 using Microsoft.Build.Logging.StructuredLogger;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Buildalyzer.Logging
 {
-    internal class EventProcessor
+    internal class EventProcessor : IDisposable
     {
         private readonly string _projectFilePath;
+        private readonly IEnumerable<ILogger> _loggers;
         private readonly Microsoft.Build.Logging.StructuredLogger.Construction _construction;
 
-        public EventProcessor(string projectFilePath, bool analyze)
+        public EventProcessor(string projectFilePath, IEnumerable<ILogger> loggers, IEventSource eventSource, bool analyze)
         {
             _projectFilePath = projectFilePath;
-            if(analyze)
-            {
-                _construction = new Microsoft.Build.Logging.StructuredLogger.Construction();
-            }
-        }
+            _loggers = loggers;
 
-        public void Initialize(IEventSource eventSource, IEnumerable<ILogger> loggers)
-        {
             // Initialize the loggers
             foreach(ILogger logger in loggers)
             {
@@ -31,8 +27,9 @@ namespace Buildalyzer.Logging
             }
 
             // Send events to the tree constructor
-            if (_construction != null)
+            if(analyze)
             {
+                _construction = new Microsoft.Build.Logging.StructuredLogger.Construction();
                 eventSource.BuildStarted += _construction.BuildStarted;
                 eventSource.BuildFinished += _construction.BuildFinished;
                 eventSource.ProjectStarted += _construction.ProjectStarted;
@@ -49,7 +46,16 @@ namespace Buildalyzer.Logging
             }
         }
 
-        public IEnumerable<AnalyzerResult> GetResults()
+        public void Dispose()
+        {
+            // Need to release the loggers in case they get used again (I.e., Restore followed by Clean;Build)
+            foreach (ILogger logger in _loggers)
+            {
+                logger.Shutdown();
+            }
+        }
+
+        public IEnumerable<AnalyzerResult> GetResults(ProjectAnalyzer analyzer)
         {
             if (_construction != null)
             {
@@ -57,6 +63,7 @@ namespace Buildalyzer.Logging
                 // We want all project nodes since we don't know exactly which targets are being built
                 Dictionary<string, TreeNode> projects = new Dictionary<string, TreeNode>();
                 _construction.Build.VisitAllChildren<Project>(x => ProjectVisitor(x, projects));
+                return projects.Values.Select(x => new AnalyzerResult(analyzer, _construction, x));
             }
 
             return Array.Empty<AnalyzerResult>();
@@ -71,10 +78,7 @@ namespace Buildalyzer.Logging
             }
 
             // Get the TFM for this project
-            string tfm = project
-                .FindChild<Folder>("Properties")
-                ?.FindChild<NameValueNode>(x => string.Equals(x.Name, "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase))
-                ?.Value;
+            string tfm = project.GetProperty("TargetFrameworkMoniker");
             if (!string.IsNullOrWhiteSpace(tfm))
             {
                 // Add this project to the tree for this TFM

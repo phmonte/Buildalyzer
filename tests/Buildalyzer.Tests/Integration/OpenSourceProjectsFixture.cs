@@ -128,6 +128,12 @@ namespace Buildalyzer.Tests.Integration
             {
                 string path = GetRepositoryPath(repository.Url);
                 CloneRepository(repository.Url, path);
+                while(!Directory.Exists(path))
+                {
+                    // Sleep for a while to allow the disk operations to flush
+                    TestContext.Progress.WriteLine($"Waiting for writes to flush to { path } ...");
+                    Thread.Sleep(1000);
+                }
             }
         }
 

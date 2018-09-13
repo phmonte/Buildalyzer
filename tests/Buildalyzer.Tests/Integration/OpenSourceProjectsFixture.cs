@@ -84,7 +84,9 @@ namespace Buildalyzer.Tests.Integration
                         if(!repository.Preference.HasValue || repository.Preference.Value == preference)
                         {
                             // Iterate all solution files in the repository
-                            foreach(string solutionPath in GetSolutionPaths(GetRepositoryPath(repository.Url)))
+                            List<string> solutionPaths = new List<string>();
+                            GetSolutionPaths(GetRepositoryPath(repository.Url), solutionPaths);
+                            foreach(string solutionPath in solutionPaths)
                             {
                                 // Exclude any solution files we don't want to build
                                 if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
@@ -111,24 +113,29 @@ namespace Buildalyzer.Tests.Integration
                 }
             }
             
-            // Try a few times to enumerate the file system, sometimes fails on AppVeyor for some reason
-            private static string[] GetSolutionPaths(string repositoryPath)
+            // Enumerate on directory at a time, enumerating them all at once sometimes fails on AppVeyor for some reason
+            private static void GetSolutionPaths(string path, List<string> solutionPaths)
             {
-                int c = 3;
-                while(true)
+                // Files
+                try
                 {
-                    c--;
-                    try
+                    solutionPaths.AddRange(
+                        Directory.EnumerateFiles(path, "*.sln", SearchOption.TopDirectoryOnly));
+                }
+                catch
+                {
+                }
+                
+                // Subfolders
+                try
+                {
+                    foreach(string sub in Directory.EnumerateDirectories(path))
                     {
-                        return Directory.GetFiles(repositoryPath, "*.sln", SearchOption.AllDirectories);
+                        GetSolutionPaths(sub, solutionPaths);
                     }
-                    catch(Exception)
-                    {
-                        if(c == 0)
-                        {
-                            throw;
-                        }
-                    }
+                }
+                catch
+                {
                 }
             }
         }

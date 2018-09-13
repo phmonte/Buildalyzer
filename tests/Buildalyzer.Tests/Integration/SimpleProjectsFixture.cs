@@ -322,7 +322,7 @@ namespace Buildalyzer.Tests.Integration
         {
             string path = Path.GetFullPath(
                 Path.Combine(
-                    Path.GetDirectoryName(typeof(IntegrationTestFixture).Assembly.Location),
+                    Path.GetDirectoryName(typeof(SimpleProjectsFixture).Assembly.Location),
                     @"..\..\..\..\projects\" + file));
 
             return path.Replace('\\', Path.DirectorySeparatorChar);

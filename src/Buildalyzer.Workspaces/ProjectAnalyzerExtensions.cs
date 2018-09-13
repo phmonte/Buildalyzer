@@ -48,7 +48,7 @@ namespace Buildalyzer.Workspaces
                 throw new ArgumentNullException(nameof(workspace));
             }
 
-            return analyzer.Build().AddToWorkspace(workspace, addProjectReferences);
+            return analyzer.Build().FirstOrDefault().AddToWorkspace(workspace, addProjectReferences);
         }
     }
 }

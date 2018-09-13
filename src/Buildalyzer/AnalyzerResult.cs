@@ -45,7 +45,7 @@ namespace Buildalyzer
             _tree
                 .FindLastDescendant<Folder>(x => string.Equals(x.Name, "ProjectReference", StringComparison.OrdinalIgnoreCase))
                 ?.Children.OfType<Item>()
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Text)))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Text)))
                 .ToList();
         
         public IReadOnlyList<string> GetSourceFiles() =>
@@ -53,7 +53,7 @@ namespace Buildalyzer
                 .Where(x => x.Item1 == null
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
-                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Item2)))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Item2)))
                 .ToList();
 
         public IReadOnlyList<string> GetReferences() =>

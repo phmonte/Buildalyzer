@@ -48,9 +48,8 @@ namespace Buildalyzer.Workspaces
             }
 
             // Get or create an ID for this project
-            string projectGuid = analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid");
-            ProjectId projectId = !string.IsNullOrEmpty(projectGuid)
-                                  && Guid.TryParse(analyzerResult.ProjectInstance?.GetPropertyValue("ProjectGuid"), out var projectIdGuid) 
+            string projectGuid = analyzerResult.GetProperty("ProjectGuid");
+            ProjectId projectId = !string.IsNullOrEmpty(projectGuid) && Guid.TryParse(projectGuid, out Guid projectIdGuid) 
                 ? ProjectId.CreateFromSerialized(projectIdGuid) 
                 : ProjectId.CreateNewId();
 
@@ -63,7 +62,7 @@ namespace Buildalyzer.Workspaces
             {
                 if (!existingProject.Id.Equals(projectId)
                     && analyzerResult.Analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
-                    && (existingAnalyzer.Build().GetProjectReferences()?.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
+                    && (existingAnalyzer.Build().FirstOrDefault()?.GetProjectReferences()?.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);
@@ -105,17 +104,17 @@ namespace Buildalyzer.Workspaces
                 projectName,
                 languageName,
                 filePath: analyzerResult.Analyzer.ProjectFile.Path,
-                outputFilePath: analyzerResult.ProjectInstance?.GetPropertyValue("TargetPath"),
+                outputFilePath: analyzerResult.GetProperty("TargetPath"),
                 documents: GetDocuments(analyzerResult, projectId),
                 projectReferences: GetExistingProjectReferences(analyzerResult, workspace),
                 metadataReferences: GetMetadataReferences(analyzerResult),
-                compilationOptions: CreateCompilationOptions(analyzerResult.Project, languageName));
+                compilationOptions: CreateCompilationOptions(analyzerResult, languageName));
             return projectInfo;
         }
 
-        private static CompilationOptions CreateCompilationOptions(Microsoft.Build.Evaluation.Project project, string languageName)
+        private static CompilationOptions CreateCompilationOptions(AnalyzerResult analyzerResult, string languageName)
         {
-            string outputType = project.GetPropertyValue("OutputType");
+            string outputType = analyzerResult.GetProperty("OutputType");
             OutputKind? kind = null;
             switch (outputType)
             {

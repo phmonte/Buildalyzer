@@ -84,9 +84,8 @@ namespace Buildalyzer.Tests.Integration
                         if(!repository.Preference.HasValue || repository.Preference.Value == preference)
                         {
                             // Iterate all solution files in the repository
-                            List<string> solutionPaths = new List<string>();
-                            GetSolutionPaths(GetRepositoryPath(repository.Url), solutionPaths);
-                            foreach(string solutionPath in solutionPaths)
+                            foreach(string solutionPath in
+                                Directory.EnumerateFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
                             {
                                 // Exclude any solution files we don't want to build
                                 if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
@@ -110,32 +109,6 @@ namespace Buildalyzer.Tests.Integration
                             }
                         }
                     }
-                }
-            }
-            
-            // Enumerate on directory at a time, enumerating them all at once sometimes fails on AppVeyor for some reason
-            private static void GetSolutionPaths(string path, List<string> solutionPaths)
-            {
-                // Files
-                try
-                {
-                    solutionPaths.AddRange(
-                        Directory.EnumerateFiles(path, "*.sln", SearchOption.TopDirectoryOnly));
-                }
-                catch
-                {
-                }
-                
-                // Subfolders
-                try
-                {
-                    foreach(string sub in Directory.EnumerateDirectories(path))
-                    {
-                        GetSolutionPaths(sub, solutionPaths);
-                    }
-                }
-                catch
-                {
                 }
             }
         }
@@ -187,7 +160,8 @@ namespace Buildalyzer.Tests.Integration
             {
                 TestContext.Progress.WriteLine($"Cloning { path }");
                 Directory.CreateDirectory(path);
-                Repository.Clone(repository, path);
+                string clonedPath = Repository.Clone(repository, path);
+                TestContext.Progress.WriteLine($"Cloned into { clonedPath }");
             }
             else if (!Repository.IsValid(path))
             {
@@ -195,7 +169,8 @@ namespace Buildalyzer.Tests.Integration
                 Directory.Delete(path, true);
                 Thread.Sleep(1000);
                 Directory.CreateDirectory(path);
-                Repository.Clone(repository, path);
+                string clonedPath = Repository.Clone(repository, path);
+                TestContext.Progress.WriteLine($"Cloned into { clonedPath }");
             }
             else
             {

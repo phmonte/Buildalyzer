@@ -77,14 +77,6 @@ namespace Buildalyzer.Tests.Integration
                 // Iterate all repositories
                 foreach(TestRepository repository in Repositories)
                 {
-                    // Wait for disk writes from the clone to flush
-                    string repositoryPath = GetRepositoryPath(repository.Url);
-                    if (!Directory.Exists(repositoryPath))
-                    {
-                        TestContext.Progress.WriteLine($"Waiting for writes to flush to {repositoryPath} ...");
-                        Thread.Sleep(1000);
-                    }
-
                     // Iterate all available preferences
                     foreach (EnvironmentPreference preference in Preferences)
                     {
@@ -92,7 +84,7 @@ namespace Buildalyzer.Tests.Integration
                         if(!repository.Preference.HasValue || repository.Preference.Value == preference)
                         {
                             // Iterate all solution files in the repository
-                            foreach(string solutionPath in Directory.GetFiles(repositoryPath, "*.sln", SearchOption.AllDirectories))
+                            foreach(string solutionPath in Directory.EnumerateFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
                             {
                                 // Exclude any solution files we don't want to build
                                 if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))

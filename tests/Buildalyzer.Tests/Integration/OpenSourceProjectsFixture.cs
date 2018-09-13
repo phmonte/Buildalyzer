@@ -1,4 +1,4 @@
-﻿using Buildalyzer.Environment;
+using Buildalyzer.Environment;
 using LibGit2Sharp;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Framework;
@@ -84,7 +84,7 @@ namespace Buildalyzer.Tests.Integration
                         if(!repository.Preference.HasValue || repository.Preference.Value == preference)
                         {
                             // Iterate all solution files in the repository
-                            foreach(string solutionPath in Directory.EnumerateFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
+                            foreach(string solutionPath in GetSolutionPaths(GetRepositoryPath(repository.Url)))
                             {
                                 // Exclude any solution files we don't want to build
                                 if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
@@ -110,15 +110,27 @@ namespace Buildalyzer.Tests.Integration
                     }
                 }
             }
-        }
-
-        public class ProjectTestCase
-        {
-            public EnvironmentPreference Preference { get; set; }
-            public string SolutionPath { get; set; }
-            public string ProjectPath { get; set; }
-
-            public override string ToString() => $"";
+            
+            // Try a few times to enumerate the file system, sometimes fails on AppVeyor for some reason
+            private static string[] GetSolutionPaths(string repositoryPath)
+            {
+                int c = 3;
+                while(true)
+                {
+                    c--;
+                    try
+                    {
+                        return Directory.GetFiles(repositoryPath, "*.sln", SearchOption.AllDirectories);
+                    }
+                    catch(Exception)
+                    {
+                        if(c == 0)
+                        {
+                            throw;
+                        }
+                    }
+                }
+            }
         }
 
         [OneTimeSetUp]

@@ -16,5 +16,6 @@ namespace Buildalyzer
             treeNode
                ?.FindChild<NameValueNode>(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase))
                ?.Value;
+
     }
 }

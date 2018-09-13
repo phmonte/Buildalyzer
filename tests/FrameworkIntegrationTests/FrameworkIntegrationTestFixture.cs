@@ -135,7 +135,6 @@ namespace FrameworkIntegrationTests
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
             results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
-            //results.ShouldAllBe(x => x.ProjectInstance != null, log.ToString());
         }
 
         private static void CloneRepository(string repository, string path)

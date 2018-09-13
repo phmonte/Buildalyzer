@@ -41,6 +41,13 @@ namespace Buildalyzer
                 new[] { (GetProperty(ProjectFileNames.TargetFrameworkIdentifier), GetProperty(ProjectFileNames.TargetFrameworkVersion)) })
             .FirstOrDefault();
         
+        public IReadOnlyList<string> GetProjectReferences() =>
+            _tree
+                .FindLastDescendant<Folder>(x => string.Equals(x.Name, "ProjectReference", StringComparison.OrdinalIgnoreCase))
+                ?.Children.OfType<Item>()
+                .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Text)))
+                .ToList();
+        
         public IReadOnlyList<string> GetSourceFiles() =>
             GetCscCommandLineArgs()
                 .Where(x => x.Item1 == null
@@ -55,14 +62,6 @@ namespace Buildalyzer
                 .Select(x => x.Item2)
                 .ToList();
 
-        public IReadOnlyList<string> GetProjectReferences() => Array.Empty<string>();
-
-        //public IReadOnlyList<string> GetProjectReferences() =>
-        //    ProjectInstance ?.Items
-        //        .Where(x => x.ItemType == "ProjectReference")
-        //        .Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.EvaluatedInclude)))
-        //        .ToList();
-
         private (string, string)[] _cscCommandLineArgs;
 
         private (string, string)[] GetCscCommandLineArgs()
@@ -73,7 +72,8 @@ namespace Buildalyzer
                     ParseCommandLineArguments(
                         _tree
                             .FindLastDescendant<Task>(x => string.Equals(x.Name, "Csc", StringComparison.OrdinalIgnoreCase))
-                            ?.GetValue("CommandLineArguments")).ToArray();
+                            ?.CommandLineArguments)
+                    .ToArray();
             }
             return _cscCommandLineArgs;
         }

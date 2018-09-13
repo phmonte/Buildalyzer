@@ -31,6 +31,7 @@ namespace NetCoreTests
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
+            @"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
@@ -52,7 +53,7 @@ namespace NetCoreTests
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            //results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -73,7 +74,7 @@ namespace NetCoreTests
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            //results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -212,6 +213,22 @@ namespace NetCoreTests
             // Then
             references.ShouldNotBeNull(log.ToString());
             references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+        }
+
+        [Test]
+        public void SdkProjectWithProjectReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.Build().First().GetProjectReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("SdkNetStandardProjectWithPackageReference.csproj"), log.ToString());
+            references.ShouldContain(x => x.EndsWith("SdkNetStandardProject.csproj"), log.ToString());
         }
 
         [Test]

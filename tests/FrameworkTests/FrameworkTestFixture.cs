@@ -53,7 +53,7 @@ namespace FrameworkTests
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            //results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -74,7 +74,7 @@ namespace FrameworkTests
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            //results.First().ProjectInstance.ShouldNotBeNull(log.ToString());
+            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
         }
 
         [TestCaseSource(nameof(_projectFiles))]
@@ -224,6 +224,22 @@ namespace FrameworkTests
             // Then
             references.ShouldNotBeNull(log.ToString());
             references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+        }
+
+        [Test]
+        public void LegacyFrameworkProjectWithProjectReferenceGetsReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
+
+            // When
+            IReadOnlyList<string> references = analyzer.Build().First().GetProjectReferences();
+
+            // Then
+            references.ShouldNotBeNull(log.ToString());
+            references.ShouldContain(x => x.EndsWith("LegacyFrameworkProject.csproj"), log.ToString());
+            references.ShouldContain(x => x.EndsWith("LegacyFrameworkProjectWithPackageReference.csproj"), log.ToString());
         }
 
         [Test]

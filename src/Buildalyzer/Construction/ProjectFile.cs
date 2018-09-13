@@ -28,11 +28,11 @@ namespace Buildalyzer.Construction
 
         private string[] _targetFrameworks = null;
 
-        internal ProjectFile(string path, XDocument document, IProjectTransformer transformer)
+        // The project file path should already be normalized
+        internal ProjectFile(string path, IProjectTransformer transformer)
         {
-            Path = NormalizePath(path);  // Normalize the path
-            Virtual = document != null;
-            _document = document ?? XDocument.Load(path);
+            Path = path;
+            _document = XDocument.Load(path);
             _transformer = transformer;
 
             // Get the project element
@@ -42,11 +42,6 @@ namespace Buildalyzer.Construction
                 throw new ArgumentException("Unrecognized project file format");
             }
         }
-
-        /// <summary>
-        /// Indicates if this project file was passed in directly as XML content.
-        /// </summary>
-        public bool Virtual { get; }
 
         /// <summary>
         /// The full path to the project file.
@@ -181,10 +176,7 @@ namespace Buildalyzer.Construction
                 .Where(x => x != null).ToArray()
                     ?? Array.Empty<string>();
         }
-
-        internal static string NormalizePath(string path) =>
-            path == null ? null : System.IO.Path.GetFullPath(new Uri(path).LocalPath);
-
+        
         // Map from TargetFrameworkIdentifier back to a TargetFramework
         // Partly from https://github.com/onovotny/sdk/blob/83d93a58c0955386218d536580eac2ab1582b397/src/Tasks/Microsoft.NET.Build.Tasks/build/Microsoft.NET.TargetFrameworkInference.targets
         // See also https://blog.stephencleary.com/2012/05/framework-profiles-in-net.html

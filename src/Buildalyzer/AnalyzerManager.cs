@@ -49,7 +49,7 @@ namespace Buildalyzer
 
             if (solutionFilePath != null)
             {
-                solutionFilePath = ValidatePath(solutionFilePath, true);
+                solutionFilePath = NormalizeAndValidatePath(solutionFilePath);
                 SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
                 GetProjectsInSolution(solutionFilePath, projects);
             }
@@ -103,52 +103,27 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            return GetProjectInternal(projectFilePath, null, true);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false);
-        }
-
-        private ProjectAnalyzer GetProjectInternal(
-            string projectFilePath,
-            XDocument projectDocument,
-            bool checkExists)
-        {
-            // Normalize as .sln uses backslash regardless of OS the sln is created on
-            projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
-            projectFilePath = ValidatePath(projectFilePath, checkExists);
+            projectFilePath = NormalizeAndValidatePath(projectFilePath);
             if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
             {
                 return project;
             }
-            project = new ProjectAnalyzer(this, projectFilePath, projectDocument);
+            project = new ProjectAnalyzer(this, projectFilePath);
             _projects.Add(projectFilePath, project);
             return project;
         }
 
-        private static string ValidatePath(string path, bool checkExists)
+        private static string NormalizeAndValidatePath(string path)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            path = Path.GetFullPath(path); // Normalize the path
-            if (checkExists && !File.Exists(path))
+            path = NormalizePath(path);
+            if (!File.Exists(path))
             {
                 throw new ArgumentException($"The path {path} could not be found.");
             }
             return path;
         }
+
+        internal static string NormalizePath(string path) =>
+            path == null ? null : Path.GetFullPath(new Uri(path.Replace('\\', Path.DirectorySeparatorChar)).LocalPath);
     }
 }

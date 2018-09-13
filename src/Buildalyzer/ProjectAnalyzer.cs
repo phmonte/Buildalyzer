@@ -53,12 +53,13 @@ namespace Buildalyzer
         /// </summary>
         public bool IgnoreFaultyImports { get; set; } = true;
 
-        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, XDocument projectDocument)
+        // The project file path should already be normalized
+        internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath)
         {
             _processRunner = new ProcessRunner(manager.ProjectLogger, null);
             
             Manager = manager;
-            ProjectFile = new ProjectFile(projectFilePath, projectDocument, manager.ProjectTransformer);
+            ProjectFile = new ProjectFile(projectFilePath, manager.ProjectTransformer);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
 
             // Set the solution directory global property

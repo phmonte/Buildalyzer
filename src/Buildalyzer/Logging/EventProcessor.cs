@@ -72,7 +72,7 @@ namespace Buildalyzer.Logging
         private void ProjectVisitor(Project project, Dictionary<string, TreeNode> projects)
         {
             // Make sure this is the same project, nested MSBuild tasks may have spawned additional builds of other projects
-            if (ProjectFile.NormalizePath(project.ProjectFile) != _projectFilePath)
+            if (AnalyzerManager.NormalizePath(project.ProjectFile) != _projectFilePath)
             {
                 return;
             }

@@ -57,20 +57,12 @@ namespace Buildalyzer.Environment
         private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
             // Clone the options global properties dictionary so we can add to it
-            Dictionary<string, string> additionalGlobalProperties = options.GlobalProperties.ToDictionary(x => x.Key, x => x.Value);
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
 
-            // Tweak targets
-            List<string> targets = new List<string>(options.TargetsToBuild);
-            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase) && _projectFile.Virtual)
+            // Required to force CoreCompile target when it calculates everything is already built
+            // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
-                // NuGet.Targets can't handle virtual project files:
-                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-                targets.RemoveAll(x => x.Equals("Restore", StringComparison.OrdinalIgnoreCase));
-            }
-            if (targets.Contains("Clean", StringComparer.OrdinalIgnoreCase))
-            {
-                // Required to force CoreCompile target when it calculates everything is already built
-                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
@@ -81,13 +73,10 @@ namespace Buildalyzer.Environment
                 return null;
             }
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-
-            // Required to find and import the Restore target
-            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, Path.Combine(dotnetPath, "NuGet.targets"));
-
+            
             return new BuildEnvironment(
                 options.DesignTime,
-                targets.ToArray(),
+                options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
                 options.EnvironmentVariables);
@@ -96,20 +85,12 @@ namespace Buildalyzer.Environment
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
         {
             // Clone the options global properties dictionary so we can add to it
-            Dictionary<string, string> additionalGlobalProperties = options.GlobalProperties.ToDictionary(x => x.Key, x => x.Value);
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
 
-            // Tweak targets
-            List<string> targets = new List<string>(options.TargetsToBuild);
-            if (targets.Contains("Restore", StringComparer.OrdinalIgnoreCase) && _projectFile.Virtual)
+            // Required to force CoreCompile target when it calculates everything is already built
+            // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
-                // NuGet.Targets can't handle virtual project files:
-                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-                targets.RemoveAll(x => x.Equals("Restore", StringComparison.OrdinalIgnoreCase));
-            }
-            if (targets.Contains("Clean", StringComparer.OrdinalIgnoreCase))
-            {
-                // Required to force CoreCompile target when it calculates everything is already built
-                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
@@ -124,7 +105,7 @@ namespace Buildalyzer.Environment
             
             return new BuildEnvironment(
                 options.DesignTime,
-                targets.ToArray(),
+                options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
                 options.EnvironmentVariables);

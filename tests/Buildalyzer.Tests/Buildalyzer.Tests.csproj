@@ -17,4 +17,8 @@
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <DefineConstants>Is_Windows</DefineConstants>
+  </PropertyGroup>
+
 </Project>

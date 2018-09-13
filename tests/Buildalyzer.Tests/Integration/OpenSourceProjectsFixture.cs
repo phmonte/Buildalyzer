@@ -113,8 +113,9 @@ namespace Buildalyzer.Tests.Integration
             }
         }
 
-        [OneTimeSetUp]
-        public void SetUp()
+        // Do setup in a static constructor since the TestCaseSource depends on it
+        // See https://stackoverflow.com/a/40507964/807064
+        static OpenSourceProjectsFixture()
         {
             foreach (TestRepository repository in Repositories)
             {

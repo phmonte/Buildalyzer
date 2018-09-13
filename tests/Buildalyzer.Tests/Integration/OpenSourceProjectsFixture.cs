@@ -77,14 +77,22 @@ namespace Buildalyzer.Tests.Integration
                 // Iterate all repositories
                 foreach(TestRepository repository in Repositories)
                 {
+                    // Wait for disk writes from the clone to flush
+                    string repositoryPath = GetRepositoryPath(repository.Url);
+                    if (!Directory.Exists(repositoryPath))
+                    {
+                        TestContext.Progress.WriteLine($"Waiting for writes to flush to {repositoryPath} ...");
+                        Thread.Sleep(1000);
+                    }
+
                     // Iterate all available preferences
-                    foreach(EnvironmentPreference preference in Preferences)
+                    foreach (EnvironmentPreference preference in Preferences)
                     {
                         // Only build the desired preferences
                         if(!repository.Preference.HasValue || repository.Preference.Value == preference)
                         {
                             // Iterate all solution files in the repository
-                            foreach(string solutionPath in Directory.GetFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
+                            foreach(string solutionPath in Directory.GetFiles(repositoryPath, "*.sln", SearchOption.AllDirectories))
                             {
                                 // Exclude any solution files we don't want to build
                                 if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
@@ -128,12 +136,6 @@ namespace Buildalyzer.Tests.Integration
             {
                 string path = GetRepositoryPath(repository.Url);
                 CloneRepository(repository.Url, path);
-                while(!Directory.Exists(path))
-                {
-                    // Sleep for a while to allow the disk operations to flush
-                    TestContext.Progress.WriteLine($"Waiting for writes to flush to { path } ...");
-                    Thread.Sleep(1000);
-                }
             }
         }
 

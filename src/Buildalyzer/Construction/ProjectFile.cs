@@ -27,7 +27,7 @@ namespace Buildalyzer.Construction
         private readonly IProjectTransformer _transformer;
 
         private string[] _targetFrameworks = null;
-        
+
         internal ProjectFile(string path, XDocument document, IProjectTransformer transformer)
         {
             Path = NormalizePath(path);  // Normalize the path
@@ -65,7 +65,7 @@ namespace Buildalyzer.Construction
         {
             get
             {
-                if(_targetFrameworks == null)
+                if (_targetFrameworks == null)
                 {
                     _targetFrameworks = GetTargetFrameworks(
                         _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
@@ -98,10 +98,12 @@ namespace Buildalyzer.Construction
         /// Checks for an <c>Import</c> element with a <c>Project</c> attribute ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
         /// Also looks for a <c>LanguageTargets</c> ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
         /// Projects that use these targets are known not to build under a .NET Core host or build tools.
+        /// Also checks for a <c>ToolsVersion</c> attribute and uses the .NET Framework if one is found.
         /// </remarks>
         public bool RequiresNetFramework =>
             _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => ImportsThatRequireNetFramework.Any(i => x.GetAttributeValue(ProjectFileNames.Project).EndsWith(i, StringComparison.OrdinalIgnoreCase)))
-            || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Any(i => x.Value.EndsWith(i, StringComparison.OrdinalIgnoreCase)));
+            || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Any(i => x.Value.EndsWith(i, StringComparison.OrdinalIgnoreCase)))
+            || ToolsVersion != null;
 
         /// <summary>
         /// Whether the project file is multi-targeted.

@@ -29,14 +29,16 @@ namespace Buildalyzer.Environment
             // Did we get any output?
             if (lines == null || lines.Count == 0)
             {
-                throw new InvalidOperationException("Could not get results from `dotnet --info` call");
+                logger.LogWarning("Could not get results from `dotnet --info` call");
+                return null;
             }
             
             // Try to get a path
             string basePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
             if(string.IsNullOrWhiteSpace(basePath))
             {
-                throw new InvalidOperationException("Could not locate SDK path in `dotnet --info` results");
+                logger.LogWarning("Could not locate SDK path in `dotnet --info` results");
+                return null;
             }
 
             return basePath;

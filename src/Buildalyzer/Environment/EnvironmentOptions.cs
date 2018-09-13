@@ -5,6 +5,12 @@ namespace Buildalyzer.Environment
     public class EnvironmentOptions
     {
         /// <summary>
+        /// Indicates a preferences towards the build environment to use.
+        /// The default is a preference for the .NET Core SDK.
+        /// </summary>
+        public EnvironmentPreference Preference { get; } = EnvironmentPreference.Core;
+
+        /// <summary>
         /// The default targets to build. The eventual build environment may remove one or more of these
         /// targets depending on project file format and build tools support.
         /// </summary>

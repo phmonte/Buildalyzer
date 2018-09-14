@@ -71,6 +71,11 @@ namespace Buildalyzer.Environment
                     }
                     sw.Stop();
                     int exitCode = process.ExitCode;
+                    if (_logger != null || _outputLines != null)
+                    {
+                        process.OutputDataReceived -= DataReceived;
+                        process.ErrorDataReceived -= DataReceived;
+                    }
                     _logger?.LogDebug($"Process {process.Id} exited with code {exitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
                     return exitCode;
                 }

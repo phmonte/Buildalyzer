@@ -56,6 +56,14 @@ namespace Buildalyzer.Environment
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
         private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
+            // Get paths
+            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path, _manager.ProjectLogger);
+            if(dotnetPath == null)
+            {
+                return null;
+            }
+            string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
+
             // Clone the options global properties dictionary so we can add to it
             Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
 
@@ -66,20 +74,21 @@ namespace Buildalyzer.Environment
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
-            // Get paths
-            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path, _manager.ProjectLogger);
-            if(dotnetPath == null)
-            {
-                return null;
-            }
-            string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-            
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalEnvironmentVariables = new Dictionary<string, string>(options.EnvironmentVariables);
+
+            // (Re)set the enviornment variables that dotnet sets
+            // See https://github.com/dotnet/cli/blob/0a4ad813ff971f549d34ac4ebc6c8cca9a741c36/src/Microsoft.DotNet.Cli.Utils/MSBuildForwardingAppWithoutLogging.cs#L22-L28
+            // Especially important if a global.json is used because dotnet may set these to the latest, but then we'll call a msbuild.dll for the global.json version
+            additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildExtensionsPath, dotnetPath);
+            additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildSDKsPath, Path.Combine(dotnetPath, "Sdks"));
+
             return new BuildEnvironment(
                 options.DesignTime,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
-                options.EnvironmentVariables);
+                additionalEnvironmentVariables);
         }
 
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)

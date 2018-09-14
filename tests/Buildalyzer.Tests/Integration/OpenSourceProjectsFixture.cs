@@ -18,7 +18,7 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class OpenSourceProjectsFixture
     {
-        private const LoggerVerbosity Verbosity = LoggerVerbosity.Diagnostic;
+        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
         private const bool BinaryLog = false;
 
         private static EnvironmentPreference[] Preferences =
@@ -127,11 +127,6 @@ namespace Buildalyzer.Tests.Integration
         [TestCaseSource(typeof(ProjectTestCases))]
         public void CompilesProject(EnvironmentPreference preference, string solutionPath, string projectPath)
         {
-            if(!projectPath.EndsWith("NodaTime.Tools.Common.csproj"))
-            {
-                return;
-            }
-
             // Given
             StringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions

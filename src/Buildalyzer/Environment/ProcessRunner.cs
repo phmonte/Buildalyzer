@@ -25,6 +25,7 @@ namespace Buildalyzer.Environment
             string fileName,
             string arguments,
             string workingDirectory,
+            Dictionary<string, string> environmentVariables,
             ILogger logger,
             List<string> outputLines = null,
             int timeout = 0)
@@ -40,6 +41,16 @@ namespace Buildalyzer.Environment
             _process.StartInfo.CreateNoWindow = true;
             _process.StartInfo.UseShellExecute = false;
 
+            // Copy over environment variables
+            if(environmentVariables != null)
+            {
+                foreach(KeyValuePair<string, string> variable in environmentVariables)
+                {
+                    _process.StartInfo.Environment[variable.Key] = variable.Value;
+                    _process.StartInfo.EnvironmentVariables[variable.Key] = variable.Value;
+                }
+            }
+
             // Capture output
             if (logger != null || outputLines != null)
             {
@@ -50,18 +61,15 @@ namespace Buildalyzer.Environment
             }
         }
 
-        public ProcessRunner Start(Dictionary<string, string> environmentVariables)
+        public ProcessRunner Start()
         {
-            using (environmentVariables == null ? (IDisposable)new EmptyDisposable() : new TemporaryEnvironment(environmentVariables))
+            _process.Start();
+            _logger?.LogDebug($"{System.Environment.NewLine}Started process {_process.Id}: \"{_process.StartInfo.FileName}\" {_process.StartInfo.Arguments}{System.Environment.NewLine}");
+            if (_logger != null || _outputLines != null)
             {
-                _process.Start();
-                _logger?.LogDebug($"{System.Environment.NewLine}Started process {_process.Id}: \"{_process.StartInfo.FileName}\" {_process.StartInfo.Arguments}{System.Environment.NewLine}");
-                if (_logger != null || _outputLines != null)
-                {
-                    _process.BeginOutputReadLine();
-                }
-                return this;
+                _process.BeginOutputReadLine();
             }
+            return this;
         }
 
         public int WaitForExit()

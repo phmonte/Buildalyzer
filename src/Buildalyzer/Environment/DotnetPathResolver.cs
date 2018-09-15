@@ -58,7 +58,10 @@ namespace Buildalyzer.Environment
 
             // global.json may change the version, so need to set working directory
             List<string> lines = new List<string>();
-            new ProcessRunner(logger, lines, 4000).Run("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables);
+            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), logger, lines, 4000))
+            {
+                processRunner.Start(environmentVariables).WaitForExit();
+            }
             return lines;
         }
 

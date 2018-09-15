@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
@@ -17,8 +18,6 @@ namespace Buildalyzer
     public class ProjectAnalyzer
     {
         private readonly List<ILogger> _loggers = new List<ILogger>();
-
-        private readonly ProcessRunner _processRunner;
         
         // Project-specific global properties and environment variables
         private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -55,9 +54,7 @@ namespace Buildalyzer
 
         // The project file path should already be normalized
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath)
-        {
-            _processRunner = new ProcessRunner(manager.ProjectLogger, null);
-            
+        {            
             Manager = manager;
             ProjectFile = new ProjectFile(projectFilePath, manager.ProjectTransformer);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
@@ -245,20 +242,34 @@ namespace Buildalyzer
                     string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
                     string arguments = $"{initialArguments} /noconsolelogger /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
 
-                    // Run MsBuild
-                    if (_processRunner.Run(
-                        fileName,
-                        arguments,
-                        Path.GetDirectoryName(ProjectFile.Path),
-                        GetEffectiveEnvironmentVariables(buildEnvironment),
-                        () => pipeLogger.Read()) != 0)
+                    int exitCode;
+                    using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), Manager.ProjectLogger))
                     {
-                        // Failure
-                        return Array.Empty<AnalyzerResult>();
+                        // Run MSBuild
+                        processRunner.Start(GetEffectiveEnvironmentVariables(buildEnvironment));
+
+                        // Read the pipe
+                        InterlockedBool exit = new InterlockedBool(false);
+                        AutoResetEvent exited = new AutoResetEvent(false);
+                        Thread thread = new Thread(() =>
+                        {
+                            while (pipeLogger.Read() && !exit)
+                            {
+                            }
+                            exited.Set();
+                        })
+                        {
+                            IsBackground = true
+                        };
+                        thread.Start();
+
+                        // Wait for MSBuild to finish and then wait for pipe closure
+                        exitCode = processRunner.WaitForExit();
+                        exit.Set();
+                        exited.WaitOne();
                     }
 
-                    // Success
-                    return eventProcessor.GetResults(this);
+                    return exitCode != 0 ? Array.Empty<AnalyzerResult>() : eventProcessor.GetResults(this);                    
                 }
             }
         }
@@ -359,6 +370,43 @@ namespace Buildalyzer
             }
 
             _loggers.Remove(logger);
+        }
+    }
+
+    internal class InterlockedBool
+    {
+        private volatile int _set;
+
+        public InterlockedBool()
+        {
+            _set = 0;
+        }
+
+        public InterlockedBool(bool initialState)
+        {
+            _set = initialState ? 1 : 0;
+        }
+
+        // Returns the previous switch state of the switch
+        public bool Set()
+        {
+#pragma warning disable 420
+            return Interlocked.Exchange(ref _set, 1) != 0;
+#pragma warning restore 420
+        }
+
+        // Returns the previous switch state of the switch
+        public bool Unset()
+        {
+#pragma warning disable 420
+            return Interlocked.Exchange(ref _set, 0) != 0;
+#pragma warning restore 420
+        }
+
+        // Returns the current state
+        public static implicit operator bool(InterlockedBool interlockedBool)
+        {
+            return interlockedBool._set != 0;
         }
     }
 }

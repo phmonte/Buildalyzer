@@ -249,24 +249,22 @@ namespace Buildalyzer
                         processRunner.Start();
 
                         // Read the pipe
-                        InterlockedBool exit = new InterlockedBool(false);
-                        AutoResetEvent exited = new AutoResetEvent(false);
+                        InterlockedBool exited = new InterlockedBool(false);
                         Thread thread = new Thread(() =>
                         {
-                            while (pipeLogger.Read() && !exit)
+                            while (pipeLogger.Read() && !exited)
                             {
                             }
-                            exited.Set();
                         })
                         {
                             IsBackground = true
                         };
                         thread.Start();
 
-                        // Wait for MSBuild to finish and then wait for pipe closure
-                        exitCode = processRunner.WaitForExit();
-                        exit.Set();
-                        exited.WaitOne();
+                        // Wait for MSBuild to finish and then close the pipe
+                        processRunner.Process.WaitForExit();
+                        exited.Set();
+                        exitCode = processRunner.Process.ExitCode;
                     }
 
                     return exitCode != 0 ? Array.Empty<AnalyzerResult>() : eventProcessor.GetResults(this);                    

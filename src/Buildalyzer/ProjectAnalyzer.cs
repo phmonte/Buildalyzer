@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Buildalyzer.Logging;
@@ -242,28 +239,15 @@ namespace Buildalyzer
                     string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
                     string arguments = $"{initialArguments} /noconsolelogger /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
 
+                    // Run MSBuild
                     int exitCode;
                     using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.ProjectLogger))
                     {
-                        // Start MSBuild
                         processRunner.Start();
-
-                        // Read the pipe
-                        InterlockedBool exited = new InterlockedBool(false);
-                        Thread thread = new Thread(() =>
+                        while(pipeLogger.Read())
                         {
-                            while (pipeLogger.Read() && !exited)
-                            {
-                            }
-                        })
-                        {
-                            IsBackground = true
-                        };
-                        thread.Start();
-
-                        // Wait for MSBuild to finish and then close the pipe
+                        }
                         processRunner.Process.WaitForExit();
-                        exited.Set();
                         exitCode = processRunner.Process.ExitCode;
                     }
 

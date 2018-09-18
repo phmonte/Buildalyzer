@@ -31,18 +31,12 @@ namespace Buildalyzer.Tests.Integration
 
         private static TestRepository[] Repositories =
         {
-            //new TestRepository(EnvironmentPreference.Framework, "https://github.com/AngleSharp/AngleSharp.git"),  // Something strange with NuGet and restore, won't build at all - Contains portable project, can't build using SDK
             new TestRepository("https://github.com/autofac/Autofac.git"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
-            new TestRepository("https://github.com/SixLabors/ImageSharp.git"),
-            //new TestRepository("https://github.com/moq/moq.git"),  does not use Build as the default target, see https://github.com/moq/moq/issues/21
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
             new TestRepository("https://github.com/nodatime/nodatime.git",
                 @"\src\NodaTime.Web.Blazor\NodaTime.Web.Blazor.csproj"),
-            new TestRepository("https://github.com/JasonBock/Rocks.git"),
-            //new TestRepository("https://github.com/dotnet/roslyn.git"),  uses a special Restore.cmd prior to build
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/serilog/serilog.git"), // SourceLink messed up from AppVeyor on SDK: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
-            new TestRepository("https://github.com/Abc-Arbitrage/ZeroLog.git"),
             new TestRepository("https://github.com/cake-build/cake"),
             new TestRepository("https://github.com/Wyamio/Wyam.git"),
         };

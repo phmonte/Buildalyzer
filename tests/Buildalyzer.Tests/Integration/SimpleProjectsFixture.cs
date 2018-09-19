@@ -302,6 +302,28 @@ namespace Buildalyzer.Tests.Integration
             manager.Projects.Any(x => x.Value.ProjectFile.Path.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
         }
 
+        [Test]
+        public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
+        {
+            // Given
+            string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            ProjectAnalyzer analyzer = new AnalyzerManager()
+                .GetProject(GetProjectPath(projectFile));
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                Preference = preference
+            };
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            AnalyzerResults results = analyzer.Build(options);
+
+            // Then
+            results.Count.ShouldBeGreaterThan(0);
+            results.ShouldAllBe(x => x.OverallSuccess);
+        }
+
         private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
             ProjectAnalyzer analyzer = new AnalyzerManager(

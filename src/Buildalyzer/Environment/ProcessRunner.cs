@@ -65,35 +65,6 @@ namespace Buildalyzer.Environment
             return this;
         }
 
-        public int PollForExit() => PollForExit(0);
-
-        public int PollForExit(int timeout)
-        {
-            // Wait for exit
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            while (!Process.HasExited)
-            {
-                Thread.Sleep(100);
-                if (timeout > 0 && sw.ElapsedMilliseconds > timeout)
-                {
-                    _logger?.LogDebug($"Process timeout, killing process {Process.Id}{System.Environment.NewLine}");
-                    Process.Kill();
-                    break;
-                }
-            }
-            sw.Stop();
-
-            // Clean up
-            if (_logger != null || _outputLines != null)
-            {
-                Process.OutputDataReceived -= DataReceived;
-                Process.ErrorDataReceived -= DataReceived;
-            }
-
-            return Process.ExitCode;
-        }
-
         private void Exited(object sender, EventArgs e)
         {
             _logger?.LogDebug($"Process {Process.Id} exited with code {Process.ExitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
@@ -101,6 +72,12 @@ namespace Buildalyzer.Environment
 
         public void Dispose()
         {
+            Process.Exited -= Exited;
+            if (_logger != null || _outputLines != null)
+            {
+                Process.OutputDataReceived -= DataReceived;
+                Process.ErrorDataReceived -= DataReceived;
+            }
             Process.Close();
         }        
 

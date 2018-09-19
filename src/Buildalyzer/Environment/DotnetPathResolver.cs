@@ -60,7 +60,8 @@ namespace Buildalyzer.Environment
             List<string> lines = new List<string>();
             using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, logger, lines))
             {
-                processRunner.Start().PollForExit(4000);
+                processRunner.Start();
+                processRunner.Process.WaitForExit(4000);
             }
             return lines;
         }

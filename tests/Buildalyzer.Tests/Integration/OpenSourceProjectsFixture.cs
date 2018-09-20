@@ -154,7 +154,8 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }
 
         private static void CloneRepository(string repository, string path)

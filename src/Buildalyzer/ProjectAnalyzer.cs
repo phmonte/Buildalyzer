@@ -101,7 +101,7 @@ namespace Buildalyzer
                 BuildEnvironment buildEnvironment = EnvironmentFactory.GetBuildEnvironment(targetFramework, environmentOptions);
                 string[] targetsToBuild = buildEnvironment.TargetsToBuild;
                 Restore(buildEnvironment, ref targetsToBuild);
-                results.Add(BuildTargets(buildEnvironment, targetFramework, targetsToBuild, true));
+                BuildTargets(buildEnvironment, targetFramework, targetsToBuild, results);
             }
 
             return results;
@@ -131,7 +131,7 @@ namespace Buildalyzer
             Restore(buildEnvironment, ref targetsToBuild);
             foreach (string targetFramework in targetFrameworks)
             {
-                results.Add(BuildTargets(buildEnvironment, targetFramework, targetsToBuild, true));
+                BuildTargets(buildEnvironment, targetFramework, targetsToBuild, results);
             }
 
             return results;
@@ -176,7 +176,7 @@ namespace Buildalyzer
 
             string[] targetsToBuild = buildEnvironment.TargetsToBuild;
             Restore(buildEnvironment, ref targetsToBuild);
-            return new AnalyzerResults(BuildTargets(buildEnvironment, targetFramework, targetsToBuild, true));
+            return BuildTargets(buildEnvironment, targetFramework, targetsToBuild, new AnalyzerResults());
         }
 
         /// <summary>
@@ -205,16 +205,16 @@ namespace Buildalyzer
             if (targetsToBuild != null && targetsToBuild.Length > 0 && targetsToBuild[0].Equals("Restore", StringComparison.OrdinalIgnoreCase))
             {
                 targetsToBuild = targetsToBuild.Skip(1).ToArray();
-                BuildTargets(buildEnvironment, null, new[] { "Restore" }, false);                
+                BuildTargets(buildEnvironment, null, new[] { "Restore" }, null);                
             }
         }
 
         // This is where the magic happens - returns one result per result target framework
-        private IEnumerable<AnalyzerResult> BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, bool analyze)
+        private AnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
             using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer())
             {
-                using (EventProcessor eventProcessor = new EventProcessor(ProjectFile.Path, Loggers, pipeLogger, analyze))
+                using (EventProcessor eventProcessor = new EventProcessor(this, Loggers, pipeLogger, results != null))
                 {
                     // Get the filename
                     string fileName = buildEnvironment.MsBuildExePath;
@@ -244,16 +244,18 @@ namespace Buildalyzer
                     using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.ProjectLogger))
                     {
                         processRunner.Start();
-                        while(pipeLogger.Read())
+                        while (pipeLogger.Read())
                         {
                         }
                         processRunner.Process.WaitForExit();
                         exitCode = processRunner.Process.ExitCode;
                     }
 
-                    return exitCode != 0 ? Array.Empty<AnalyzerResult>() : eventProcessor.GetResults(this);                    
+                    // Collect the results
+                    results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
                 }
             }
+            return results;
         }
 
         private static string FormatArgument(string argument)

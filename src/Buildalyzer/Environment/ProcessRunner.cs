@@ -10,7 +10,7 @@ namespace Buildalyzer.Environment
     internal class ProcessRunner : IDisposable
     {
         private readonly ILogger _logger;
-        private readonly List<string> _outputLines;
+        private readonly List<string> _output;
 
         public Process Process { get; }
 
@@ -20,9 +20,10 @@ namespace Buildalyzer.Environment
             string workingDirectory,
             Dictionary<string, string> environmentVariables,
             ILogger logger,
-            List<string> outputLines = null)
+            List<string> output = null)
         {
             _logger = logger;
+            _output = output;
             Process = new Process();
 
             // Create the process info
@@ -43,12 +44,10 @@ namespace Buildalyzer.Environment
             }
 
             // Capture output
-            if (logger != null || outputLines != null)
+            if (logger != null || output != null)
             {
                 Process.StartInfo.RedirectStandardOutput = true;
-                Process.StartInfo.RedirectStandardError = true;
                 Process.OutputDataReceived += DataReceived;
-                Process.ErrorDataReceived += DataReceived;
             }
 
             Process.Exited += Exited;
@@ -58,7 +57,7 @@ namespace Buildalyzer.Environment
         {
             Process.Start();
             _logger?.LogDebug($"{System.Environment.NewLine}Started process {Process.Id}: \"{Process.StartInfo.FileName}\" {Process.StartInfo.Arguments}{System.Environment.NewLine}");
-            if (_logger != null || _outputLines != null)
+            if (_logger != null || _output != null)
             {
                 Process.BeginOutputReadLine();
             }
@@ -73,17 +72,16 @@ namespace Buildalyzer.Environment
         public void Dispose()
         {
             Process.Exited -= Exited;
-            if (_logger != null || _outputLines != null)
+            if (_logger != null || _output != null)
             {
                 Process.OutputDataReceived -= DataReceived;
-                Process.ErrorDataReceived -= DataReceived;
             }
             Process.Close();
         }        
 
         private void DataReceived(object sender, DataReceivedEventArgs e)
         {
-            _outputLines?.Add(e.Data);
+            _output?.Add(e.Data);
             _logger?.LogDebug($"{e.Data}{System.Environment.NewLine}");
         }
     }

@@ -1,8 +1,8 @@
 ﻿using Buildalyzer.Construction;
-using Buildalyzer.Environment;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,28 +11,32 @@ namespace Buildalyzer
 {
     public class AnalyzerResult
     {
-        private readonly Microsoft.Build.Logging.StructuredLogger.Construction _construction;
-        private readonly TreeNode _tree;
+        private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, ProjectItem[]> _items = new Dictionary<string, ProjectItem[]>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> _projectReferences = new HashSet<string>();
+        private List<(string, string)> _cscCommandLineArguments;
 
-        internal AnalyzerResult(
-            ProjectAnalyzer analyzer,
-            Microsoft.Build.Logging.StructuredLogger.Construction construction,
-            TreeNode tree)
+        internal AnalyzerResult(ProjectAnalyzer analyzer)
         {
             Analyzer = analyzer;
-            _construction = construction;
-            _tree = tree;
         }
 
         public ProjectAnalyzer Analyzer { get; }
 
-        public bool OverallSuccess => _construction.Build.Succeeded;
+        public bool Succeeded { get; internal set; }
 
-        // Get the last property to try and get the final value
+        public IReadOnlyDictionary<string, string> Properties => _properties;
+
+        public IReadOnlyDictionary<string, ProjectItem[]> Items => _items;
+        
+        /// <summary>
+        /// Gets the value of the specified property and returns <c>null</c>
+        /// if the property could not be found.
+        /// </summary>
+        /// <param name="name">The name of the property.</param>
+        /// <returns>The value of the property or <c>null</c>.</returns>
         public string GetProperty(string name) =>
-            _tree.Children.OfType<Project>().Reverse()
-            .Select(x => x.GetProperty(name))
-            .FirstOrDefault(x => x != null);
+            Properties.TryGetValue(name, out string value) ? value : null;
 
         public string TargetFramework =>
             ProjectFile.GetTargetFrameworks(
@@ -40,56 +44,55 @@ namespace Buildalyzer
                 new[] { GetProperty(ProjectFileNames.TargetFramework) },
                 new[] { (GetProperty(ProjectFileNames.TargetFrameworkIdentifier), GetProperty(ProjectFileNames.TargetFrameworkVersion)) })
             .FirstOrDefault();
-        
-        public IReadOnlyList<string> GetProjectReferences() =>
-            _tree
-                .FindLastDescendant<Folder>(x => string.Equals(x.Name, "ProjectReference", StringComparison.OrdinalIgnoreCase))
-                ?.Children.OfType<Item>()
-                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Text)))
-                .ToList();
-        
-        public IReadOnlyList<string> GetSourceFiles() =>
-            GetCscCommandLineArgs()
-                .Where(x => x.Item1 == null
+
+        public string[] SourceFiles =>
+            _cscCommandLineArguments
+                ?.Where(x => x.Item1 == null
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
                 .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Item2)))
-                .ToList();
+                .ToArray() ?? Array.Empty<string>();
 
-        public IReadOnlyList<string> GetReferences() =>
-            GetCscCommandLineArgs()
-                .Where(x => x.Item1 == "reference")
+        public string[] References =>
+            _cscCommandLineArguments
+                ?.Where(x => x.Item1 == "reference")
                 .Select(x => x.Item2)
-                .ToList();
+                .ToArray() ?? Array.Empty<string>();
 
-        private (string, string)[] _cscCommandLineArgs;
+        public IEnumerable<string> ProjectReferences =>
+            Items.TryGetValue("ProjectReference", out ProjectItem[] items)
+                ? items.Select(x => AnalyzerManager.NormalizePath(
+                    Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.ItemSpec)))
+                : Array.Empty<string>();
 
-        private (string, string)[] GetCscCommandLineArgs()
+        internal void ProcessProject(ProjectStartedEventArgs e)
         {
-            if(_cscCommandLineArgs == null)
+            // Add properties
+            foreach(DictionaryEntry entry in e.Properties.Cast<DictionaryEntry>())
             {
-                _cscCommandLineArgs =
-                    ParseCommandLineArguments(
-                        _tree
-                            .FindLastDescendant<Task>(x => string.Equals(x.Name, "Csc", StringComparison.OrdinalIgnoreCase))
-                            ?.CommandLineArguments)
-                    .ToArray();
+                _properties[entry.Key.ToString()] = entry.Value.ToString();
             }
-            return _cscCommandLineArgs;
+
+            // Add items
+            foreach(IGrouping<string, DictionaryEntry> itemGroup in e.Items.Cast<DictionaryEntry>().GroupBy(x => x.Key.ToString()))
+            {
+                _items[itemGroup.Key] = itemGroup.Select(x => new ProjectItem((ITaskItem)x.Value)).ToArray();
+            }
         }
 
-        private static IEnumerable<(string, string)> ParseCommandLineArguments(string str)
+        internal void ProcessCscCommandLine(string commandLine)
         {
-            if(string.IsNullOrWhiteSpace(str))
+            if (string.IsNullOrWhiteSpace(commandLine))
             {
-                yield break;
+                return;
             }
+            _cscCommandLineArguments = new List<(string, string)>();
 
-            string[] parts = str.Split(new[] { ' ' });
+            string[] parts = commandLine.Split(new[] { ' ' });
 
             // Combine the initial command
             int start = Array.FindIndex(parts, x => x.Length > 0 && x[0] == '/');
-            yield return (null, string.Join(" ", parts.Take(start)).Trim('"'));
+            _cscCommandLineArguments.Add((null, string.Join(" ", parts.Take(start)).Trim('"')));
 
             // Iterate the rest of them
             for (int c = start; c < parts.Length; c++)
@@ -103,7 +106,8 @@ namespace Buildalyzer
                         if (valueStart == -1 || valueStart >= parts[c].Length - 1)
                         {
                             // Argument without a value
-                            yield return (valueStart == -1 ? parts[c].Substring(1) : parts[c].Substring(1, valueStart - 1), null);
+                            _cscCommandLineArguments.Add(
+                                (valueStart == -1 ? parts[c].Substring(1) : parts[c].Substring(1, valueStart - 1), null));
                             continue;
                         }
                         valueStart++;  // Move to the value
@@ -123,23 +127,23 @@ namespace Buildalyzer
                         if (first == c)
                         {
                             // The end quote was in the same part
-                            yield return (
+                            _cscCommandLineArguments.Add((
                                 valueStart == 0 ? null : parts[c].Substring(1, valueStart - 2),
-                                parts[c].Substring(valueStart).Trim('"'));
+                                parts[c].Substring(valueStart).Trim('"')));
                             continue;
                         }
 
                         // The end quote is in another part, join them
-                        yield return (
+                        _cscCommandLineArguments.Add((
                             valueStart == 0 ? null : parts[first].Substring(1, valueStart - 2),
-                            string.Join(" ", parts.Skip(first).Take(c - first + 1)).Substring(valueStart).Trim('"'));
+                            string.Join(" ", parts.Skip(first).Take(c - first + 1)).Substring(valueStart).Trim('"')));
                         continue;
                     }
 
                     // Not quoted, return the value
-                    yield return (
+                    _cscCommandLineArguments.Add((
                         valueStart == 0 ? null : parts[c].Substring(1, valueStart - 2),
-                        parts[c].Substring(valueStart));
+                        parts[c].Substring(valueStart)));
                 }
             }
         }

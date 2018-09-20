@@ -13,28 +13,28 @@ namespace Buildalyzer.Environment
         // Don't cache the result because it might change project to project due to global.json
         public static string ResolvePath(string projectPath, ILogger logger)
         {
-            List<string> lines = GetInfo(projectPath, logger);
-            if (lines.Count == 0)
+            List<string> output = GetInfo(projectPath, logger);
+            if (output.Count == 0)
             {
                 // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
                 int retry = 0;
                 do
                 {
                     Thread.Sleep(500);
-                    lines = GetInfo(projectPath, logger);
+                    output = GetInfo(projectPath, logger);
                     retry++;
-                } while (lines.Count == 0 && retry < 5);
+                } while (output.Count == 0 && retry < 5);
             }
 
             // Did we get any output?
-            if (lines == null || lines.Count == 0)
+            if (output == null || output.Count == 0)
             {
                 logger?.LogWarning("Could not get results from `dotnet --info` call");
                 return null;
             }
             
             // Try to get a path
-            string basePath = ParseBasePath(lines) ?? ParseInstalledSdksPath(lines);
+            string basePath = ParseBasePath(output) ?? ParseInstalledSdksPath(output);
             if(string.IsNullOrWhiteSpace(basePath))
             {
                 logger?.LogWarning("Could not locate SDK path in `dotnet --info` results");
@@ -57,13 +57,13 @@ namespace Buildalyzer.Environment
             };
 
             // global.json may change the version, so need to set working directory
-            List<string> lines = new List<string>();
-            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, logger, lines))
+            List<string> output = new List<string>();
+            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, logger, output))
             {
                 processRunner.Start();
                 processRunner.Process.WaitForExit(4000);
             }
-            return lines;
+            return output;
         }
 
         // Try to find a base path

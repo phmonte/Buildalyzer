@@ -62,7 +62,7 @@ namespace Buildalyzer.Workspaces
             {
                 if (!existingProject.Id.Equals(projectId)
                     && analyzerResult.Analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
-                    && (existingAnalyzer.Build().FirstOrDefault()?.GetProjectReferences()?.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
+                    && (existingAnalyzer.Build().FirstOrDefault()?.ProjectReferences.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);
@@ -148,21 +148,20 @@ namespace Buildalyzer.Workspaces
         }
 
         private static IEnumerable<ProjectReference> GetExistingProjectReferences(AnalyzerResult analyzerResult, Workspace workspace) =>
-            analyzerResult.GetProjectReferences()
-                ?.Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath == x))
+            analyzerResult.ProjectReferences
+                .Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath == x))
                 .Where(x => x != null)
                 .Select(x => new ProjectReference(x.Id))
             ?? Array.Empty<ProjectReference>();
 
         private static IEnumerable<ProjectAnalyzer> GetReferencedAnalyzerProjects(AnalyzerResult analyzerResult) =>
-            analyzerResult.GetProjectReferences()
-                ?.Select(x => analyzerResult.Analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
+            analyzerResult.ProjectReferences
+                .Select(x => analyzerResult.Analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
                 .Where(x => x != null)
             ?? Array.Empty<ProjectAnalyzer>();
         private static IEnumerable<DocumentInfo> GetDocuments(AnalyzerResult analyzerResult, ProjectId projectId) =>
             analyzerResult
-                .GetSourceFiles()
-                ?.Where(File.Exists)
+                .SourceFiles                ?.Where(File.Exists)
                 .Select(x => DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId),
                     Path.GetFileName(x),
@@ -174,8 +173,7 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<MetadataReference> GetMetadataReferences(AnalyzerResult analyzerResult) =>
             analyzerResult
-                .GetReferences()
-                ?.Where(File.Exists)
+                .References                ?.Where(File.Exists)
                 .Select(x => MetadataReference.CreateFromFile(x))
             ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
 

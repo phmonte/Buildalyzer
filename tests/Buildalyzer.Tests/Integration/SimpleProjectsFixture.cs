@@ -64,7 +64,8 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }
 
         [Test]
@@ -88,7 +89,8 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
-            results.ShouldAllBe(x => x.OverallSuccess, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }
 
         [Test]
@@ -105,7 +107,7 @@ namespace Buildalyzer.Tests.Integration
             };
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build(options).First().GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build(options).First().SourceFiles;
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -131,7 +133,7 @@ namespace Buildalyzer.Tests.Integration
             };
 
             // When
-            IReadOnlyList<string> references = analyzer.Build(options).First().GetReferences();
+            IReadOnlyList<string> references = analyzer.Build(options).First().References;
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -155,13 +157,13 @@ namespace Buildalyzer.Tests.Integration
             // Then
             results.Count.ShouldBe(2);
             results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
-            results["net462"].GetSourceFiles().Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
             {
                 "Class1",
                 "AssemblyAttributes",
                 "AssemblyInfo"
             }, true, log.ToString());
-            results["netstandard2.0"].GetSourceFiles().Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            results["netstandard2.0"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
             {
                 "Class2",
                 "AssemblyAttributes",
@@ -177,7 +179,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build("net462").First().GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build("net462").First().SourceFiles;
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -197,7 +199,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build("netstandard2.0").First().GetSourceFiles();
+            IReadOnlyList<string> sourceFiles = analyzer.Build("netstandard2.0").First().SourceFiles;
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
@@ -217,7 +219,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().References;
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -232,7 +234,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetProjectReferences();
+            IEnumerable<string> references = analyzer.Build().First().ProjectReferences;
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -249,7 +251,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetReferences();
+            IReadOnlyList<string> references = analyzer.Build().First().References;
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -264,7 +266,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
 
             // When
-            IReadOnlyList<string> references = analyzer.Build().First().GetProjectReferences();
+            IEnumerable<string> references = analyzer.Build().First().ProjectReferences;
 
             // Then
             references.ShouldNotBeNull(log.ToString());
@@ -321,7 +323,8 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             results.Count.ShouldBeGreaterThan(0);
-            results.ShouldAllBe(x => x.OverallSuccess);
+            results.OverallSuccess.ShouldBeTrue();
+            results.ShouldAllBe(x => x.Succeeded);
         }
 
         private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

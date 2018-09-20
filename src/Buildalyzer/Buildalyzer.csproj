@@ -21,9 +21,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.0.4" />
-    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.0.1" />
-    <PackageReference Include="MsBuildPipeLogger.Server" Version="1.0.1" />
+    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.0.2" />
+    <PackageReference Include="MsBuildPipeLogger.Server" Version="1.0.2" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

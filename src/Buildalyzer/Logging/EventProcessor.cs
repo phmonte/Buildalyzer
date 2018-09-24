@@ -12,6 +12,7 @@ namespace Buildalyzer.Logging
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
         private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
         private readonly ProjectAnalyzer _analyzer;
+        private readonly ILogger<EventProcessor> _logger;
         private readonly IEnumerable<Microsoft.Build.Framework.ILogger> _loggers;
         private readonly IEventSource _eventSource;
         private readonly bool _analyze;
@@ -23,6 +24,7 @@ namespace Buildalyzer.Logging
         public EventProcessor(ProjectAnalyzer analyzer, IEnumerable<Microsoft.Build.Framework.ILogger> loggers, IEventSource eventSource, bool analyze)
         {
             _analyzer = analyzer;
+            _logger = analyzer.Manager.LoggerFactory?.CreateLogger<EventProcessor>();
             _loggers = loggers;
             _eventSource = eventSource;
             _analyze = analyze;
@@ -41,7 +43,10 @@ namespace Buildalyzer.Logging
                 eventSource.ProjectFinished += ProjectFinished;
                 eventSource.MessageRaised += MessageRaised;
                 eventSource.BuildFinished += BuildFinished;
-                eventSource.ErrorRaised += ErrorRaised;
+                if (_logger != null)
+                {
+                    eventSource.ErrorRaised += ErrorRaised;
+                }
             }
         }
         
@@ -96,7 +101,7 @@ namespace Buildalyzer.Logging
             OverallSuccess = e.Succeeded;
         }
 
-        private void ErrorRaised(object sender, BuildErrorEventArgs e) => _analyzer.Manager.ProjectLogger.LogError(e.Message);
+        private void ErrorRaised(object sender, BuildErrorEventArgs e) => _logger.LogError(e.Message);
 
         public void Dispose()
         {
@@ -106,6 +111,10 @@ namespace Buildalyzer.Logging
                 _eventSource.ProjectFinished -= ProjectFinished;
                 _eventSource.MessageRaised -= MessageRaised;
                 _eventSource.BuildFinished -= BuildFinished;
+                if (_logger != null)
+                {
+                    _eventSource.ErrorRaised -= ErrorRaised;
+                }
             }
 
             // Need to release the loggers in case they get used again (I.e., Restore followed by Clean;Build)

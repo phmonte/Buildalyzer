@@ -9,7 +9,7 @@ namespace Buildalyzer.Environment
 {
     internal class ProcessRunner : IDisposable
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<ProcessRunner> _logger;
         private readonly List<string> _output;
 
         public Process Process { get; }
@@ -19,10 +19,10 @@ namespace Buildalyzer.Environment
             string arguments,
             string workingDirectory,
             Dictionary<string, string> environmentVariables,
-            ILogger logger,
+            ILoggerFactory loggerFactory,
             List<string> output = null)
         {
-            _logger = logger;
+            _logger = loggerFactory?.CreateLogger<ProcessRunner>();
             _output = output;
             Process = new Process();
 
@@ -44,7 +44,7 @@ namespace Buildalyzer.Environment
             }
 
             // Capture output
-            if (logger != null || output != null)
+            if (_logger != null || output != null)
             {
                 Process.StartInfo.RedirectStandardOutput = true;
                 Process.OutputDataReceived += DataReceived;

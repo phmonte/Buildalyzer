@@ -120,8 +120,7 @@ namespace Buildalyzer.Tests.Integration
             StringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions
             {
-                LogWriter = log,
-                LoggerVerbosity = Verbosity
+                LogWriter = log
             });
             ProjectAnalyzer analyzer = manager.GetProject(projectPath);
             EnvironmentOptions options = new EnvironmentOptions

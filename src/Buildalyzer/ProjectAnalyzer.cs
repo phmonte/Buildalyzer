@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,8 +19,8 @@ namespace Buildalyzer
         private readonly List<ILogger> _loggers = new List<ILogger>();
         
         // Project-specific global properties and environment variables
-        private readonly Dictionary<string, string> _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, string> _environmentVariables = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public AnalyzerManager Manager { get; }
 
@@ -43,7 +44,9 @@ namespace Buildalyzer
         /// </remarks>
         public IReadOnlyDictionary<string, string> EnvironmentVariables => GetEffectiveEnvironmentVariables(null);
         
-        public IEnumerable<ILogger> Loggers => _loggers;
+        public IEnumerable<ILogger> BuildLoggers => _loggers;
+
+        public ILogger<ProjectAnalyzer> Logger { get; set; }
 
         /// <summary>
         /// Controls whether empty, invalid, and missing targets should be ignored during project load.
@@ -54,18 +57,13 @@ namespace Buildalyzer
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath)
         {            
             Manager = manager;
+            Logger = Manager.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectFile = new ProjectFile(projectFilePath, manager.ProjectTransformer);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
 
             // Set the solution directory global property
             string solutionDir = manager.SolutionDirectory ?? Path.GetDirectoryName(projectFilePath);
             SetGlobalProperty(MsBuildProperties.SolutionDir, solutionDir);
-
-            // Create the logger
-            if(manager.ProjectLogger != null)
-            {
-                AddLogger(new ConsoleLogger(manager.LoggerVerbosity, x => manager.ProjectLogger.LogInformation(x), null, null));
-            }
         }
 
         /// <summary>
@@ -215,35 +213,12 @@ namespace Buildalyzer
         {
             using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer())
             {
-                using (EventProcessor eventProcessor = new EventProcessor(this, Loggers, pipeLogger, results != null))
+                using (EventProcessor eventProcessor = new EventProcessor(this, BuildLoggers, pipeLogger, results != null))
                 {
-                    // Get the filename
-                    string fileName = buildEnvironment.MsBuildExePath;
-                    string initialArguments = string.Empty;
-                    if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // .NET Core MSBuild .dll needs to be run with dotnet
-                        fileName = "dotnet";
-                        initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
-                    }
-
-                    // Get the arguments to use
-                    string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
-                    bool logEverything = false;
-                    string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()};{logEverything}";
-                    Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
-                    if (!string.IsNullOrEmpty(targetFramework))
-                    {
-                        // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
-                        effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
-                    }
-                    string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
-                    string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
-                    string arguments = $"{initialArguments} /noconsolelogger /nodeReuse:False {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
-
                     // Run MSBuild
                     int exitCode;
-                    using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.ProjectLogger))
+                    string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
+                    using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
                     {
                         processRunner.Start();
                         while (pipeLogger.Read())
@@ -258,6 +233,39 @@ namespace Buildalyzer
                 }
             }
             return results;
+        }
+
+        private string GetCommand(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, string pipeLoggerClientHandle, out string arguments)
+        {
+            // Get the executable and the initial set of arguments
+            string fileName = buildEnvironment.MsBuildExePath;
+            string initialArguments = string.Empty;
+            if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            {
+                // .NET Core MSBuild .dll needs to be run with dotnet
+                fileName = "dotnet";
+                initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
+            }
+
+            // Get the logger arguments
+            string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+            bool logEverything = _loggers.Count > 0;
+            string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
+
+            // Get the properties arguments
+            Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
+            if (!string.IsNullOrEmpty(targetFramework))
+            {
+                // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
+                effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
+            }
+            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
+
+            // Get the target argument
+            string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
+
+            arguments = $"{initialArguments} /noconsolelogger {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+            return fileName;
         }
 
         private static string FormatArgument(string argument)
@@ -329,16 +337,26 @@ namespace Buildalyzer
 
             return effectiveDictionary;
         }
-        
-        public void AddBinaryLogger(string binaryLogFilePath = null) =>
-            AddLogger(new BinaryLogger
+                        
+        public void AddBinaryLogger(
+            string binaryLogFilePath = null,
+            BinaryLogger.ProjectImportsCollectionMode collectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed) =>
+            AddBuildLogger(new BinaryLogger
             {
                 Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
                 CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed,
                 Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
             });
 
-        public void AddLogger(ILogger logger)
+        /// <summary>
+        /// Adds an MSBuild logger to the build. Note that this may have a large penalty on build performance.
+        /// </summary>
+        /// <remarks>
+        /// Normally, the minimum required amount of log events are forwarded from the MSBuild process to Buildalyzer.
+        /// By attaching arbitrary loggers, MSBuild must forward every log event so the logger has a chance to handle it.
+        /// </remarks>
+        /// <param name="logger">The logger to add.</param>
+        public void AddBuildLogger(ILogger logger)
         {
             if (logger == null)
             {
@@ -348,7 +366,11 @@ namespace Buildalyzer
             _loggers.Add(logger);
         }
 
-        public void RemoveLogger(ILogger logger)
+        /// <summary>
+        /// Removes an MSBuild logger from the build.
+        /// </summary>
+        /// <param name="logger">The logger to remove.</param>
+        public void RemoveBuildLogger(ILogger logger)
         {
             if (logger == null)
             {

@@ -13,11 +13,13 @@ namespace Buildalyzer.Environment
     {
         private readonly AnalyzerManager _manager;
         private readonly ProjectFile _projectFile;
+        private readonly ILogger<EnvironmentFactory> _logger;
 
         internal EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile)
         {
             _manager = manager;
             _projectFile = projectFile;
+            _logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>();
         }
         
         public BuildEnvironment GetBuildEnvironment() =>
@@ -57,7 +59,8 @@ namespace Buildalyzer.Environment
         private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
             // Get paths
-            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path, _manager.ProjectLogger);
+            DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
+            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path);
             if(dotnetPath == null)
             {
                 return null;
@@ -105,7 +108,7 @@ namespace Buildalyzer.Environment
 
             if (!GetFrameworkMsBuildExePath(out string msBuildExePath))
             {
-                _manager.ProjectLogger.LogWarning("Couldn't find a .NET Framework MSBuild path");
+                _logger?.LogWarning("Couldn't find a .NET Framework MSBuild path");
                 return null;
             }
             

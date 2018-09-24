@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,19 +15,17 @@ namespace Buildalyzer
 {
     public class AnalyzerManager
     {
-        private readonly Dictionary<string, ProjectAnalyzer> _projects = new Dictionary<string, ProjectAnalyzer>();
+        private readonly ConcurrentDictionary<string, ProjectAnalyzer> _projects = new ConcurrentDictionary<string, ProjectAnalyzer>();
 
         public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
 
-        internal ILogger<ProjectAnalyzer> ProjectLogger { get; }
+        public ILoggerFactory LoggerFactory { get; set; }
 
-        internal LoggerVerbosity LoggerVerbosity { get; }
-        
         internal IProjectTransformer ProjectTransformer { get; }
         
-        internal Dictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        internal ConcurrentDictionary<string, string> GlobalProperties { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        internal Dictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        internal ConcurrentDictionary<string, string> EnvironmentVariables { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public string SolutionDirectory { get; }
 
@@ -43,8 +42,7 @@ namespace Buildalyzer
         public AnalyzerManager(string solutionFilePath, string[] projects, AnalyzerManagerOptions options = null)
         {
             options = options ?? new AnalyzerManagerOptions();
-            LoggerVerbosity = options.LoggerVerbosity;
-            ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
+            LoggerFactory = options.LoggerFactory;
             ProjectTransformer = options.ProjectTransformer;
 
             if (solutionFilePath != null)
@@ -104,13 +102,7 @@ namespace Buildalyzer
             }
 
             projectFilePath = NormalizeAndValidatePath(projectFilePath);
-            if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
-            {
-                return project;
-            }
-            project = new ProjectAnalyzer(this, projectFilePath);
-            _projects.Add(projectFilePath, project);
-            return project;
+            return _projects.GetOrAdd(projectFilePath, new ProjectAnalyzer(this, projectFilePath));
         }
 
         private static string NormalizeAndValidatePath(string path)

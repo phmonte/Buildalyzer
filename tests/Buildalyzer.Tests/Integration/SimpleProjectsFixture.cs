@@ -286,8 +286,7 @@ namespace Buildalyzer.Tests.Integration
                 GetProjectPath("TestProjects.sln"),
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log,
-                    LoggerVerbosity = Verbosity
+                    LogWriter = log
                 });
 
             // Then
@@ -332,8 +331,7 @@ namespace Buildalyzer.Tests.Integration
             ProjectAnalyzer analyzer = new AnalyzerManager(
                 new AnalyzerManagerOptions
                 {
-                    LogWriter = log,
-                    LoggerVerbosity = Verbosity
+                    LogWriter = log
                 })
                 .GetProject(GetProjectPath(projectFile));
             if (BinaryLog)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Build.Framework;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -6,13 +7,12 @@ using System.Linq;
 
 namespace Buildalyzer.Logging
 {
-    // TODO: Remove structured logger, don't need it anymore
     internal class EventProcessor : IDisposable
     {
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
         private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
         private readonly ProjectAnalyzer _analyzer;
-        private readonly IEnumerable<ILogger> _loggers;
+        private readonly IEnumerable<Microsoft.Build.Framework.ILogger> _loggers;
         private readonly IEventSource _eventSource;
         private readonly bool _analyze;
 
@@ -20,7 +20,7 @@ namespace Buildalyzer.Logging
 
         public IEnumerable<AnalyzerResult> Results => _results.Values;
         
-        public EventProcessor(ProjectAnalyzer analyzer, IEnumerable<ILogger> loggers, IEventSource eventSource, bool analyze)
+        public EventProcessor(ProjectAnalyzer analyzer, IEnumerable<Microsoft.Build.Framework.ILogger> loggers, IEventSource eventSource, bool analyze)
         {
             _analyzer = analyzer;
             _loggers = loggers;
@@ -29,7 +29,7 @@ namespace Buildalyzer.Logging
 
             // Initialize the loggers
             // TODO: Figure out what to do with loggers: don't filter if using loggers, what about console (use stdout?)
-            foreach (ILogger logger in loggers)
+            foreach (Microsoft.Build.Framework.ILogger logger in loggers)
             {
                 logger.Initialize(eventSource);
             }
@@ -41,9 +41,10 @@ namespace Buildalyzer.Logging
                 eventSource.ProjectFinished += ProjectFinished;
                 eventSource.MessageRaised += MessageRaised;
                 eventSource.BuildFinished += BuildFinished;
+                eventSource.ErrorRaised += ErrorRaised;
             }
         }
-
+        
         private void ProjectStarted(object sender, ProjectStartedEventArgs e)
         {
             // Make sure this is the same project, nested MSBuild tasks may have spawned additional builds of other projects
@@ -95,6 +96,8 @@ namespace Buildalyzer.Logging
             OverallSuccess = e.Succeeded;
         }
 
+        private void ErrorRaised(object sender, BuildErrorEventArgs e) => _analyzer.Manager.ProjectLogger.LogError(e.Message);
+
         public void Dispose()
         {
             if (_analyze)
@@ -106,7 +109,7 @@ namespace Buildalyzer.Logging
             }
 
             // Need to release the loggers in case they get used again (I.e., Restore followed by Clean;Build)
-            foreach (ILogger logger in _loggers)
+            foreach (Microsoft.Build.Framework.ILogger logger in _loggers)
             {
                 logger.Shutdown();
             }

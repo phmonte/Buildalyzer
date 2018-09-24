@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
+using Buildalyzer.Logger;
 using Buildalyzer.Logging;
 using Microsoft.Build.Logging;
 using Microsoft.Extensions.Logging;
@@ -227,8 +228,9 @@ namespace Buildalyzer
                     }
 
                     // Get the arguments to use
-                    string loggerPath = typeof(PipeLogger).Assembly.Location;
-                    string loggerArgument = $"/l:{nameof(PipeLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()}";
+                    string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+                    bool logEverything = false;
+                    string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLogger.GetClientHandle()};{logEverything}";
                     Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
                     if (!string.IsNullOrEmpty(targetFramework))
                     {

@@ -15,7 +15,6 @@ using System.Threading;
 namespace Buildalyzer.Tests.Integration
 {
     [TestFixture]
-    [NonParallelizable]
     public class OpenSourceProjectsFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
@@ -63,49 +62,8 @@ namespace Buildalyzer.Tests.Integration
 
             public override string ToString() => Url;
         }
-
-        private class ProjectTestCases : IEnumerable
-        {
-            public IEnumerator GetEnumerator()
-            {
-                // Iterate all repositories
-                foreach(TestRepository repository in Repositories)
-                {
-                    // Iterate all available preferences
-                    foreach (EnvironmentPreference preference in Preferences)
-                    {
-                        // Only build the desired preferences
-                        if(!repository.Preference.HasValue || repository.Preference.Value == preference)
-                        {
-                            // Iterate all solution files in the repository
-                            foreach(string solutionPath in
-                                Directory.EnumerateFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
-                            {
-                                // Exclude any solution files we don't want to build
-                                if(!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
-                                {
-                                    // Get all the projects in this solution
-                                    foreach(string projectPath in
-                                        AnalyzerManager.GetProjectsInSolution(solutionPath).Select(project => project.AbsolutePath))
-                                    {
-                                        // Exclude any project files we don't want to build
-                                        if (!repository.Excluded.Any(x => projectPath.EndsWith(x)))
-                                        {
-                                            yield return new object[]
-                                            {
-                                                preference,
-                                                solutionPath,
-                                                projectPath
-                                            };
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        
+        private static List<object[]> ProjectTestCases = new List<object[]>();
 
         // Do setup in a static constructor since the TestCaseSource depends on it
         // See https://stackoverflow.com/a/40507964/807064
@@ -116,9 +74,46 @@ namespace Buildalyzer.Tests.Integration
                 string path = GetRepositoryPath(repository.Url);
                 CloneRepository(repository.Url, path);
             }
+            
+            // Iterate all repositories
+            foreach (TestRepository repository in Repositories)
+            {
+                // Iterate all available preferences
+                foreach (EnvironmentPreference preference in Preferences)
+                {
+                    // Only build the desired preferences
+                    if (!repository.Preference.HasValue || repository.Preference.Value == preference)
+                    {
+                        // Iterate all solution files in the repository
+                        foreach (string solutionPath in
+                            Directory.EnumerateFiles(GetRepositoryPath(repository.Url), "*.sln", SearchOption.AllDirectories))
+                        {
+                            // Exclude any solution files we don't want to build
+                            if (!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
+                            {
+                                // Get all the projects in this solution
+                                foreach (string projectPath in
+                                    AnalyzerManager.GetProjectsInSolution(solutionPath).Select(project => project.AbsolutePath))
+                                {
+                                    // Exclude any project files we don't want to build
+                                    if (!repository.Excluded.Any(x => projectPath.EndsWith(x)))
+                                    {
+                                        ProjectTestCases.Add(new object[]
+                                        {
+                                                preference,
+                                                solutionPath,
+                                                projectPath
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        [TestCaseSource(typeof(ProjectTestCases))]
+        [TestCaseSource(nameof(ProjectTestCases))]
         public void CompilesProject(EnvironmentPreference preference, string solutionPath, string projectPath)
         {
             // Given

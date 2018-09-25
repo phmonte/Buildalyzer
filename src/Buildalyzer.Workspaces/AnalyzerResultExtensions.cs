@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,11 +13,17 @@ namespace Buildalyzer.Workspaces
 {
     public static class AnalyzerResultExtensions
     {
+        // Cache the project references for projects we've already seen to avoid rebuilding
+        private static ConcurrentDictionary<ProjectId, string[]> _projectReferences = new ConcurrentDictionary<ProjectId, string[]>();
+
         /// <summary>
         /// Gets a Roslyn workspace for the analyzed results.
         /// </summary>
         /// <param name="analyzerResult">The results from building a Buildalyzer project analyzer.</param>
-        /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
+        /// <param name="addProjectReferences">
+        /// <c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.
+        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available. 
+        /// </param>
         /// <returns>A Roslyn workspace.</returns>
         public static AdhocWorkspace GetWorkspace(this AnalyzerResult analyzerResult, bool addProjectReferences = false)
         {
@@ -34,7 +41,10 @@ namespace Buildalyzer.Workspaces
         /// </summary>
         /// <param name="analyzerResult">The results from building a Buildalyzer project analyzer.</param>
         /// <param name="workspace">A Roslyn workspace.</param>
-        /// <param name="addProjectReferences"><c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.</param>
+        /// <param name="addProjectReferences">
+        /// <c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.
+        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available. 
+        /// </param>
         /// <returns>The newly added Roslyn project.</returns>
         public static Project AddToWorkspace(this AnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
         {
@@ -53,6 +63,9 @@ namespace Buildalyzer.Workspaces
                 ? ProjectId.CreateFromSerialized(projectIdGuid) 
                 : ProjectId.CreateNewId();
 
+            // Cache the project references
+            _projectReferences.AddOrUpdate(projectId, _ => analyzerResult.ProjectReferences.ToArray(), (_, __) => analyzerResult.ProjectReferences.ToArray());
+
             // Create and add the project
             ProjectInfo projectInfo = GetProjectInfo(analyzerResult, workspace, projectId);
             Solution solution = workspace.CurrentSolution.AddProject(projectInfo);
@@ -60,9 +73,9 @@ namespace Buildalyzer.Workspaces
             // Check if this project is referenced by any other projects in the workspace
             foreach (Project existingProject in solution.Projects.ToArray())
             {
-                if (!existingProject.Id.Equals(projectId)
-                    && analyzerResult.Analyzer.Manager.Projects.TryGetValue(existingProject.FilePath, out ProjectAnalyzer existingAnalyzer)
-                    && (existingAnalyzer.Build().FirstOrDefault()?.ProjectReferences.Contains(analyzerResult.Analyzer.ProjectFile.Path) ?? false))
+                if(!existingProject.Id.Equals(projectId)
+                    && _projectReferences.TryGetValue(existingProject.Id, out string[] existingReferences)
+                    && existingReferences.Contains(analyzerResult.Analyzer.ProjectFile.Path))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);

@@ -15,6 +15,7 @@ using System.Threading;
 namespace Buildalyzer.Tests.Integration
 {
     [TestFixture]
+    [NonParallelizable]
     public class OpenSourceProjectsFixture
     {
         private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;

@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Buildalyzer
 {
@@ -14,11 +16,18 @@ namespace Buildalyzer
         private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ProjectItem[]> _items = new Dictionary<string, ProjectItem[]>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _projectReferences = new HashSet<string>();
+        private readonly Guid _projectGuid;
         private List<(string, string)> _cscCommandLineArguments;
 
         internal AnalyzerResult(ProjectAnalyzer analyzer)
         {
             Analyzer = analyzer;
+
+            string projectGuid = GetProperty(nameof(ProjectGuid));
+            if(string.IsNullOrEmpty(projectGuid) || !Guid.TryParse(projectGuid, out _projectGuid))
+            {
+                _projectGuid = analyzer.ProjectGuid;
+            }
         }
 
         public ProjectAnalyzer Analyzer { get; }
@@ -28,7 +37,15 @@ namespace Buildalyzer
         public IReadOnlyDictionary<string, string> Properties => _properties;
 
         public IReadOnlyDictionary<string, ProjectItem[]> Items => _items;
-        
+
+        /// <summary>
+        /// Gets a GUID for the project. This first attempts to get the <c>ProjectGuid</c>
+        /// MSBuild property. If that's not available, checks for a GUID from the
+        /// solution (if originally provided). If neither of those are available, it
+        /// will generate a UUID GUID by hashing the project path relative to the solution path (so it's repeatable).
+        /// </summary>
+        public Guid ProjectGuid => _projectGuid;
+                
         /// <summary>
         /// Gets the value of the specified property and returns <c>null</c>
         /// if the property could not be found.

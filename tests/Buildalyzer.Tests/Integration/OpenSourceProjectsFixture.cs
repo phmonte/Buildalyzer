@@ -93,8 +93,9 @@ namespace Buildalyzer.Tests.Integration
                             if (!repository.Excluded.Any(x => solutionPath.EndsWith(x)))
                             {
                                 // Get all the projects in this solution
+                                SolutionFile solutionFile = SolutionFile.Parse(solutionPath);
                                 foreach (string projectPath in
-                                    AnalyzerManager.GetProjectsInSolution(solutionPath).Select(project => project.AbsolutePath))
+                                    solutionFile.ProjectsInOrder.Select(project => project.AbsolutePath))
                                 {
                                     // Exclude any project files we don't want to build
                                     if (!repository.Excluded.Any(x => projectPath.EndsWith(x)))

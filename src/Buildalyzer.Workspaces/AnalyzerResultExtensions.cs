@@ -58,10 +58,7 @@ namespace Buildalyzer.Workspaces
             }
 
             // Get or create an ID for this project
-            string projectGuid = analyzerResult.GetProperty("ProjectGuid");
-            ProjectId projectId = !string.IsNullOrEmpty(projectGuid) && Guid.TryParse(projectGuid, out Guid projectIdGuid) 
-                ? ProjectId.CreateFromSerialized(projectIdGuid) 
-                : ProjectId.CreateNewId();
+            ProjectId projectId = ProjectId.CreateFromSerialized(analyzerResult.ProjectGuid);
 
             // Cache the project references
             _projectReferences.AddOrUpdate(projectId, _ => analyzerResult.ProjectReferences.ToArray(), (_, __) => analyzerResult.ProjectReferences.ToArray());

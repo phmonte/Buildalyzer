@@ -304,6 +304,48 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void GetsProjectGuidFromSolution([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
+        {
+            // Given
+            AnalyzerManager manager = new AnalyzerManager(
+                GetProjectPath("TestProjects.sln"));
+            ProjectAnalyzer analyzer = manager.Projects.First(x => x.Key.EndsWith("SdkNetStandardProject.csproj")).Value;
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                Preference = preference
+            };
+
+            // When
+            DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
+            DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
+            AnalyzerResults results = analyzer.Build(options);
+
+            // Then
+            results.First().ProjectGuid.ToString().ShouldBe("016713d9-b665-4272-9980-148801a9b88f");
+        }
+
+        [Test]
+        public void GetsProjectGuidFromProject([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
+        {
+            // Given
+            string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            ProjectAnalyzer analyzer = new AnalyzerManager()
+                .GetProject(GetProjectPath(projectFile));
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                Preference = preference
+            };
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            AnalyzerResults results = analyzer.Build(options);
+
+            // Then
+            results.First().ProjectGuid.ToString().ShouldBe("646a532e-8943-5a4b-b106-e1341b4d3535");
+        }
+
+        [Test]
         public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given

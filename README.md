@@ -92,7 +92,11 @@ Calling `ProjectAnalyzer.Build()` (or an overload) will return an `AnalyzerResul
 
 **`AnalyzerResult.ProjectReferences`** - The full path of the project file for all resolved project references in the project.
 
+**`AnalyzerResult.Properties`** - A `IReadOnlyDictionary<string, string>` containing all MSBuild properties from the project.
+
 **`AnalyzerResult.GetProperty(string)`** - Gets the value of the specified MSBuild property.
+
+**`AnalyzerResult.Items`** - A `IReadOnlyDictionary<string, ProjectItem[]>` containing all MSBuild items from the project (the `ProjectItem` class contains the item name/specification as `ProjectItem.ItemSpec` and all it's metadata in a `IReadOnlyDictionary<string, string>` as `ProjectItem.Metadata`).
 
 ## Adjusting MSBuild Properties
 

@@ -15,6 +15,12 @@ namespace Buildalyzer
 {
     public class AnalyzerManager
     {
+        internal readonly static SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
+        {
+            SolutionProjectType.KnownToBeMSBuildFormat,
+            SolutionProjectType.WebProject
+        };
+
         private readonly ConcurrentDictionary<string, ProjectAnalyzer> _projects = new ConcurrentDictionary<string, ProjectAnalyzer>();
 
         public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
@@ -50,6 +56,10 @@ namespace Buildalyzer
                 // Initialize all the projects in the solution
                 foreach (ProjectInSolution projectInSolution in SolutionFile.ProjectsInOrder)
                 {
+                    if (!SupportedProjectTypes.Contains(projectInSolution.ProjectType))
+                    {
+                        continue;
+                    }
                     GetProject(projectInSolution.AbsolutePath, projectInSolution);
                 }
             }

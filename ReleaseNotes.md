@@ -1,3 +1,10 @@
+# 2.0.0
+
+- **[Breaking Change]** [Refactoring] Entire API...again. Consider this the "if at first you don't succeed" release.
+- [Refactoring] Now uses MSBuild directly by launching out-of-process MSBuild instances instead of the API - if you can build it, Buildalyzer should be able to
+- [Refactoring] Reduced build methods to just `ProjectAnalyzer.Build()` and overloads - every build builds now builds every target framework unless otherwise specified and always returns an `AnalyzerResults`
+- [Refactoring] `AnalyzerResult` build results are now limited to what we can pull out of MSBuild logs (which is surprisingly a lot) - file an issue if you're missing something you used to get from the old MSBuild API results
+
 # 1.0.1
 
 - [Fix] Fix for AssemblyInfo BOM marking (#74, thanks @bhugot)

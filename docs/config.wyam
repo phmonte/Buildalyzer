@@ -1,5 +1,4 @@
-#recipe Docs
-
 Settings[Keys.Host] = "buildalyzer.netlify.com";
 Settings[DocsKeys.Title] = "Buildalyzer";
-Settings[DocsKeys.SourceFiles] = "../../src/Buildalyzer/**/*.cs";
+Settings[DocsKeys.SourceFiles] = "../../src/**/*.cs";
+Settings[DocsKeys.ProcessIncludes] = true;

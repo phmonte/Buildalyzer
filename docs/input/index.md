@@ -1,3 +1,4 @@
-Title: Buildalyzer
+Title: Home
+NoTitle: true
 ---
-These are the docs
+^"../../README.md"

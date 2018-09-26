@@ -2,10 +2,12 @@ branches:
   only:
     - master
 
-image: Visual Studio 2017
+image:
+  - Visual Studio 2017
+  - Ubuntu
     
 environment:
-  BUILDALYZER_MYGET_KEY:
+  MYGET_KEY:
     secure: pV/WNkVHe6bB7G2vnh1O1AoJr0MF7tO8XCr9VNPhXfxGIe7vH2a+HZBtcvIT/fOT
 
 build_script:

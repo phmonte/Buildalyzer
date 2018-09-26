@@ -280,6 +280,11 @@ __pycache__/
 # Cake - Uncomment if you are using it
 [tT]ools/
 
+# Docs
+docs/output/
+docs/config.wyam.packages.xml
+docs/config.wyam.hash
+docs/config.wyam.dll
 
 # Telerik's JustMock configuration file
 *.jmconfig

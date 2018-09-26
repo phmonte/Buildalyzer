@@ -1,11 +1,11 @@
 // The following environment variables need to be set for Publish target:
-// BUILDALYZER_NUGET_KEY
-// BUILDALYZER_MYGET_KEY
-// BUILDALYZER_GITHUB_TOKEN
-// BUILDALYZER_NETLIFY_TOKEN
+// NUGET_KEY
+// MYGET_KEY
+// GITHUB_TOKEN
+// NETLIFY_TOKEN
 
-#tool nuget:?package=Wyam&version=1.4.1
-#addin nuget:?package=Cake.Wyam&version=1.4.1
+#tool nuget:?package=Wyam&version=1.5.1
+#addin nuget:?package=Cake.Wyam&version=1.5.1
 #addin "Octokit"
 #addin "NetlifySharp"
 #addin "Newtonsoft.Json"
@@ -17,6 +17,15 @@
 
 using Octokit;
 using NetlifySharp;
+
+//////////////////////////////////////////////////////////////////////
+// CONST
+//////////////////////////////////////////////////////////////////////
+
+var projectName = "Buildalyzer";
+var repositoryName = "Buildalyzer";
+var myGetFeed = "buildalyzer";
+var siteName = "buildalyzer";
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -51,7 +60,7 @@ var docsDir = Directory("./docs");
 
 Setup(context =>
 {
-    Information("Building version {0} of Buildalyzer.", semVersion);
+    Information($"Building version {semVersion} of {projectName}.");
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -72,13 +81,13 @@ Task("Restore")
     .IsDependentOn("Clean")
     .Does(() =>
     {                
-        DotNetCoreRestore("./Buildalyzer.sln", new DotNetCoreRestoreSettings
+        DotNetCoreRestore($"./{projectName}.sln", new DotNetCoreRestoreSettings
         {
             MSBuildSettings = msBuildSettings
         });  
         
         // Run NuGet CLI restore to handle the Framework test projects       
-        NuGetRestore("./Buildalyzer.sln"); 
+        NuGetRestore($"./{projectName}.sln"); 
     });
 
 Task("Build")
@@ -86,7 +95,7 @@ Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
     {
-        DotNetCoreBuild("./Buildalyzer.sln", new DotNetCoreBuildSettings
+        DotNetCoreBuild($"./{projectName}.sln", new DotNetCoreBuildSettings
         {
             Configuration = configuration,
             NoRestore = true,
@@ -164,7 +173,7 @@ Task("MyGet")
     .Does(() =>
     {
         // Resolve the API key.
-        var mygetKey = EnvironmentVariable("BUILDALYZER_MYGET_KEY");
+        var mygetKey = EnvironmentVariable("MYGET_KEY");
         if (string.IsNullOrEmpty(mygetKey))
         {
             throw new InvalidOperationException("Could not resolve MyGet API key.");
@@ -175,7 +184,7 @@ Task("MyGet")
             NuGetPush(nupkg, new NuGetPushSettings 
             {
                 ApiKey = mygetKey,
-                Source = "https://www.myget.org/F/buildalyzer/api/v2/package"
+                Source = $"https://www.myget.org/F/{myGetFeed}/api/v2/package"
             });
         }
     });
@@ -186,7 +195,7 @@ Task("NuGet")
     .WithCriteria(() => isLocal)
     .Does(() =>
     {
-        var nugetKey = EnvironmentVariable("BUILDALYZER_NUGET_KEY");
+        var nugetKey = EnvironmentVariable("NUGET_KEY");
         if (string.IsNullOrEmpty(nugetKey))
         {
             throw new InvalidOperationException("Could not resolve NuGet API key.");
@@ -204,11 +213,12 @@ Task("NuGet")
 
 Task("GitHub")
     .Description("Generates a release on GitHub.")
+    .IsDependentOn("Pack")
     .IsDependentOn("Zip")
     .WithCriteria(() => isLocal)
     .Does(() =>
     {
-        var githubToken = EnvironmentVariable("BUILDALYZER_GITHUB_TOKEN");
+        var githubToken = EnvironmentVariable("GITHUB_TOKEN");
         if (string.IsNullOrEmpty(githubToken))
         {
             throw new InvalidOperationException("Could not resolve GitHub token.");
@@ -218,7 +228,7 @@ Task("GitHub")
         {
             Credentials = new Credentials(githubToken)
         };
-        var release = github.Repository.Release.Create("daveaglick", "Buildalyzer", new NewRelease("v" + semVersion) 
+        var release = github.Repository.Release.Create("daveaglick", repositoryName, new NewRelease("v" + semVersion) 
         {
             Name = semVersion,
             Body = string.Join(Environment.NewLine, releaseNotes.Notes),
@@ -238,7 +248,6 @@ Task("GitHub")
 
 Task("Docs")
     .Description("Generates and previews the docs.")
-    .IsDependentOn("Build")
     .Does(() =>
     {
         Wyam(new WyamSettings
@@ -252,10 +261,9 @@ Task("Docs")
 
 Task("Netlify")
     .Description("Generates and deploys the docs.")
-    .IsDependentOn("Build")
     .Does(() =>
     {
-        var netlifyToken = EnvironmentVariable("BUILDALYZER_NETLIFY_TOKEN");
+        var netlifyToken = EnvironmentVariable("NETLIFY_TOKEN");
         if(string.IsNullOrEmpty(netlifyToken))
         {
             throw new Exception("Could not get Netlify token environment variable");
@@ -271,7 +279,7 @@ Task("Netlify")
 
         Information("Deploying output to Netlify");
         var client = new NetlifyClient(netlifyToken);
-        client.UpdateSite("buildalyzer.netlify.com", MakeAbsolute(docsDir).FullPath + "/output").SendAsync().Wait();
+        client.UpdateSite($"{siteName}.netlify.com", MakeAbsolute(docsDir).FullPath + "/output").SendAsync().Wait();
     });
 
 Task("AppVeyor")
@@ -303,8 +311,8 @@ Task("Default")
 Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
     .IsDependentOn("GitHub")
-    .IsDependentOn("NuGet");
-    //.IsDependentOn("Netlify");
+    .IsDependentOn("NuGet")
+    .IsDependentOn("Netlify");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

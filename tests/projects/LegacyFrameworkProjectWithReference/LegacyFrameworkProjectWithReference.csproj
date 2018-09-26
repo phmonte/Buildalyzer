@@ -49,6 +49,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj">
+      <Project>{cd3445e2-a34a-4d87-9e8a-5081cbfa2f86}</Project>
+      <Name>LegacyFrameworkProjectWithPackageReference</Name>
+    </ProjectReference>
     <ProjectReference Include="..\LegacyFrameworkProject\LegacyFrameworkProject.csproj">
       <Project>{36ed2b9d-2fc2-4725-9bc2-53cabf113477}</Project>
       <Name>LegacyFrameworkProject</Name>

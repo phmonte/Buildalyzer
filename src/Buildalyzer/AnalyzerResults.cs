@@ -7,11 +7,20 @@ namespace Buildalyzer
     {
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
 
-        internal AnalyzerResults()
-        {
-        }
+        private bool? _overallSuccess = null;
 
-        internal void Add(AnalyzerResult result) => _results.Add(result.TargetFramework, result);
+        public bool OverallSuccess => _overallSuccess.HasValue ? _overallSuccess.Value : false;
+
+        internal void Add(AnalyzerResult result) => _results.Add(result.TargetFramework ?? string.Empty, result);
+
+        internal void Add(IEnumerable<AnalyzerResult> results, bool overallSuccess)
+        {
+            foreach (AnalyzerResult result in results)
+            {
+                _results.Add(result.TargetFramework ?? string.Empty, result);
+            }
+            _overallSuccess = _overallSuccess.HasValue ? _overallSuccess.Value && overallSuccess : overallSuccess;
+        }
 
         public AnalyzerResult this[string targetFramework] => _results[targetFramework];
 

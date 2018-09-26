@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,156 +15,54 @@ namespace Buildalyzer
 {
     public class AnalyzerManager
     {
-        private readonly Dictionary<string, ProjectAnalyzer> _projects = new Dictionary<string, ProjectAnalyzer>();
+        internal readonly static SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
+        {
+            SolutionProjectType.KnownToBeMSBuildFormat,
+            SolutionProjectType.WebProject
+        };
+
+        private readonly ConcurrentDictionary<string, ProjectAnalyzer> _projects = new ConcurrentDictionary<string, ProjectAnalyzer>();
 
         public IReadOnlyDictionary<string, ProjectAnalyzer> Projects => _projects;
 
-        internal ILogger<ProjectAnalyzer> ProjectLogger { get; }
+        public ILoggerFactory LoggerFactory { get; set; }
 
-        internal LoggerVerbosity LoggerVerbosity { get; }
-        
         internal IProjectTransformer ProjectTransformer { get; }
         
-        // Use a single BuildManager for each AnalyzerManager so the default per-process BuildManager doesn't conflict with other AnalyzerManagers
-        internal BuildManager BuildManager { get; }
+        internal ConcurrentDictionary<string, string> GlobalProperties { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        internal Dictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        internal ConcurrentDictionary<string, string> EnvironmentVariables { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        internal Dictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        public string SolutionFilePath { get; }
 
-        public string SolutionDirectory { get; }
-
+        public SolutionFile SolutionFile { get; }
+        
         public AnalyzerManager(AnalyzerManagerOptions options = null)
-            : this(null, null, options)
+            : this(null, options)
         {
-
         }
 
         public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
-            : this(solutionFilePath, null, options)
-        {
-
-        }
-
-        public AnalyzerManager(string solutionFilePath, string[] projects, AnalyzerManagerOptions options = null)
         {
             options = options ?? new AnalyzerManagerOptions();
-            LoggerVerbosity = options.LoggerVerbosity;
-            ProjectLogger = options.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
+            LoggerFactory = options.LoggerFactory;
             ProjectTransformer = options.ProjectTransformer;
-            BuildManager = new BuildManager();
 
-            if (solutionFilePath != null)
+            if (!string.IsNullOrEmpty(solutionFilePath))
             {
-                solutionFilePath = ValidatePath(solutionFilePath, true);
-                SolutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                GetProjectsInSolution(solutionFilePath, projects);
-            }
-        }        
+                SolutionFilePath = NormalizePath(solutionFilePath);
+                SolutionFile = SolutionFile.Parse(SolutionFilePath);
 
-        private void GetProjectsInSolution(string solutionFilePath, string[] projects)
-        {
-            var supportedType = new[]
-            {
-                SolutionProjectType.KnownToBeMSBuildFormat,
-                SolutionProjectType.WebProject
-            };
-
-            SolutionFile solution = SolutionFile.Parse(solutionFilePath);
-            foreach(ProjectInSolution project in solution.ProjectsInOrder)
-            {
-                if (!supportedType.Contains(project.ProjectType)) continue;
-                if (projects != null && !projects.Contains(project.ProjectName)) continue;
-                GetProject(project.AbsolutePath);
+                // Initialize all the projects in the solution
+                foreach (ProjectInSolution projectInSolution in SolutionFile.ProjectsInOrder)
+                {
+                    if (!SupportedProjectTypes.Contains(projectInSolution.ProjectType))
+                    {
+                        continue;
+                    }
+                    GetProject(projectInSolution.AbsolutePath, projectInSolution);
+                }
             }
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, null, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, BuildEnvironment buildEnvironment)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (buildEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(buildEnvironment));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, buildEnvironment, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, EnvironmentOptions environmentOptions)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (environmentOptions == null)
-            {
-                throw new ArgumentNullException(nameof(environmentOptions));
-            }
-
-            return GetProjectInternal(projectFilePath, null, true, null, environmentOptions);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, null, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, BuildEnvironment buildEnvironment)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-            if (buildEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(buildEnvironment));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, buildEnvironment, null);
-        }
-
-        public ProjectAnalyzer GetProject(string projectFilePath, XDocument projectDocument, EnvironmentOptions environmentOptions)
-        {
-            if (projectFilePath == null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
-            if (projectDocument == null)
-            {
-                throw new ArgumentNullException(nameof(projectDocument));
-            }
-            if (environmentOptions == null)
-            {
-                throw new ArgumentNullException(nameof(environmentOptions));
-            }
-
-            return GetProjectInternal(projectFilePath, projectDocument, false, null, environmentOptions);
         }
 
         public void SetGlobalProperty(string key, string value)
@@ -182,37 +81,28 @@ namespace Buildalyzer
             EnvironmentVariables[key] = value;
         }
 
-        private ProjectAnalyzer GetProjectInternal(
-            string projectFilePath,
-            XDocument projectDocument,
-            bool checkExists,
-            BuildEnvironment buildEnvironment,
-            EnvironmentOptions environmentOptions)
+        public ProjectAnalyzer GetProject(string projectFilePath) => GetProject(projectFilePath, null);
+
+        private ProjectAnalyzer GetProject(string projectFilePath, ProjectInSolution projectInSolution)
         {
-            // Normalize as .sln uses backslash regardless of OS the sln is created on
-            projectFilePath = projectFilePath.Replace('\\', Path.DirectorySeparatorChar);
-            projectFilePath = ValidatePath(projectFilePath, checkExists);
-            if (_projects.TryGetValue(projectFilePath, out ProjectAnalyzer project))
+            if (projectFilePath == null)
             {
-                return project;
+                throw new ArgumentNullException(nameof(projectFilePath));
             }
-            project = new ProjectAnalyzer(this, projectFilePath, projectDocument, buildEnvironment, environmentOptions);
-            _projects.Add(projectFilePath, project);
-            return project;
+
+            projectFilePath = NormalizePath(projectFilePath);
+            if(!File.Exists(projectFilePath))
+            {
+                if(projectInSolution == null)
+                {
+                    throw new ArgumentException($"The path {projectFilePath} could not be found.");
+                }
+                return null;
+            }
+            return _projects.GetOrAdd(projectFilePath, new ProjectAnalyzer(this, projectFilePath, projectInSolution));
         }
 
-        private static string ValidatePath(string path, bool checkExists)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-            path = Path.GetFullPath(path); // Normalize the path
-            if (checkExists && !File.Exists(path))
-            {
-                throw new ArgumentException($"The path {path} could not be found.");
-            }
-            return path;
-        }
+        internal static string NormalizePath(string path) =>
+            path == null ? null : Path.GetFullPath(new Uri(path.Replace('\\', Path.DirectorySeparatorChar)).LocalPath);
     }
 }

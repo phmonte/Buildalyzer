@@ -9,7 +9,6 @@ namespace Buildalyzer
     public class AnalyzerManagerOptions
     {
         public ILoggerFactory LoggerFactory { get; set; }
-        public LoggerVerbosity LoggerVerbosity { get; set; } = LoggerVerbosity.Normal;
         public IProjectTransformer ProjectTransformer { get; set; }
 
         public TextWriter LogWriter
@@ -22,7 +21,7 @@ namespace Buildalyzer
                     return;
                 }
 
-                LoggerFactory = new LoggerFactory();
+                LoggerFactory = LoggerFactory ?? new LoggerFactory();
                 LoggerFactory.AddProvider(new TextWriterLoggerProvider(value));
             }
         }

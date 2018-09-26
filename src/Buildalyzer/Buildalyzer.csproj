@@ -6,27 +6,29 @@
     <Company>Dave Glick and contributors</Company>
     <Product />
     <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. Should work with any project type on any .NET runtime.</Description>
-    <Version>0.5.1</Version>
+    <Version>1.0.0</Version>
     <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
     <PackageLicenseUrl>https://github.com/daveaglick/Buildalyzer/blob/master/LICENSE</PackageLicenseUrl>
-    <AssemblyVersion>0.5.1.0</AssemblyVersion>
-    <FileVersion>0.5.1.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.7.179" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.7.179" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.7.179" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" />
+    <PackageReference Include="Microsoft.Build" Version="15.8.166" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.8.166" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.8.166" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
-    <PackageReference Include="NuGet.Common" Version="4.7.0" />
-    <PackageReference Include="NuGet.ProjectModel" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
+    <PackageReference Include="MsBuildPipeLogger.Server" Version="1.0.3" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>Buildalyzer.Tests</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Buildalyzer.Logger\Buildalyzer.Logger.csproj" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,24 @@
-# 0.6.0
+# 2.0.0
 
+- **[Breaking Change]** [Refactoring] Entire API...again. Consider this the "if at first you don't succeed" release.
+- [Refactoring] Now uses MSBuild directly by launching out-of-process MSBuild instances instead of the API - if you can build it, Buildalyzer should be able to
+- [Refactoring] Reduced build methods to just `ProjectAnalyzer.Build()` and overloads - every build builds now builds every target framework unless otherwise specified and always returns an `AnalyzerResults`
+- [Refactoring] `AnalyzerResult` build results are now limited to what we can pull out of MSBuild logs (which is surprisingly a lot) - file an issue if you're missing something you used to get from the old MSBuild API results
+
+# 1.0.1
+
+- [Fix] Fix for AssemblyInfo BOM marking (#74, thanks @bhugot)
+- [Refactoring] Updated MSBuild assemblies
+- [Refactoring] Updated logging assemblies (#69, thanks @ltcmelo)
+- [Fix] Fixes for cross-platform path handling (#67, #68, thanks @ltcmelo)
+
+# 1.0.0
+
+- **[Breaking Change]** [Refactoring] Entire API. Most of the concepts are the same, but the API has changed significantly since the last release (too many changes to enumerate). Documentation is forthcoming, but I wanted to get this release out the door as soon as possible.
 - [Refactoring] Introduces a `ProjectTransformer` base class for specifying project file adjustments instead of a delegate
 - [Fix] Converts multi-targeted projects into a single target so Buildalyzer can build them (#29, #57)
 - [Fix] Calling `ProjectAnalyzer.SetGlobalProperty` and `ProjectAnalyzer.RemoveGlobalProperty` no longer leaks to projects sharing the same `BuildManager`
-- [Feature] Added ability to set global properties at the `AnalyzerManager` level (#52)
+- [Feature] Added ability to set global properties at the `AnalyzerManager` level (#52, thanks @dfederm)
 - [Feature] Added ability to set environment variables for `AnalyzerManager` (all projects) and `ProjectAnalyzer` (specific project)
 
 # 0.5.0

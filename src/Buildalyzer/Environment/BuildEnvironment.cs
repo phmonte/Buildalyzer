@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Buildalyzer.Environment
 {
@@ -14,6 +16,9 @@ namespace Buildalyzer.Environment
             System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
                 .Replace(" ", string.Empty).Trim().StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase);
 
+        private readonly Dictionary<string, string> _globalProperties;
+        private readonly Dictionary<string, string> _environmentVariables;
+
         // Used for cloning
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
@@ -24,25 +29,14 @@ namespace Buildalyzer.Environment
 
         public string MsBuildExePath { get; }
 
-        public string ExtensionsPath { get; }
+        public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;
 
-        public string SDKsPath { get; }
-
-        public string RoslynTargetsPath { get; }
-
-        public string ToolsPath => Path.GetDirectoryName(MsBuildExePath);
-        
-        internal IReadOnlyDictionary<string, string> GlobalProperties { get; }
-
-        internal IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
+        public IReadOnlyDictionary<string, string> EnvironmentVariables => _environmentVariables;
 
         public BuildEnvironment(
             bool designTime,
             string[] targetsToBuild,
             string msBuildExePath,
-            string extensionsPath,
-            string sdksPath,
-            string roslynTargetsPath,
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
@@ -58,19 +52,10 @@ namespace Buildalyzer.Environment
                 throw new ArgumentNullException(nameof(msBuildExePath));
             }
 
-            ExtensionsPath = extensionsPath ?? throw new ArgumentNullException(nameof(extensionsPath));
-            SDKsPath = sdksPath ?? throw new ArgumentNullException(nameof(sdksPath));
-            RoslynTargetsPath = roslynTargetsPath ?? throw new ArgumentNullException(nameof(roslynTargetsPath));
-
-            // Set default global properties
-            Dictionary<string, string> globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            // Set global properties
+            _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 { MsBuildProperties.ProvideCommandLineArgs, "true" },
-                { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { MsBuildProperties.RoslynTargetsPath, RoslynTargetsPath },
 
                 // Workaround for a problem with resource files, see https://github.com/dotnet/sdk/issues/346#issuecomment-257654120
                 { MsBuildProperties.GenerateResourceMSBuildArchitecture, "CurrentArchitecture" },
@@ -79,48 +64,38 @@ namespace Buildalyzer.Environment
             };
             if(DesignTime)
             {
-                globalProperties.Add(MsBuildProperties.DesignTimeBuild, "true");
-                globalProperties.Add(MsBuildProperties.BuildProjectReferences, "false");
-                globalProperties.Add(MsBuildProperties.SkipCompilerExecution, "true");
-                globalProperties.Add(MsBuildProperties.DisableRarCache, "true");
-                globalProperties.Add(MsBuildProperties.AutoGenerateBindingRedirects, "false");
-                globalProperties.Add(MsBuildProperties.CopyBuildOutputToOutputDirectory, "false");
-                globalProperties.Add(MsBuildProperties.CopyOutputSymbolsToOutputDirectory, "false");
-                globalProperties.Add(MsBuildProperties.SkipCopyBuildProduct, "true");
-                globalProperties.Add(MsBuildProperties.AddModules, "false");
-                globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
+                _globalProperties.Add(MsBuildProperties.DesignTimeBuild, "true");
+                _globalProperties.Add(MsBuildProperties.BuildProjectReferences, "false");
+                _globalProperties.Add(MsBuildProperties.SkipCompilerExecution, "true");
+                _globalProperties.Add(MsBuildProperties.DisableRarCache, "true");
+                _globalProperties.Add(MsBuildProperties.AutoGenerateBindingRedirects, "false");
+                _globalProperties.Add(MsBuildProperties.CopyBuildOutputToOutputDirectory, "false");
+                _globalProperties.Add(MsBuildProperties.CopyOutputSymbolsToOutputDirectory, "false");
+                _globalProperties.Add(MsBuildProperties.SkipCopyBuildProduct, "true");
+                _globalProperties.Add(MsBuildProperties.AddModules, "false");
+                _globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
+                _globalProperties.Add(MsBuildProperties.GeneratePackageOnBuild, "false");  // Prevent NuGet.Build.Tasks.Pack.targets from running the pack targets (since we didn't build anything)
             }
-            if(additionalGlobalProperties != null)
+            _additionalGlobalProperties = CopyItems(_globalProperties, additionalGlobalProperties);
+
+            // Set environment variables 
+            _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
+        }
+
+        private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
+        {
+            if(source != null)
             {
-                foreach(var globalProperty in additionalGlobalProperties)
+                foreach(KeyValuePair<string, string> item in source)
                 {
-                    globalProperties[globalProperty.Key] = globalProperty.Value;
+                    destination[item.Key] = item.Value;
                 }
 
                 // Copy to a new dictionary in case the source dictionary is mutated
-                _additionalGlobalProperties = new Dictionary<string, string>(additionalGlobalProperties);
+                return new Dictionary<string, string>(source, StringComparer.OrdinalIgnoreCase);
             }
-            GlobalProperties = globalProperties;
-
-            Dictionary<string, string> environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { MsBuildProperties.MSBuildExtensionsPath, ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath32, ExtensionsPath },
-                { MsBuildProperties.MSBuildExtensionsPath64, ExtensionsPath },
-                { MsBuildProperties.MSBuildSDKsPath, SDKsPath },
-                { Environment.EnvironmentVariables.MSBUILD_EXE_PATH, MsBuildExePath }
-            };
-            if (additionalEnvironmentVariables != null)
-            {
-                foreach (var environmentVariable in additionalEnvironmentVariables)
-                {
-                    environmentVariables[environmentVariable.Key] = environmentVariable.Value;
-                }
-
-                // Copy to a new dictionary in case the source dictionary is mutated
-                _additionalEnvironmentVariables = new Dictionary<string, string>(additionalEnvironmentVariables);
-            }
-            EnvironmentVariables = environmentVariables;
+            return null;
         }
 
         /// <summary>
@@ -137,9 +112,6 @@ namespace Buildalyzer.Environment
                 DesignTime,
                 targets,
                 MsBuildExePath,
-                ExtensionsPath,
-                SDKsPath,
-                RoslynTargetsPath,
                 _additionalGlobalProperties,
                 _additionalEnvironmentVariables);
     }

@@ -5,133 +5,127 @@ using System.Linq;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
 {
-    internal class EnvironmentFactory
+    public class EnvironmentFactory
     {
         private readonly AnalyzerManager _manager;
         private readonly ProjectFile _projectFile;
-        private readonly EnvironmentOptions _options;
+        private readonly ILogger<EnvironmentFactory> _logger;
 
-        public EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile, EnvironmentOptions options)
+        internal EnvironmentFactory(AnalyzerManager manager, ProjectFile projectFile)
         {
             _manager = manager;
             _projectFile = projectFile;
-            _options = options ?? new EnvironmentOptions();
+            _logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>();
         }
+        
+        public BuildEnvironment GetBuildEnvironment() =>
+            GetBuildEnvironment(null, null);
 
-        public BuildEnvironment GetBuildEnvironment()
-        {                
-            // If we're running on .NET Core, use the .NET Core SDK regardless of the project file
-            // Also use the SDK if the project uses multi-targeting (regardless of the actual target)
-            if (BuildEnvironment.IsRunningOnCore || _projectFile.IsMultiTargeted)
+        public BuildEnvironment GetBuildEnvironment(string targetFramework) =>
+            GetBuildEnvironment(targetFramework, null);
+
+        public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options) =>
+            GetBuildEnvironment(null, options);
+        
+        public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
+        {
+            options = options ?? new EnvironmentOptions();
+            BuildEnvironment buildEnvironment;
+
+            // Use the .NET Framework if that's the preference
+            // ...or if this project file uses a target known to require .NET Framework
+            // ...or if this project ONLY targets .NET Framework ("net" followed by a digit)
+            if (options.Preference == EnvironmentPreference.Framework
+                || _projectFile.RequiresNetFramework
+                || (_projectFile.UsesSdk && OnlyTargetsFramework(targetFramework)))
             {
-                return CreateCoreEnvironment();
+                buildEnvironment = CreateFrameworkEnvironment(options) ?? CreateCoreEnvironment(options);
+            }
+            else
+            {
+                // Otherwise, use a Core environment if it can be found
+                buildEnvironment = CreateCoreEnvironment(options) ?? CreateFrameworkEnvironment(options);
             }
 
-            // If this is an SDK project, check the target framework
-            if (_projectFile.UsesSdk)
-            {
-                // Use the Framework tools if this project targets .NET Framework ("net" followed by a digit)
-                // (see https://docs.microsoft.com/en-us/dotnet/standard/frameworks)
-                string targetFramework = _projectFile?.TargetFrameworks.SingleOrDefault();
-                if (targetFramework != null
-                    && targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
-                    && targetFramework.Length > 3
-                    && char.IsDigit(targetFramework[4]))
-                {
-                    return CreateFrameworkEnvironment();
-                }
-
-                // Otherwise use the .NET Core SDK
-                return CreateCoreEnvironment();
-            }
-
-            // Use Framework tools if a ToolsVersion attribute
-            if (_projectFile.ToolsVersion != null)
-            {
-                return CreateFrameworkEnvironment();
-            }
-
-            throw new Exception("Could not determine build environment");
+            return buildEnvironment ?? throw new InvalidOperationException("Could not find build environment");
         }
-
+        
         // Based on code from OmniSharp
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-        private BuildEnvironment CreateCoreEnvironment()
+        private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
-
-            // Get targets
-            List<string> targets = new List<string>();
-            if (_options.RestoreTarget && !_projectFile.Virtual)
-            {
-                // NuGet.Targets can't handle virtual project files:
-                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-
-                targets.Add("Restore");
-            }
-            if (_options.CleanTarget)
-            {
-                targets.Add("Clean");
-
-                // Required to force CoreCompile target when it calculates everything is already built
-                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-            }
-            if (_options.BuildTarget)
-            {
-                targets.Add("Build");
-            }
-
             // Get paths
-            string dotnetPath = DotnetPathResolver.ResolvePath(_projectFile.Path);
+            DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
+            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path);
+            if(dotnetPath == null)
+            {
+                return null;
+            }
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-            string sdksPath = Path.Combine(dotnetPath, "Sdks");
-            string roslynTargetsPath = Path.Combine(dotnetPath, "Roslyn");
 
-            // Required to find and import the Restore target
-            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ dotnetPath }\NuGet.targets");
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
+
+            // Required to force CoreCompile target when it calculates everything is already built
+            // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
+            {
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
+            }
+
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalEnvironmentVariables = new Dictionary<string, string>(options.EnvironmentVariables);
+
+            // (Re)set the enviornment variables that dotnet sets
+            // See https://github.com/dotnet/cli/blob/0a4ad813ff971f549d34ac4ebc6c8cca9a741c36/src/Microsoft.DotNet.Cli.Utils/MSBuildForwardingAppWithoutLogging.cs#L22-L28
+            // Especially important if a global.json is used because dotnet may set these to the latest, but then we'll call a msbuild.dll for the global.json version
+            additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildExtensionsPath, dotnetPath);
+            additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildSDKsPath, Path.Combine(dotnetPath, "Sdks"));
 
             return new BuildEnvironment(
-                _options.DesignTime,
-                targets.ToArray(),
+                options.DesignTime,
+                options.TargetsToBuild.ToArray(),
                 msBuildExePath,
-                dotnetPath,
-                sdksPath,
-                roslynTargetsPath,
-                additionalGlobalProperties);
+                additionalGlobalProperties,
+                additionalEnvironmentVariables);
         }
 
-        private BuildEnvironment CreateFrameworkEnvironment()
+        private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
         {
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>();
+            // Clone the options global properties dictionary so we can add to it
+            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
 
-            // Get targets
-            List<string> targets = new List<string>();
-            if (_options.RestoreTarget && _projectFile.UsesSdk && !_projectFile.Virtual)
+            // Required to force CoreCompile target when it calculates everything is already built
+            // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
-                // NuGet.Targets can't handle virtual project files:
-                // C:\Program Files\dotnet\sdk\2.1.300\NuGet.targets(239,5): error MSB3202: The project file "E:\Code\...\...csproj" was not found.
-
-                targets.Add("Restore");
-            }
-            if (_options.CleanTarget)
-            {
-                targets.Add("Clean");
-
-                // Required to force CoreCompile target when it calculates everything is already built
-                // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
-                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, @"__NonExistentSubDir__\__NonExistentFile__");
-            }
-            if (_options.BuildTarget)
-            {
-                targets.Add("Build");
+                additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
-            // Get paths
-            string msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
+            if (!GetFrameworkMsBuildExePath(out string msBuildExePath))
+            {
+                _logger?.LogWarning("Couldn't find a .NET Framework MSBuild path");
+                return null;
+            }
+            
+            // This is required to trigger NuGet package resolution and regeneration of project.assets.json
+            additionalGlobalProperties.Add(MsBuildProperties.ResolveNuGetPackages, "true");
+            
+            return new BuildEnvironment(
+                options.DesignTime,
+                options.TargetsToBuild.ToArray(),
+                msBuildExePath,
+                additionalGlobalProperties,
+                options.EnvironmentVariables);
+        }
+
+        private bool GetFrameworkMsBuildExePath(out string msBuildExePath)
+        {
+            msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
             if (string.IsNullOrEmpty(msBuildExePath))
             {
                 // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
@@ -139,42 +133,26 @@ namespace Buildalyzer.Environment
                 string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
                 msBuildExePath = new[]
                 {
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"),
-                    Path.Combine(programFilesX86, @"Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe")
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Enterprise", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Professional", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
+                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Community", "MSBuild", "15.0", "Bin", "MSBuild.exe")
                 }
                 .Where(File.Exists)
                 .FirstOrDefault();
             }
             if (string.IsNullOrEmpty(msBuildExePath))
             {
-                throw new InvalidOperationException("Could not locate the tools (msbuild.exe) path");
+                return false;
             }
-
-            string toolsPath = Path.GetDirectoryName(msBuildExePath);
-            string extensionsPath = Path.GetFullPath(Path.Combine(toolsPath, @"..\..\"));
-            string sdksPath = Path.Combine(_projectFile.UsesSdk ? DotnetPathResolver.ResolvePath(_projectFile.Path) : extensionsPath, "Sdks");
-            string roslynTargetsPath = Path.Combine(toolsPath, "Roslyn");
-            
-            // Need to set directories for default code analysis rulset (see https://github.com/dotnet/roslyn/issues/6774)
-            string vsRoot = Path.Combine(extensionsPath, @"..\");
-            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\FxCop\\Rules")));
-            additionalGlobalProperties.Add(MsBuildProperties.CodeAnalysisRuleSetDirectories, Path.GetFullPath(Path.Combine(vsRoot, @"Team Tools\Static Analysis Tools\\Rule Sets")));
-
-            // This is required to trigger NuGet package resolution and regeneration of project.assets.json
-            additionalGlobalProperties.Add(MsBuildProperties.ResolveNuGetPackages, "true");
-
-            // Required to find and import the Restore target
-            additionalGlobalProperties.Add(MsBuildProperties.NuGetRestoreTargets, $@"{ toolsPath }\..\..\..\Common7\IDE\CommonExtensions\Microsoft\NuGet\NuGet.targets");
-
-            return new BuildEnvironment(
-                _options.DesignTime,
-                targets.ToArray(),
-                msBuildExePath,
-                extensionsPath,
-                sdksPath,
-                roslynTargetsPath,
-                additionalGlobalProperties);
+            return true;
         }
+
+        private bool OnlyTargetsFramework(string targetFramework) =>
+            targetFramework == null ? _projectFile.TargetFrameworks.All(x => IsFrameworkTargetFramework(x)) : IsFrameworkTargetFramework(targetFramework);
+
+        private bool IsFrameworkTargetFramework(string targetFramework) =>
+            targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                && targetFramework.Length > 3
+                && char.IsDigit(targetFramework[4]);
     }
 }

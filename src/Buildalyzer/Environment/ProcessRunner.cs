@@ -14,6 +14,8 @@ namespace Buildalyzer.Environment
 
         public Process Process { get; }
 
+        public Action Exited { get; set; }
+
         public ProcessRunner(
             string fileName,
             string arguments,
@@ -50,7 +52,8 @@ namespace Buildalyzer.Environment
                 Process.OutputDataReceived += DataReceived;
             }
 
-            Process.Exited += Exited;
+            Process.EnableRaisingEvents = true;  // Raises Process.Exited immediatly instead of when checked via .WaitForExit() or .HasExited
+            Process.Exited += ProcessExited;
         }
         
         public ProcessRunner Start()
@@ -64,14 +67,15 @@ namespace Buildalyzer.Environment
             return this;
         }
 
-        private void Exited(object sender, EventArgs e)
+        private void ProcessExited(object sender, EventArgs e)
         {
+            Exited?.Invoke();
             _logger?.LogDebug($"Process {Process.Id} exited with code {Process.ExitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
         }
 
         public void Dispose()
         {
-            Process.Exited -= Exited;
+            Process.Exited -= ProcessExited;
             if (_logger != null || _output != null)
             {
                 Process.OutputDataReceived -= DataReceived;

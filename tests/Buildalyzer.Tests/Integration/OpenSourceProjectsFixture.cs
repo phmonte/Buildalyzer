@@ -144,10 +144,14 @@ namespace Buildalyzer.Tests.Integration
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
             analyzer.IgnoreFaultyImports = false;
+
+#pragma warning disable 0162
             if (BinaryLog)
             {
                 analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionPath)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
             }
+#pragma warning restore 0162
+
             AnalyzerResults results = analyzer.Build(options);
 
             // Then

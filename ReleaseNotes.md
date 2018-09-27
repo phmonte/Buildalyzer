@@ -1,3 +1,7 @@
+# 2.0.1
+
+- [Fix] Fix for hang when the MSBuild process fails to start or logger doesn't connect (#78)
+
 # 2.0.0
 
 - **[Breaking Change]** [Refactoring] Entire API...again. Consider this the "if at first you don't succeed" release.

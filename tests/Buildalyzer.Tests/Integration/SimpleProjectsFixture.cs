@@ -376,10 +376,14 @@ namespace Buildalyzer.Tests.Integration
                     LogWriter = log
                 })
                 .GetProject(GetProjectPath(projectFile));
+
+#pragma warning disable 0162
             if (BinaryLog)
             {
                 analyzer.AddBinaryLogger(Path.Combine(@"E:\Temp\", Path.ChangeExtension(Path.GetFileName(projectFile), ".core.binlog")));
             }
+#pragma warning restore 0162
+
             return analyzer;
         }
 

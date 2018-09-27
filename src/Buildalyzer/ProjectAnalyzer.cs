@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Buildalyzer.Logger;
@@ -230,25 +231,27 @@ namespace Buildalyzer
         // This is where the magic happens - returns one result per result target framework
         private AnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
-            using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer())
+            using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
-                using (EventProcessor eventProcessor = new EventProcessor(this, BuildLoggers, pipeLogger, results != null))
+                using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
                 {
-                    // Run MSBuild
-                    int exitCode;
-                    string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
-                    using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
+                    using (EventProcessor eventProcessor = new EventProcessor(this, BuildLoggers, pipeLogger, results != null))
                     {
-                        processRunner.Start();
-                        while (pipeLogger.Read())
+                        // Run MSBuild
+                        int exitCode;
+                        string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
+                        using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
                         {
+                            processRunner.Exited = () => cancellation.Cancel();
+                            processRunner.Start();
+                            pipeLogger.ReadAll();
+                            processRunner.Process.WaitForExit();
+                            exitCode = processRunner.Process.ExitCode;
                         }
-                        processRunner.Process.WaitForExit();
-                        exitCode = processRunner.Process.ExitCode;
-                    }
 
-                    // Collect the results
-                    results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+                        // Collect the results
+                        results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+                    }
                 }
             }
             return results;

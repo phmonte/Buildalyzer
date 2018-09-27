@@ -1,3 +1,5 @@
+# 2.0.2
+
 # 2.0.1
 
 - [Fix] Fix for hang when the MSBuild process fails to start or logger doesn't connect (#78)

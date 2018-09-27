@@ -76,6 +76,7 @@ namespace Buildalyzer.Workspaces.Tests
 
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
+            // The path will get normalized inside the .GetProject() call below
             string projectPath = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
@@ -87,7 +88,7 @@ namespace Buildalyzer.Workspaces.Tests
                     LogWriter = log
                 });
             }
-            return manager.GetProject(projectPath.Replace('\\', Path.DirectorySeparatorChar));
+            return manager.GetProject(projectPath);
         }
     }
 }

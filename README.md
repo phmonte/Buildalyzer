@@ -114,6 +114,19 @@ Be careful though, you may break the ability to load, compile, or interpret the 
 
 Buildalyzer uses the `Microsoft.Extensions.Logging` framework for logging MSBuild output. When you create an `AnayzerManager` you can specify an `ILoggerFactory` that Buildalyzer should use to create loggers. By default, the `ProjectAnalyzer` will log MSBuild output to the provided logger.
 
+You can also log to a `StringWriter` using `AnalyzerManagerOptions`:
+
+```csharp
+StringWriter log = new StringWriter();
+AnalyzerManagerOptions options = new AnalyzerManagerOptions
+{
+    LogWriter = log
+};
+AnalyzerManager manager = new AnalyzerManager(path, options);
+// ...
+// check log.ToString() after build for any error messages
+```
+
 ## Roslyn Workspaces
 
 The extension library `Buildalyzer.Workspaces` adds extension methods to the Buildalyzer `ProjectAnalyzer` that make it easier to take Buildalyzer output and create a Roslyn `AdhocWorkspace` from it:

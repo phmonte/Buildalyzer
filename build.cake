@@ -106,7 +106,7 @@ Task("Build")
 Task("Test")
     .Description("Runs all tests.")
     .IsDependentOn("Build")
-    .Does(() =>
+    .DoesForEach(GetFiles("./tests/*Tests/*.csproj"), project =>
     {
         DotNetCoreTestSettings testSettings = new DotNetCoreTestSettings()
         {
@@ -123,12 +123,10 @@ Task("Test")
             testSettings.TestAdapterPath = GetDirectories($"./tools/Appveyor.TestLogger.*/build/_common").First();
         }
 
-        foreach (var project in GetFiles("./tests/*Tests/*.csproj"))
-        {
-            Information($"Running tests in {project}");
-            DotNetCoreTest(MakeAbsolute(project).ToString(), testSettings);
-        }
-    });
+        Information($"Running tests in {project}");
+        DotNetCoreTest(MakeAbsolute(project).ToString(), testSettings);
+    })
+    .DeferOnError();
     
 Task("Pack")
     .Description("Packs the NuGet packages.")

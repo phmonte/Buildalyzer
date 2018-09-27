@@ -103,6 +103,6 @@ namespace Buildalyzer
         }
 
         internal static string NormalizePath(string path) =>
-            path == null ? null : Path.GetFullPath(new Uri(path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar)).LocalPath);
+            path == null ? null : Path.GetFullPath(path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar));
     }
 }

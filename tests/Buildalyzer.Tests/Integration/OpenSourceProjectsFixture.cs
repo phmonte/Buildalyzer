@@ -120,6 +120,11 @@ namespace Buildalyzer.Tests.Integration
         [TestCaseSource(nameof(ProjectTestCases))]
         public void CompilesProject(EnvironmentPreference preference, string solutionPath, string projectPath)
         {
+            foreach (string file in Directory.GetFiles("/home/appveyor/projects/buildalyzer/tests/Buildalyzer.Tests/bin/Release/netcoreapp2.1"))
+            {
+                TestContext.WriteLine(file);
+            }
+
             // Given
             StringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions

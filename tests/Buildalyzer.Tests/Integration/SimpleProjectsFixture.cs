@@ -370,11 +370,6 @@ namespace Buildalyzer.Tests.Integration
 
         private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
-            foreach(string file in Directory.GetFiles("/home/appveyor/projects/buildalyzer/tests/Buildalyzer.Tests/bin/Release/netcoreapp2.1"))
-            {
-                TestContext.WriteLine(file);
-            }
-
             ProjectAnalyzer analyzer = new AnalyzerManager(
                 new AnalyzerManagerOptions
                 {

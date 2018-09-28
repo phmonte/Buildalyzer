@@ -74,7 +74,7 @@ To install additional .NET Core runtimes or SDKs:
         public void CanParseBasePath(string output, string basePath)
         {
             // Given
-            List<string> lines = output.Split(System.Environment.NewLine).ToList();
+            List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
 
             // When
             string result = DotnetPathResolver.ParseBasePath(lines);
@@ -88,7 +88,7 @@ To install additional .NET Core runtimes or SDKs:
         public void CanParseInstalledSdksPath(string output, string sdksPath)
         {
             // Given
-            List<string> lines = output.Split(System.Environment.NewLine).ToList();
+            List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
 
             // When
             string result = DotnetPathResolver.ParseInstalledSdksPath(lines);

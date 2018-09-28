@@ -27,20 +27,22 @@
   <!-- And https://github.com/NuGet/Home/issues/4837 -->
   <Target Name="PackLogger" DependsOnTargets="ResolveReferences">
     <ItemGroup>
-      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\lib\*\*" />
+      <PackLoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\**\*.dll" />
     </ItemGroup>
+    <Error Condition="'@(PackLoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
     <ItemGroup>
-        <BuildOutputInPackage Include="@(LoggerFiles)" />
+        <BuildOutputInPackage Include="@(PackLoggerFiles)" />
     </ItemGroup>
   </Target>
 
   <!-- Also need to copy to build output so tests can find it -->
   <Target Name="CopyLogger" BeforeTargets="BeforeBuild">
     <ItemGroup>
-      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\lib\*\*" />
+      <CopyLoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\lib\*\*" />
     </ItemGroup>
+    <Error Condition="'@(CopyLoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
     <ItemGroup>
-        <Content Include="@(LoggerFiles)">
+        <Content Include="@(CopyLoggerFiles)">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <DeploymentContent>true</DeploymentContent>
         </Content>

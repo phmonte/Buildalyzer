@@ -25,14 +25,18 @@
   <!-- Get the logger files for later use -->
   <Target Name="GetLoggerFiles" DependsOnTargets="ResolveReferences">
     <Message Importance="High" Text="NuGetPackageRoot: '$(NuGetPackageRoot)'" />
-    <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
-      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\**\*.dll" />
+    <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'">$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\**\*.dll</LoggerFiles>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'">$(NuGetPackageRoot)/MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll</LoggerFiles>
+    </PropertyGroup>
+    <Message Importance="High" Text="LoggerFiles (Property): '$(LoggerFiles)'" />
+    <ItemGroup>
+      <LoggerFiles Include="$(LoggerFiles)" />
     </ItemGroup>
-    <ItemGroup Condition=" '$(OS)' != 'Windows_NT' ">
-      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)/MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll" />
-    </ItemGroup>
+    <Message Importance="High" Text="LoggerFiles: '@(LoggerFiles)'" />
     <Error Condition="'@(LoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
-    <Message Importance="High" Text="Logger files: '@(LoggerFiles)'" />
   </Target>
   
   <!-- Workaround to pack package reference directly -->

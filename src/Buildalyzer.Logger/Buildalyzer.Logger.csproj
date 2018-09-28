@@ -22,27 +22,31 @@
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.0" PrivateAssets="All" IsLogger="true" />
   </ItemGroup>
   
+  <!-- Get the logger files for later use -->
+  <Target Name="GetLoggerFiles" DependsOnTargets="ResolveReferences">
+    <ItemGroup Condition=" '$(OS)' == 'Windows_NT' ">
+      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\**\*.dll" />
+    </ItemGroup>
+    <ItemGroup Condition=" '$(OS)' != 'Windows_NT' ">
+      <LoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)/MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll" />
+    </ItemGroup>
+    <Error Condition="'@(LoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
+    <Message Importance="High" Text="Logger files: '@(LoggerFiles)'" />
+  </Target>
+  
   <!-- Workaround to pack package reference directly -->
   <!-- See https://github.com/NuGet/Home/issues/3891 -->
   <!-- And https://github.com/NuGet/Home/issues/4837 -->
-  <Target Name="PackLogger" DependsOnTargets="ResolveReferences">
+  <Target Name="PackLogger" DependsOnTargets="GetLoggerFiles">
     <ItemGroup>
-      <PackLoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\**\*.dll" />
-    </ItemGroup>
-    <Error Condition="'@(PackLoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
-    <ItemGroup>
-        <BuildOutputInPackage Include="@(PackLoggerFiles)" />
+        <BuildOutputInPackage Include="@(LoggerFiles)" />
     </ItemGroup>
   </Target>
 
   <!-- Also need to copy to build output so tests can find it -->
-  <Target Name="CopyLogger" BeforeTargets="BeforeBuild">
+  <Target Name="CopyLogger" DependsOnTargets="GetLoggerFiles" BeforeTargets="BeforeBuild">
     <ItemGroup>
-      <CopyLoggerFiles Condition="%(PackageReference.IsLogger) == 'true'" Include="$(NuGetPackageRoot)\MsBuildPipeLogger.Logger\%(PackageReference.Version)\lib\*\*" />
-    </ItemGroup>
-    <Error Condition="'@(CopyLoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
-    <ItemGroup>
-        <Content Include="@(CopyLoggerFiles)">
+        <Content Include="@(LoggerFiles)">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
             <DeploymentContent>true</DeploymentContent>
         </Content>

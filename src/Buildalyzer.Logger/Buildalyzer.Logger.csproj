@@ -34,7 +34,7 @@
     <Message Importance="High" Text="Search: '$(NugetSearchPath)'" />    
     <Message Importance="High" Text="NuGet: '@(AllNugetFiles)'" />    
     <ItemGroup>
-      <LoggerFiles Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll" />
+      <LoggerFiles Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))msbuildpipelogger.logger/%(PackageReference.Version)/**/*.dll" />
     </ItemGroup>
     <Message Importance="High" Text="LoggerFiles: '@(LoggerFiles)'" />
     <Error Condition="'@(LoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />

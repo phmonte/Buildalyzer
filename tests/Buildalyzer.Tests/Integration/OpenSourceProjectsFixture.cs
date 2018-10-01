@@ -33,7 +33,7 @@ namespace Buildalyzer.Tests.Integration
         {
             new TestRepository("https://github.com/autofac/Autofac.git"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
-            new TestRepository("https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
+            new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
             new TestRepository("https://github.com/nodatime/nodatime.git",
                 @"\src\NodaTime.Web.Blazor\NodaTime.Web.Blazor.csproj"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/serilog/serilog.git"), // SourceLink messed up from AppVeyor on SDK: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
@@ -58,7 +58,7 @@ namespace Buildalyzer.Tests.Integration
             {
                 Preference = preference;
                 Url = url;
-                Excluded = excluded ?? Array.Empty<string>();
+                Excluded = excluded?.Select(x => x.Replace('\\', Path.DirectorySeparatorChar)).ToArray() ?? Array.Empty<string>();
             }
 
             public override string ToString() => Url;

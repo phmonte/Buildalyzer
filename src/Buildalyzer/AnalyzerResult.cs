@@ -82,6 +82,11 @@ namespace Buildalyzer
                     Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.ItemSpec)))
                 : Array.Empty<string>();
 
+        public IEnumerable<(string package, string version)> PackageReferences =>
+            Items.TryGetValue("PackageReference", out ProjectItem[] items)
+                ? items.Select(x => (x.ItemSpec, x.Metadata["Version"]))
+                : Array.Empty<(string, string)>();
+
         internal void ProcessProject(ProjectStartedEventArgs e)
         {
             // Add properties

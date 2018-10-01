@@ -31,9 +31,9 @@ namespace Buildalyzer.Tests.Integration
 
         private static TestRepository[] Repositories =
         {
-            new TestRepository(EnvironmentPreference.Framework, "https://github.com/autofac/Autofac.git"),
+            new TestRepository("https://github.com/autofac/Autofac.git"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
-            new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
+            new TestRepository("https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
             new TestRepository("https://github.com/nodatime/nodatime.git",
                 @"\src\NodaTime.Web.Blazor\NodaTime.Web.Blazor.csproj"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/serilog/serilog.git"), // SourceLink messed up from AppVeyor on SDK: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
@@ -140,6 +140,8 @@ namespace Buildalyzer.Tests.Integration
             options.EnvironmentVariables.Add("CI_LINUX", "False");
             options.EnvironmentVariables.Add("CI_WINDOWS", "False");
 
+            
+
             // When
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
@@ -151,8 +153,15 @@ namespace Buildalyzer.Tests.Integration
                 analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionPath)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
             }
 #pragma warning restore 0162
-
+            
+#if Is_Windows
             AnalyzerResults results = analyzer.Build(options);
+#else
+            // On non-Windows platforms we have to remove the .NET Framework target frameworks and only build .NET Core target frameworks
+            // See https://github.com/dotnet/sdk/issues/826            
+            string[] excludedTargetFrameworks = new[] { "net2", "net3", "net4", "portable" };
+            AnalyzerResults results = analyzer.Build(analyzer.ProjectFile.TargetFrameworks.Where(x => !excludedTargetFrameworks.Any(y => x.StartsWith(y))).ToArray(), options);
+#endif
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());

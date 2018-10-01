@@ -111,12 +111,12 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
-            sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()).ShouldBe(new[]
+            new[]
             {
                 "Class1",
                 "AssemblyAttributes",
                 "AssemblyInfo"
-            }, true, log.ToString());
+            }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 
         [Test]
@@ -137,13 +137,14 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             references.ShouldNotBeNull(log.ToString());
-            references.ShouldContain(x => x.EndsWith("mscorlib.dll"), log.ToString());
+            references.ShouldContain(x => x.Contains("mscorlib"), log.ToString());
             if (projectFile.Contains("PackageReference"))
             {
                 references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
             }
         }
 
+#if Is_Windows
         [Test]
         public void MultiTargetingBuildAllTargetFrameworksGetsSourceFiles()
         {
@@ -157,18 +158,18 @@ namespace Buildalyzer.Tests.Integration
             // Then
             results.Count.ShouldBe(2);
             results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
-            results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            new[]
             {
                 "Class1",
                 "AssemblyAttributes",
                 "AssemblyInfo"
-            }, true, log.ToString());
-            results["netstandard2.0"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            }.ShouldBeSubsetOf(results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
+            new[]
             {
                 "Class2",
                 "AssemblyAttributes",
                 "AssemblyInfo"
-            }, true, log.ToString());
+            }.ShouldBeSubsetOf(results["netstandard2.0"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 
         [Test]
@@ -183,13 +184,14 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
-            sourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            new[]
             {
                 "Class1",
                 "AssemblyAttributes",
                 "AssemblyInfo"
-            }, true, log.ToString());
+            }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
+#endif
 
         [Test]
         public void MultiTargetingBuildCoreTargetFrameworkGetsSourceFiles()
@@ -203,12 +205,12 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             sourceFiles.ShouldNotBeNull(log.ToString());
-            sourceFiles.Select(x => Path.GetFileName(x).Split('.').Reverse().Take(2).Reverse().First()).ShouldBe(new[]
+            new[]
             {
                 "Class2",
                 "AssemblyAttributes",
                 "AssemblyInfo"
-            }, true, log.ToString());
+            }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 
         [Test]

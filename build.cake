@@ -92,12 +92,6 @@ Task("Build")
     .IsDependentOn("Restore")
     .Does(() =>
     {
-        
-        foreach (var package in GetFiles("/home/appveyor/.nuget/packages/**/*"))
-        {
-            Information(MakeAbsolute(package).ToString());
-        }
-
         DotNetCoreBuild($"./{projectName}.sln", new DotNetCoreBuildSettings
         {
             Configuration = configuration,

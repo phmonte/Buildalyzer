@@ -25,13 +25,16 @@
   <!-- Get the logger files for later use -->
   <Target Name="GetLoggerFiles" DependsOnTargets="ResolveReferences">
     <Message Importance="High" Text="NuGetPackageRoot: '$(NuGetPackageRoot)'" />
+    <PropertyGroup>
+      <NugetSearchPath>$([MSBuild]::EnsureTrailingSlash(NuGetPackageRoot))MsBuildPipeLogger.Logger/**/*</NugetSearchPath>
+    </PropertyGroup>
     <ItemGroup>
-      <AllNugetFiles Include="$(NuGetPackageRoot)/MsBuildPipeLogger.Logger/**/*" />
+      <AllNugetFiles Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))MsBuildPipeLogger.Logger/**/*" />
     </ItemGroup>
-    <Message Importance="High" Text="NuGet: '@(AllNugetFiles)'" />
-    
+    <Message Importance="High" Text="Search: '$(NugetSearchPath)'" />    
+    <Message Importance="High" Text="NuGet: '@(AllNugetFiles)'" />    
     <ItemGroup>
-      <LoggerFiles Include="$(NuGetPackageRoot)/MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll" />
+      <LoggerFiles Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))MsBuildPipeLogger.Logger/%(PackageReference.Version)/**/*.dll" />
     </ItemGroup>
     <Message Importance="High" Text="LoggerFiles: '@(LoggerFiles)'" />
     <Error Condition="'@(LoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />

@@ -84,10 +84,7 @@ Task("Restore")
         DotNetCoreRestore($"./{projectName}.sln", new DotNetCoreRestoreSettings
         {
             MSBuildSettings = msBuildSettings
-        });  
-        
-        // Run NuGet CLI restore to handle the Framework test projects       
-        NuGetRestore($"./{projectName}.sln"); 
+        });
     });
 
 Task("Build")

@@ -33,6 +33,7 @@ namespace Buildalyzer.Tests.Integration
             @"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj",
             @"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj",
             @"SdkFrameworkProject\SdkFrameworkProject.csproj",
+            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj",
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
@@ -40,8 +41,7 @@ namespace Buildalyzer.Tests.Integration
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
-            @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj",
-            @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj"
+            @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj"
         };
 
         [Test]
@@ -342,7 +342,12 @@ namespace Buildalyzer.Tests.Integration
             AnalyzerResults results = analyzer.Build(options);
 
             // Then
+            // The generated GUIDs are based on subpath, so they'll be different from Windows to Linux
+#if Is_Windows
             results.First().ProjectGuid.ToString().ShouldBe("646a532e-8943-5a4b-b106-e1341b4d3535");
+#else
+            results.First().ProjectGuid.ToString().ShouldBe("c9df4376-d954-5554-bd10-b9976b7afa9d");
+#endif
         }
 
         [Test]
@@ -392,7 +397,12 @@ namespace Buildalyzer.Tests.Integration
             string path = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(SimpleProjectsFixture).Assembly.Location),
-                    @"..\..\..\..\projects\" + file));
+                    "..",
+                    "..",
+                    "..",
+                    "..",
+                    "projects",
+                    file));
 
             return path.Replace('\\', Path.DirectorySeparatorChar);
         }

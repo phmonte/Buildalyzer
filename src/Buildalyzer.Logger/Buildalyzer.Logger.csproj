@@ -26,7 +26,7 @@
   <Target Name="GetLoggerFiles" DependsOnTargets="ResolveReferences">
     <Message Importance="High" Text="NuGetPackageRoot: '$(NuGetPackageRoot)'" />
     <PropertyGroup>
-      <NugetSearchPath>$([MSBuild]::EnsureTrailingSlash(NuGetPackageRoot))MsBuildPipeLogger.Logger/**/*</NugetSearchPath>
+      <NugetSearchPath>$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))MsBuildPipeLogger.Logger/**/*</NugetSearchPath>
     </PropertyGroup>
     <ItemGroup>
       <AllNugetFiles Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageRoot)))MsBuildPipeLogger.Logger/**/*" />

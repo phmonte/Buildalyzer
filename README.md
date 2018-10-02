@@ -110,6 +110,18 @@ If you want to change the configured properties before loading or compiling the 
 
 Be careful though, you may break the ability to load, compile, or interpret the project if you change the MSBuild properties.
 
+## Binary Log Files
+
+Buildalyzer can also read [MSBuild binary log files](http://msbuildlog.com/):
+
+```csharp
+AnalyzerManager manager = new AnalyzerManager();
+AnalyzerResults results = manager.Analyze(@"C:\MyCode\MyProject.binlog");
+string[] sourceFiles = results.First().SourceFiles;
+```
+
+This is useful if you already have a binary log file and want to analyze it with Buildalyzer the same way you would build results.
+
 ## Logging
 
 Buildalyzer uses the `Microsoft.Extensions.Logging` framework for logging MSBuild output. When you create an `AnayzerManager` you can specify an `ILoggerFactory` that Buildalyzer should use to create loggers. By default, the `ProjectAnalyzer` will log MSBuild output to the provided logger.

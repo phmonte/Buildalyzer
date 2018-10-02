@@ -1,5 +1,6 @@
-# 2.0.2
+# 2.1.0
 
+- [Feature] Adds `AnalyzerManager.Analyze()` support for reading MSBuild binary log files
 - [Fix] Fix for pipe communication problems on Linux
 
 # 2.0.1

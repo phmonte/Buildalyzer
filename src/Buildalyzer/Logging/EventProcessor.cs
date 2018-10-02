@@ -11,29 +11,34 @@ namespace Buildalyzer.Logging
     {
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
         private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
+        private readonly AnalyzerManager _manager;
         private readonly ProjectAnalyzer _analyzer;
         private readonly ILogger<EventProcessor> _logger;
-        private readonly IEnumerable<Microsoft.Build.Framework.ILogger> _loggers;
+        private readonly IEnumerable<Microsoft.Build.Framework.ILogger> _buildLoggers;
         private readonly IEventSource _eventSource;
         private readonly bool _analyze;
+
+        private string _projectFilePath;
 
         public bool OverallSuccess { get; private set; }
 
         public IEnumerable<AnalyzerResult> Results => _results.Values;
         
-        public EventProcessor(ProjectAnalyzer analyzer, IEnumerable<Microsoft.Build.Framework.ILogger> loggers, IEventSource eventSource, bool analyze)
+        public EventProcessor(AnalyzerManager manager, ProjectAnalyzer analyzer, IEnumerable<Microsoft.Build.Framework.ILogger> buildLoggers, IEventSource eventSource, bool analyze)
         {
+            _manager = manager;
             _analyzer = analyzer;
-            _logger = analyzer.Manager.LoggerFactory?.CreateLogger<EventProcessor>();
-            _loggers = loggers;
+            _logger = manager.LoggerFactory?.CreateLogger<EventProcessor>();
+            _buildLoggers = buildLoggers ?? Array.Empty<Microsoft.Build.Framework.ILogger>();
             _eventSource = eventSource;
             _analyze = analyze;
 
+            _projectFilePath = _analyzer?.ProjectFile.Path;
+
             // Initialize the loggers
-            // TODO: Figure out what to do with loggers: don't filter if using loggers, what about console (use stdout?)
-            foreach (Microsoft.Build.Framework.ILogger logger in loggers)
+            foreach (Microsoft.Build.Framework.ILogger buildLogger in _buildLoggers)
             {
-                logger.Initialize(eventSource);
+                buildLogger.Initialize(eventSource);
             }
 
             // Send events to the tree constructor
@@ -52,8 +57,14 @@ namespace Buildalyzer.Logging
         
         private void ProjectStarted(object sender, ProjectStartedEventArgs e)
         {
+            // If we're not using an analyzer (I.e., from a binary log) and this is the first project file path we've seen, then it's the primary
+            if(_projectFilePath == null)
+            {
+                _projectFilePath = AnalyzerManager.NormalizePath(e.ProjectFile);
+            }
+
             // Make sure this is the same project, nested MSBuild tasks may have spawned additional builds of other projects
-            if (AnalyzerManager.NormalizePath(e.ProjectFile) == _analyzer.ProjectFile.Path)
+            if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
             {
                 // Get the TFM for this project
                 string tfm = e.Properties.Cast<DictionaryEntry>()
@@ -62,7 +73,7 @@ namespace Buildalyzer.Logging
                 {
                     if (!_results.TryGetValue(tfm, out AnalyzerResult result))
                     {
-                        result = new AnalyzerResult(_analyzer);
+                        result = new AnalyzerResult(_projectFilePath, _manager, _analyzer);
                         _results[tfm] = result;
                     }
                     result.ProcessProject(e);
@@ -118,9 +129,9 @@ namespace Buildalyzer.Logging
             }
 
             // Need to release the loggers in case they get used again (I.e., Restore followed by Clean;Build)
-            foreach (Microsoft.Build.Framework.ILogger logger in _loggers)
+            foreach (Microsoft.Build.Framework.ILogger buildLogger in _buildLoggers)
             {
-                logger.Shutdown();
+                buildLogger.Shutdown();
             }
         }
     }

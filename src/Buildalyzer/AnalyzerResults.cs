@@ -10,9 +10,7 @@ namespace Buildalyzer
         private bool? _overallSuccess = null;
 
         public bool OverallSuccess => _overallSuccess.HasValue ? _overallSuccess.Value : false;
-
-        internal void Add(AnalyzerResult result) => _results.Add(result.TargetFramework ?? string.Empty, result);
-
+        
         internal void Add(IEnumerable<AnalyzerResult> results, bool overallSuccess)
         {
             foreach (AnalyzerResult result in results)

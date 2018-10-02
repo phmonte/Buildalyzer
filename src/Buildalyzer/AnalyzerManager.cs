@@ -2,13 +2,17 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
+using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
+using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
@@ -82,6 +86,31 @@ namespace Buildalyzer
         }
 
         public ProjectAnalyzer GetProject(string projectFilePath) => GetProject(projectFilePath, null);
+
+        /// <summary>
+        /// Analyzes an MSBuild binary log file.
+        /// </summary>
+        /// <param name="binLogPath">The path to the binary log file.</param>
+        /// <param name="buildLoggers">MSBuild loggers to replay events from the log to.</param>
+        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        public AnalyzerResults Analyze(string binLogPath, IEnumerable<Microsoft.Build.Framework.ILogger> buildLoggers = null)
+        {
+            binLogPath = NormalizePath(binLogPath);
+            if(!File.Exists(binLogPath))
+            {
+                throw new ArgumentException($"The path {binLogPath} could not be found.");
+            }
+
+            BinLogReader reader = new BinLogReader();
+            using (EventProcessor eventProcessor = new EventProcessor(this, null, buildLoggers, reader, true))
+            {
+                reader.Replay(binLogPath);
+                return new AnalyzerResults
+                {
+                    { eventProcessor.Results, eventProcessor.OverallSuccess }
+                };
+            }
+        }
 
         private ProjectAnalyzer GetProject(string projectFilePath, ProjectInSolution projectInSolution)
         {

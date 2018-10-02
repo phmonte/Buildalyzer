@@ -19,17 +19,32 @@ namespace Buildalyzer
         private readonly Guid _projectGuid;
         private List<(string, string)> _cscCommandLineArguments;
 
-        internal AnalyzerResult(ProjectAnalyzer analyzer)
+        internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
         {
+            ProjectFilePath = projectFilePath;
+            Manager = manager;
             Analyzer = analyzer;
 
             string projectGuid = GetProperty(nameof(ProjectGuid));
             if(string.IsNullOrEmpty(projectGuid) || !Guid.TryParse(projectGuid, out _projectGuid))
             {
-                _projectGuid = analyzer.ProjectGuid;
+                _projectGuid = analyzer == null
+                    ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFilePath)
+                    : analyzer.ProjectGuid;
             }
         }
 
+        /// <summary>
+        /// The full normalized path to the project file.
+        /// </summary>
+        public string ProjectFilePath { get; }
+
+        public AnalyzerManager Manager { get; }
+
+        /// <summary>
+        /// Gets the <see cref="ProjectAnalyzer"/> that generated this result
+        /// or <c>null</c> if the result came from a binary log file.
+        /// </summary>
         public ProjectAnalyzer Analyzer { get; }
 
         public bool Succeeded { get; internal set; }
@@ -67,7 +82,7 @@ namespace Buildalyzer
                 ?.Where(x => x.Item1 == null
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
-                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.Item2)))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] References =>
@@ -79,7 +94,7 @@ namespace Buildalyzer
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out ProjectItem[] items)
                 ? items.Select(x => AnalyzerManager.NormalizePath(
-                    Path.Combine(Path.GetDirectoryName(Analyzer.ProjectFile.Path), x.ItemSpec)))
+                    Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec)))
                 : Array.Empty<string>();
 
         internal void ProcessProject(ProjectStartedEventArgs e)

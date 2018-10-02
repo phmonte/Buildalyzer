@@ -18,7 +18,7 @@ namespace Buildalyzer
 {
     public class ProjectAnalyzer
     {
-        private readonly List<ILogger> _loggers = new List<ILogger>();
+        private readonly List<ILogger> _buildLoggers = new List<ILogger>();
         
         // Project-specific global properties and environment variables
         private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -56,7 +56,7 @@ namespace Buildalyzer
         /// </remarks>
         public IReadOnlyDictionary<string, string> EnvironmentVariables => GetEffectiveEnvironmentVariables(null);
         
-        public IEnumerable<ILogger> BuildLoggers => _loggers;
+        public IEnumerable<ILogger> BuildLoggers => _buildLoggers;
 
         public ILogger<ProjectAnalyzer> Logger { get; set; }
 
@@ -64,7 +64,6 @@ namespace Buildalyzer
         /// Controls whether empty, invalid, and missing targets should be ignored during project load.
         /// </summary>
         public bool IgnoreFaultyImports { get; set; } = true;
-
 
         // The project file path should already be normalized
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, ProjectInSolution projectInSolution)
@@ -235,7 +234,7 @@ namespace Buildalyzer
             {
                 using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
                 {
-                    using (EventProcessor eventProcessor = new EventProcessor(this, BuildLoggers, pipeLogger, results != null))
+                    using (EventProcessor eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
                     {
                         // Run MSBuild
                         int exitCode;
@@ -271,7 +270,7 @@ namespace Buildalyzer
 
             // Get the logger arguments
             string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
-            bool logEverything = _loggers.Count > 0;
+            bool logEverything = _buildLoggers.Count > 0;
             string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
 
             // Get the properties arguments
@@ -385,7 +384,7 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            _loggers.Add(logger);
+            _buildLoggers.Add(logger);
         }
 
         /// <summary>
@@ -399,7 +398,7 @@ namespace Buildalyzer
                 throw new ArgumentNullException(nameof(logger));
             }
 
-            _loggers.Remove(logger);
+            _buildLoggers.Remove(logger);
         }
     }    
 }

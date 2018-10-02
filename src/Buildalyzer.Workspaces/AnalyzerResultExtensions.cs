@@ -72,7 +72,7 @@ namespace Buildalyzer.Workspaces
             {
                 if(!existingProject.Id.Equals(projectId)
                     && _projectReferences.TryGetValue(existingProject.Id, out string[] existingReferences)
-                    && existingReferences.Contains(analyzerResult.Analyzer.ProjectFile.Path))
+                    && existingReferences.Contains(analyzerResult.ProjectFilePath))
                 {
                     // Add the reference to the existing project
                     ProjectReference projectReference = new ProjectReference(projectId);
@@ -105,15 +105,15 @@ namespace Buildalyzer.Workspaces
 
         private static ProjectInfo GetProjectInfo(AnalyzerResult analyzerResult, Workspace workspace, ProjectId projectId)
         {
-            string projectName = Path.GetFileNameWithoutExtension(analyzerResult.Analyzer.ProjectFile.Path);
-            string languageName = GetLanguageName(analyzerResult.Analyzer.ProjectFile.Path);
+            string projectName = Path.GetFileNameWithoutExtension(analyzerResult.ProjectFilePath);
+            string languageName = GetLanguageName(analyzerResult.ProjectFilePath);
             ProjectInfo projectInfo = ProjectInfo.Create(
                 projectId,
                 VersionStamp.Create(),
                 projectName,
                 projectName,
                 languageName,
-                filePath: analyzerResult.Analyzer.ProjectFile.Path,
+                filePath: analyzerResult.ProjectFilePath,
                 outputFilePath: analyzerResult.GetProperty("TargetPath"),
                 documents: GetDocuments(analyzerResult, projectId),
                 projectReferences: GetExistingProjectReferences(analyzerResult, workspace),
@@ -166,9 +166,10 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<ProjectAnalyzer> GetReferencedAnalyzerProjects(AnalyzerResult analyzerResult) =>
             analyzerResult.ProjectReferences
-                .Select(x => analyzerResult.Analyzer.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
+                .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
                 .Where(x => x != null)
             ?? Array.Empty<ProjectAnalyzer>();
+
         private static IEnumerable<DocumentInfo> GetDocuments(AnalyzerResult analyzerResult, ProjectId projectId) =>
             analyzerResult
                 .SourceFiles                ?.Where(File.Exists)

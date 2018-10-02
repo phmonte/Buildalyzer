@@ -31,7 +31,8 @@ namespace Buildalyzer.Tests.Integration
 
         private static TestRepository[] Repositories =
         {
-            new TestRepository("https://github.com/autofac/Autofac.git"),
+            new TestRepository("https://github.com/autofac/Autofac.git",
+                @"\bench\Autofac.Benchmarks\Autofac.Benchmarks.csproj"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
             new TestRepository("https://github.com/nodatime/nodatime.git",

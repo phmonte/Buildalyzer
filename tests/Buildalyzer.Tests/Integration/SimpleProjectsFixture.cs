@@ -144,6 +144,45 @@ namespace Buildalyzer.Tests.Integration
             }
         }
 
+        [Test]
+        public void GetsSourceFilesFromBinaryLog(
+            [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
+            [ValueSource(nameof(ProjectFiles))] string projectFile)
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                Preference = preference
+            };
+            string binLogPath = Path.ChangeExtension(Path.GetTempFileName(), ".binlog");
+            analyzer.AddBinaryLogger(binLogPath);
+
+            try
+            {
+                // When
+                analyzer.Build(options);
+                IReadOnlyList<string> sourceFiles = analyzer.Manager.Analyze(binLogPath).First().SourceFiles;
+
+                // Then
+                sourceFiles.ShouldNotBeNull(log.ToString());
+                new[]
+                {
+                    "Class1",
+                    "AssemblyAttributes",
+                    "AssemblyInfo"
+                }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
+            }
+            finally
+            {
+                if(File.Exists(binLogPath))
+                {
+                    File.Delete(binLogPath);
+                }
+            }
+        }
+
 #if Is_Windows
         [Test]
         public void MultiTargetingBuildAllTargetFrameworksGetsSourceFiles()

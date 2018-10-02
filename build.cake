@@ -83,7 +83,12 @@ Task("Restore")
     {                
         DotNetCoreRestore($"./{projectName}.sln", new DotNetCoreRestoreSettings
         {
-            MSBuildSettings = msBuildSettings
+            MSBuildSettings = msBuildSettings,
+            Sources = new []
+            {
+              "https://api.nuget.org/v3/index.json",
+              "https://www.myget.org/F/msbuildpipelogger/api/v3/index.json"
+            }
         });
     });
 

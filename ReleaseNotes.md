@@ -1,3 +1,7 @@
+# 2.1.1
+
+- [Feature] Adds `AnalyzerResult.PackageReferences` to easily access project package references (#82, thanks @mholo65)
+
 # 2.1.0
 
 - [Feature] Adds `AnalyzerManager.Analyze()` support for reading MSBuild binary log files

@@ -3,6 +3,7 @@ branches:
     - master
 
 image:
+  - Visual Studio 2017
   - Ubuntu
     
 environment:

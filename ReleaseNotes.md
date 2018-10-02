@@ -1,5 +1,7 @@
 # 2.0.2
 
+- [Fix] Fix for pipe communication problems on Linux
+
 # 2.0.1
 
 - [Fix] Fix for hang when the MSBuild process fails to start or logger doesn't connect (#78)

@@ -21,7 +21,7 @@ namespace Buildalyzer.Environment
             _projectFile = projectFile;
             _logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>();
         }
-        
+
         public BuildEnvironment GetBuildEnvironment() =>
             GetBuildEnvironment(null, null);
 
@@ -30,7 +30,7 @@ namespace Buildalyzer.Environment
 
         public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options) =>
             GetBuildEnvironment(null, options);
-        
+
         public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
         {
             options = options ?? new EnvironmentOptions();
@@ -53,19 +53,23 @@ namespace Buildalyzer.Environment
 
             return buildEnvironment ?? throw new InvalidOperationException("Could not find build environment");
         }
-        
+
         // Based on code from OmniSharp
         // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
         private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
             // Get paths
             DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
-            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path);
-            if(dotnetPath == null)
+            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path, options.DotNetExePath);
+            if (dotnetPath == null)
             {
                 return null;
             }
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
+            if(options.EnvironmentVariables.ContainsKey(Environment.EnvironmentVariables.MSBUILD_EXE_PATH))
+            {
+                msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
+            }
 
             // Clone the options global properties dictionary so we can add to it
             Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
@@ -83,11 +87,11 @@ namespace Buildalyzer.Environment
             // (Re)set the enviornment variables that dotnet sets
             // See https://github.com/dotnet/cli/blob/0a4ad813ff971f549d34ac4ebc6c8cca9a741c36/src/Microsoft.DotNet.Cli.Utils/MSBuildForwardingAppWithoutLogging.cs#L22-L28
             // Especially important if a global.json is used because dotnet may set these to the latest, but then we'll call a msbuild.dll for the global.json version
-            if(!additionalEnvironmentVariables.ContainsKey(EnvironmentVariables.MSBuildExtensionsPath))
+            if (!additionalEnvironmentVariables.ContainsKey(EnvironmentVariables.MSBuildExtensionsPath))
             {
                 additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildExtensionsPath, dotnetPath);
             }
-            if(!additionalEnvironmentVariables.ContainsKey(EnvironmentVariables.MSBuildSDKsPath))
+            if (!additionalEnvironmentVariables.ContainsKey(EnvironmentVariables.MSBuildSDKsPath))
             {
                 additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildSDKsPath, Path.Combine(dotnetPath, "Sdks"));
             }
@@ -97,7 +101,8 @@ namespace Buildalyzer.Environment
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
-                additionalEnvironmentVariables);
+                additionalEnvironmentVariables,
+                options.DotNetExePath);
         }
 
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
@@ -112,21 +117,27 @@ namespace Buildalyzer.Environment
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
             }
 
-            if (!GetFrameworkMsBuildExePath(out string msBuildExePath))
+            string msBuildExePath;
+            if(options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+            {
+                msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
+            }
+            else if (!GetFrameworkMsBuildExePath(out msBuildExePath))
             {
                 _logger?.LogWarning("Couldn't find a .NET Framework MSBuild path");
                 return null;
             }
-            
+
             // This is required to trigger NuGet package resolution and regeneration of project.assets.json
             additionalGlobalProperties.Add(MsBuildProperties.ResolveNuGetPackages, "true");
-            
+
             return new BuildEnvironment(
                 options.DesignTime,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
-                options.EnvironmentVariables);
+                options.EnvironmentVariables,
+                options.DotNetExePath);
         }
 
         private bool GetFrameworkMsBuildExePath(out string msBuildExePath)

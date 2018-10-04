@@ -27,5 +27,6 @@ namespace Buildalyzer.Environment
         public IDictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>();
 
         public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
+        public string DotNetExePath { get; set; } = "dotnet";
     }
 }

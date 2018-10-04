@@ -22,6 +22,7 @@ namespace Buildalyzer.Environment
         // Used for cloning
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
+        private string _dotnetExePath;
 
         public bool DesignTime { get; }
 
@@ -33,12 +34,15 @@ namespace Buildalyzer.Environment
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables => _environmentVariables;
 
+        public string DotNetExePath => _dotnetExePath;
+
         public BuildEnvironment(
             bool designTime,
             string[] targetsToBuild,
             string msBuildExePath,
             IDictionary<string, string> additionalGlobalProperties = null,
-            IDictionary<string, string> additionalEnvironmentVariables = null)
+            IDictionary<string, string> additionalEnvironmentVariables = null,
+            string dotnetExePath = null)
         {
             DesignTime = designTime;
             TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
@@ -81,6 +85,7 @@ namespace Buildalyzer.Environment
             // Set environment variables 
             _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
+            _dotnetExePath = dotnetExePath ?? "dotnet";
         }
 
         private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
@@ -113,6 +118,7 @@ namespace Buildalyzer.Environment
                 targets,
                 MsBuildExePath,
                 _additionalGlobalProperties,
-                _additionalEnvironmentVariables);
+                _additionalEnvironmentVariables,
+                _dotnetExePath);
     }
 }

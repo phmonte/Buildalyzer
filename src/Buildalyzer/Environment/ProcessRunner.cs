@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -10,9 +11,12 @@ namespace Buildalyzer.Environment
     internal class ProcessRunner : IDisposable
     {
         private readonly ILogger<ProcessRunner> _logger;
-        private readonly List<string> _output;
+        
+        public List<string> Output { get; private set; }
+        public List<string> Error { get; private set; }
+        public int ExitCode => Process.ExitCode;
 
-        public Process Process { get; }
+        private Process Process { get; }
 
         public Action Exited { get; set; }
 
@@ -21,19 +25,24 @@ namespace Buildalyzer.Environment
             string arguments,
             string workingDirectory,
             Dictionary<string, string> environmentVariables,
-            ILoggerFactory loggerFactory,
-            List<string> output = null)
+            ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory?.CreateLogger<ProcessRunner>();
-            _output = output;
-            Process = new Process();
+            Process = new Process
+            {
+                StartInfo =
+                {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    WorkingDirectory = workingDirectory,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                }
+            };
 
             // Create the process info
-            Process.StartInfo.FileName = fileName;
-            Process.StartInfo.Arguments = arguments;
-            Process.StartInfo.WorkingDirectory = workingDirectory;
-            Process.StartInfo.CreateNoWindow = true;
-            Process.StartInfo.UseShellExecute = false;
 
             // Copy over environment variables
             if(environmentVariables != null)
@@ -45,13 +54,6 @@ namespace Buildalyzer.Environment
                 }
             }
 
-            // Capture output
-            if (_logger != null || output != null)
-            {
-                Process.StartInfo.RedirectStandardOutput = true;
-                Process.OutputDataReceived += DataReceived;
-            }
-
             Process.EnableRaisingEvents = true;  // Raises Process.Exited immediatly instead of when checked via .WaitForExit() or .HasExited
             Process.Exited += ProcessExited;
         }
@@ -60,10 +62,6 @@ namespace Buildalyzer.Environment
         {
             Process.Start();
             _logger?.LogDebug($"{System.Environment.NewLine}Started process {Process.Id}: \"{Process.StartInfo.FileName}\" {Process.StartInfo.Arguments}{System.Environment.NewLine}");
-            if (_logger != null || _output != null)
-            {
-                Process.BeginOutputReadLine();
-            }
             return this;
         }
 
@@ -73,20 +71,29 @@ namespace Buildalyzer.Environment
             _logger?.LogDebug($"Process {Process.Id} exited with code {Process.ExitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
         }
 
+        public void WaitForExit()
+        {
+            Process.WaitForExit();
+            ProcessOutput();
+        }
+
+        public bool WaitForExit(int timeout)
+        {
+            var ret = Process.WaitForExit(timeout);
+            ProcessOutput();
+            return ret;
+        }
+
+        private void ProcessOutput()
+        {
+            Output = Process.StandardOutput.ReadToEnd().Split('\n').Select(l => l.Trim()).ToList();
+            Error = Process.StandardError.ReadToEnd().Split('\n').Select(l => l.Trim()).ToList();
+        }
+
         public void Dispose()
         {
             Process.Exited -= ProcessExited;
-            if (_logger != null || _output != null)
-            {
-                Process.OutputDataReceived -= DataReceived;
-            }
             Process.Close();
-        }        
-
-        private void DataReceived(object sender, DataReceivedEventArgs e)
-        {
-            _output?.Add(e.Data);
-            _logger?.LogDebug($"{e.Data}{System.Environment.NewLine}");
-        }
+        }                
     }
 }

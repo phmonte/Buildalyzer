@@ -23,17 +23,6 @@ namespace Buildalyzer.Environment
         public string ResolvePath(string projectPath)
         {
             List<string> output = GetInfo(projectPath);
-            if (output.Count == 0)
-            {
-                // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
-                int retry = 0;
-                do
-                {
-                    Thread.Sleep(500);
-                    output = GetInfo(projectPath);
-                    retry++;
-                } while (output.Count == 0 && retry < 5);
-            }
 
             // Did we get any output?
             if (output == null || output.Count == 0)
@@ -66,13 +55,12 @@ namespace Buildalyzer.Environment
             };
 
             // global.json may change the version, so need to set working directory
-            List<string> output = new List<string>();
-            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory, output))
+            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory))
             {
                 processRunner.Start();
-                processRunner.Process.WaitForExit(4000);
+                processRunner.WaitForExit(4000);
+                return processRunner.Output;
             }
-            return output;
         }
 
         // Try to find a base path

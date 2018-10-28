@@ -244,8 +244,8 @@ namespace Buildalyzer
                             processRunner.Exited = () => cancellation.Cancel();
                             processRunner.Start();
                             pipeLogger.ReadAll();
-                            processRunner.Process.WaitForExit();
-                            exitCode = processRunner.Process.ExitCode;
+                            processRunner.WaitForExit();
+                            exitCode = processRunner.ExitCode;
                         }
 
                         // Collect the results

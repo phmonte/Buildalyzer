@@ -31,6 +31,11 @@ AnalyzerResults results = analyzer.Build();
 string[] sourceFiles = results.First().SourceFiles;
 ```
 
+These blog posts might also help explain the motivation behind the project and how it works:
+* [Running A Design-Time Build With MSBuild APIs](https://daveaglick.com/posts/running-a-design-time-build-with-msbuild-apis)
+* [MSBuild Loggers And Logging Events](https://daveaglick.com/posts/msbuild-loggers-and-logging-events)
+
+
 ## Installation
 
 Buildalyzer is [available on NuGet](https://www.nuget.org/packages/Buildalyzer/) and can be installed via the commands below:

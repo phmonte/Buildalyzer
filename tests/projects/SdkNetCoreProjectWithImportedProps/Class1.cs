@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SdkProjectWithImportedProps
+namespace SdkNetCoreProjectWithImportedProps
 {
     public class Class1
     {

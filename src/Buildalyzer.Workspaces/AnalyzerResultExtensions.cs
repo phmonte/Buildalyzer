@@ -118,8 +118,54 @@ namespace Buildalyzer.Workspaces
                 documents: GetDocuments(analyzerResult, projectId),
                 projectReferences: GetExistingProjectReferences(analyzerResult, workspace),
                 metadataReferences: GetMetadataReferences(analyzerResult),
+                parseOptions: CreateParseOptions(analyzerResult, languageName),
                 compilationOptions: CreateCompilationOptions(analyzerResult, languageName));
             return projectInfo;
+        }
+
+        private static ParseOptions CreateParseOptions(AnalyzerResult analyzerResult, string languageName)
+        {
+            if (languageName == LanguageNames.CSharp)
+            {
+                CSharpParseOptions parseOptions = new CSharpParseOptions();
+
+                // Add any constants
+                string constants = analyzerResult.GetProperty("DefineConstants");
+                if(!string.IsNullOrWhiteSpace(constants))
+                {
+                    parseOptions = parseOptions
+                        .WithPreprocessorSymbols(constants.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()));
+                }
+
+                // Get language version
+                string langVersion = analyzerResult.GetProperty("LangVersion");
+                Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion;
+                if(!string.IsNullOrWhiteSpace(langVersion)
+                    && Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(langVersion, out languageVersion))
+                {
+                    parseOptions = parseOptions.WithLanguageVersion(languageVersion);
+                }
+
+                return parseOptions;
+            }
+
+            if (languageName == LanguageNames.VisualBasic)
+            {
+                VisualBasicParseOptions parseOptions = new VisualBasicParseOptions();
+
+                // Get language version
+                string langVersion = analyzerResult.GetProperty("LangVersion");
+                Microsoft.CodeAnalysis.VisualBasic.LanguageVersion languageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default;
+                if (!string.IsNullOrWhiteSpace(langVersion)
+                    && Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(langVersion, ref languageVersion))
+                {
+                    parseOptions = parseOptions.WithLanguageVersion(languageVersion);
+                }
+
+                return parseOptions;
+            }
+
+            return null;
         }
 
         private static CompilationOptions CreateCompilationOptions(AnalyzerResult analyzerResult, string languageName)
@@ -148,6 +194,7 @@ namespace Buildalyzer.Workspaces
                 {
                     return new CSharpCompilationOptions(kind.Value);
                 }
+
                 if (languageName == LanguageNames.VisualBasic)
                 {
                     return new VisualBasicCompilationOptions(kind.Value);

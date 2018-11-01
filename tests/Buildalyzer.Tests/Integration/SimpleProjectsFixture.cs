@@ -38,10 +38,11 @@ namespace Buildalyzer.Tests.Integration
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj",
+            @"SdkNetCoreProjectWithImportedProps\SdkNetCoreProjectWithImportedProps.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
-            @"SdkProjectWithImportedProps\SdkProjectWithImportedProps.csproj"
+            @"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj"
         };
 
         [Test]

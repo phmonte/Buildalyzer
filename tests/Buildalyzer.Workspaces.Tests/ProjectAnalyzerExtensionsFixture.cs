@@ -74,6 +74,22 @@ namespace Buildalyzer.Workspaces.Tests
             workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
         }
 
+        [Test]
+        public void SupportsConstants()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace();
+            Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
+
+            // Then
+            compilation.GetSymbolsWithName(x => x == "Class1").ShouldBeEmpty(log.ToString());
+            compilation.GetSymbolsWithName(x => x == "Class2").ShouldNotBeEmpty(log.ToString());
+        }
+
         private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             // The path will get normalized inside the .GetProject() call below

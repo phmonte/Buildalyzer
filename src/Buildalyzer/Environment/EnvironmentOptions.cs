@@ -11,18 +11,26 @@ namespace Buildalyzer.Environment
         public EnvironmentPreference Preference { get; set; } = EnvironmentPreference.Core;
 
         /// <summary>
-        /// The default targets to build. The eventual build environment may remove one or more of these
-        /// targets depending on project file format and build tools support.
+        /// The default targets to build.
         /// </summary>
-        public List<string> TargetsToBuild { get; } = new List<string> { "Restore", "Clean", "Build" };
+        public List<string> TargetsToBuild { get; } = new List<string> { "Clean", "Build" };
 
         /// <summary>
         /// Indicates that a design-time build should be performed.
+        /// The default value is <code>true</code>.
         /// </summary>
         /// <remarks>
         /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md
         /// </remarks>
         public bool DesignTime { get; set; } = true;
+
+        /// <summary>
+        /// Runs the restore target prior to any other targets using the MSBuild <code>restore</code> switch.
+        /// </summary>
+        /// <remarks>
+        /// See https://github.com/Microsoft/msbuild/pull/2414
+        /// </remarks>
+        public bool Restore { get; set; } = true;
 
         public IDictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>();
 

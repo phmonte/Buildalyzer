@@ -23,7 +23,18 @@ namespace Buildalyzer.Environment
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
 
+        /// <summary>
+        /// Indicates that a design-time build should be performed.
+        /// </summary>
+        /// <remarks>
+        /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md
+        /// </remarks>
         public bool DesignTime { get; }
+
+        /// <summary>
+        /// Runs the restore target prior to any other targets using the MSBuild <code>restore</code> switch.
+        /// </summary>
+        public bool Restore { get; }
 
         public string[] TargetsToBuild { get; }
 
@@ -35,12 +46,14 @@ namespace Buildalyzer.Environment
 
         public BuildEnvironment(
             bool designTime,
+            bool restore,
             string[] targetsToBuild,
             string msBuildExePath,
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
             DesignTime = designTime;
+            Restore = restore;
             TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
 
             // Check if we've already specified a path to MSBuild
@@ -110,6 +123,7 @@ namespace Buildalyzer.Environment
         public BuildEnvironment WithTargetsToBuild(params string[] targets) =>
             new BuildEnvironment(
                 DesignTime,
+                Restore,
                 targets,
                 MsBuildExePath,
                 _additionalGlobalProperties,

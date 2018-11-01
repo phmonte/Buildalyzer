@@ -94,6 +94,7 @@ namespace Buildalyzer.Environment
 
             return new BuildEnvironment(
                 options.DesignTime,
+                options.Restore,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,
@@ -123,6 +124,7 @@ namespace Buildalyzer.Environment
             
             return new BuildEnvironment(
                 options.DesignTime,
+                options.Restore,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 additionalGlobalProperties,

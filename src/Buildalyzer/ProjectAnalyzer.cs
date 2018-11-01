@@ -117,9 +117,7 @@ namespace Buildalyzer
             foreach (string targetFramework in targetFrameworks)
             {
                 BuildEnvironment buildEnvironment = EnvironmentFactory.GetBuildEnvironment(targetFramework, environmentOptions);
-                string[] targetsToBuild = buildEnvironment.TargetsToBuild;
-                Restore(buildEnvironment, ref targetsToBuild);
-                BuildTargets(buildEnvironment, targetFramework, targetsToBuild, results);
+                BuildTargets(buildEnvironment, targetFramework, buildEnvironment.TargetsToBuild, results);
             }
 
             return results;
@@ -145,11 +143,9 @@ namespace Buildalyzer
             }
             
             AnalyzerResults results = new AnalyzerResults();
-            string[] targetsToBuild = buildEnvironment.TargetsToBuild;
-            Restore(buildEnvironment, ref targetsToBuild);
             foreach (string targetFramework in targetFrameworks)
             {
-                BuildTargets(buildEnvironment, targetFramework, targetsToBuild, results);
+                BuildTargets(buildEnvironment, targetFramework, buildEnvironment.TargetsToBuild, results);
             }
 
             return results;
@@ -169,15 +165,12 @@ namespace Buildalyzer
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="environmentOptions">The environment options to use for the build.</param>
         /// <returns>The result of the build process.</returns>
-        public AnalyzerResults Build(string targetFramework, EnvironmentOptions environmentOptions)
-        {
-            if (environmentOptions == null)
-            {
-                throw new ArgumentNullException(nameof(environmentOptions));
-            }
-
-            return Build(targetFramework, EnvironmentFactory.GetBuildEnvironment(targetFramework, environmentOptions));
-        }
+        public AnalyzerResults Build(string targetFramework, EnvironmentOptions environmentOptions) => 
+            Build(
+                targetFramework,
+                EnvironmentFactory.GetBuildEnvironment(
+                    targetFramework,
+                    environmentOptions ?? throw new ArgumentNullException(nameof(environmentOptions))));
 
         /// <summary>
         /// Builds a specific target framework.
@@ -185,17 +178,12 @@ namespace Buildalyzer
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
         /// <returns>The result of the build process.</returns>
-        public AnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment)
-        {
-            if (buildEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(buildEnvironment));
-            }
-
-            string[] targetsToBuild = buildEnvironment.TargetsToBuild;
-            Restore(buildEnvironment, ref targetsToBuild);
-            return BuildTargets(buildEnvironment, targetFramework, targetsToBuild, new AnalyzerResults());
-        }
+        public AnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment) => 
+            BuildTargets(
+                buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment)),
+                targetFramework,
+                buildEnvironment.TargetsToBuild,
+                new AnalyzerResults());
 
         /// <summary>
         /// Builds the project without specifying a target framework. In a multi-targeted project this will return a <see cref="AnalyzerResult"/> for each target framework.
@@ -216,17 +204,7 @@ namespace Buildalyzer
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
         /// <returns>The result of the build process.</returns>
         public AnalyzerResults Build(BuildEnvironment buildEnvironment) => Build((string)null, buildEnvironment);
-
-        private void Restore(BuildEnvironment buildEnvironment, ref string[] targetsToBuild)
-        {
-            // Run the Restore target before any other targets in a seperate submission
-            if (targetsToBuild != null && targetsToBuild.Length > 0 && targetsToBuild[0].Equals("Restore", StringComparison.OrdinalIgnoreCase))
-            {
-                targetsToBuild = targetsToBuild.Skip(1).ToArray();
-                BuildTargets(buildEnvironment, null, new[] { "Restore" }, null);                
-            }
-        }
-
+        
         // This is where the magic happens - returns one result per result target framework
         private AnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
@@ -268,12 +246,12 @@ namespace Buildalyzer
                 initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
             }
 
-            // Get the logger arguments
+            // Get the logger arguments (/l)
             string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
             bool logEverything = _buildLoggers.Count > 0;
             string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
 
-            // Get the properties arguments
+            // Get the properties arguments (/property)
             Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
             if (!string.IsNullOrEmpty(targetFramework))
             {
@@ -282,10 +260,13 @@ namespace Buildalyzer
             }
             string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
 
-            // Get the target argument
+            // Get the target argument (/target)
             string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
 
-            arguments = $"{initialArguments} /noconsolelogger {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+            // Get the restore argument (/restore)
+            string restoreArgument = buildEnvironment.Restore ? "/restore" : string.Empty;
+
+            arguments = $"{initialArguments} /noconsolelogger {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
             return fileName;
         }
 

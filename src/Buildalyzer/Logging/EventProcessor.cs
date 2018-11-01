@@ -67,7 +67,7 @@ namespace Buildalyzer.Logging
             if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
             {
                 // Get the TFM for this project
-                string tfm = e.Properties.Cast<DictionaryEntry>()
+                string tfm = e.Properties?.Cast<DictionaryEntry>()
                     .FirstOrDefault(x => string.Equals(x.Key.ToString(), "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase)).Value as string;
                 if (!string.IsNullOrWhiteSpace(tfm))
                 {

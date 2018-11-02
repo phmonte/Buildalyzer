@@ -11,6 +11,7 @@ namespace Buildalyzer.Logging
     {
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
         private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
+        private readonly Stack<TargetStartedEventArgs> _targetStack = new Stack<TargetStartedEventArgs>();
         private readonly AnalyzerManager _manager;
         private readonly ProjectAnalyzer _analyzer;
         private readonly ILogger<EventProcessor> _logger;
@@ -23,7 +24,7 @@ namespace Buildalyzer.Logging
         public bool OverallSuccess { get; private set; }
 
         public IEnumerable<AnalyzerResult> Results => _results.Values;
-        
+
         public EventProcessor(AnalyzerManager manager, ProjectAnalyzer analyzer, IEnumerable<Microsoft.Build.Framework.ILogger> buildLoggers, IEventSource eventSource, bool analyze)
         {
             _manager = manager;
@@ -42,10 +43,12 @@ namespace Buildalyzer.Logging
             }
 
             // Send events to the tree constructor
-            if(analyze)
+            if (analyze)
             {
                 eventSource.ProjectStarted += ProjectStarted;
                 eventSource.ProjectFinished += ProjectFinished;
+                eventSource.TargetStarted += TargetStarted;
+                eventSource.TargetFinished += TargetFinished;
                 eventSource.MessageRaised += MessageRaised;
                 eventSource.BuildFinished += BuildFinished;
                 if (_logger != null)
@@ -54,11 +57,11 @@ namespace Buildalyzer.Logging
                 }
             }
         }
-        
+
         private void ProjectStarted(object sender, ProjectStartedEventArgs e)
         {
             // If we're not using an analyzer (I.e., from a binary log) and this is the first project file path we've seen, then it's the primary
-            if(_projectFilePath == null)
+            if (_projectFilePath == null)
             {
                 _projectFilePath = AnalyzerManager.NormalizePath(e.ProjectFile);
             }
@@ -89,9 +92,23 @@ namespace Buildalyzer.Logging
         private void ProjectFinished(object sender, ProjectFinishedEventArgs e)
         {
             AnalyzerResult result = _currentResult.Pop();
-            if(result != null)
+            if (result != null)
             {
                 result.Succeeded = e.Succeeded;
+            }
+        }
+
+        private void TargetStarted(object sender, TargetStartedEventArgs e)
+        {
+            _targetStack.Push(e);
+        }
+
+        private void TargetFinished(object sender, TargetFinishedEventArgs e)
+        {
+            if (_targetStack.Pop().TargetName != e.TargetName)
+            {
+                // Sanity check
+                throw new InvalidOperationException("Mismatched target events");
             }
         }
 
@@ -103,7 +120,7 @@ namespace Buildalyzer.Logging
                 && e is TaskCommandLineEventArgs cmd
                 && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
             {
-                result.ProcessCscCommandLine(cmd.CommandLine);
+                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
             }
         }
 
@@ -120,6 +137,8 @@ namespace Buildalyzer.Logging
             {
                 _eventSource.ProjectStarted -= ProjectStarted;
                 _eventSource.ProjectFinished -= ProjectFinished;
+                _eventSource.TargetStarted -= TargetStarted;
+                _eventSource.TargetFinished -= TargetFinished;
                 _eventSource.MessageRaised -= MessageRaised;
                 _eventSource.BuildFinished -= BuildFinished;
                 if (_logger != null)

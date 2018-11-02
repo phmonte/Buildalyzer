@@ -122,10 +122,10 @@ namespace Buildalyzer
             }
         }
 
-        internal void ProcessCscCommandLine(string commandLine)
+        internal void ProcessCscCommandLine(string commandLine, bool coreCompile)
         {
-            //TODO: HACK - CSC gets called twice for Web projects with Razor pages, this ignores the 2nd pass
-            if (string.IsNullOrWhiteSpace(commandLine) || _cscCommandLineArguments != null)
+            // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
+            if (string.IsNullOrWhiteSpace(commandLine) || (_cscCommandLineArguments != null && !coreCompile))
             {
                 return;
             }

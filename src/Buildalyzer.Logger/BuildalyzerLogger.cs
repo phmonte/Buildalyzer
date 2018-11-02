@@ -53,14 +53,37 @@ namespace Buildalyzer.Logger
             eventSource.ProjectFinished += (_, e) => Pipe.Write(e);
             eventSource.BuildFinished += (_, e) => Pipe.Write(e);
             eventSource.ErrorRaised += (_, e) => Pipe.Write(e);
-            eventSource.MessageRaised += (_, e) =>
+            eventSource.TargetStarted += TargetStarted;
+            eventSource.TargetFinished += TargetFinished;
+            eventSource.MessageRaised += MessageRaised;
+        }
+
+        private void TargetStarted(object sender, TargetStartedEventArgs e)
+        {
+            // Only send the CoreCompile target
+            if(e.TargetName == "CoreCompile")
             {
-                if(e is TaskCommandLineEventArgs cmd
-                    && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
-                {
-                    Pipe.Write(e);
-                }
-            };
+                Pipe.Write(e);
+            }
+        }
+
+        private void TargetFinished(object sender, TargetFinishedEventArgs e)
+        {
+            // Only send the CoreCompile target
+            if (e.TargetName == "CoreCompile")
+            {
+                Pipe.Write(e);
+            }
+        }
+
+        private void MessageRaised(object sender, BuildMessageEventArgs e)
+        {
+            // Only send if in the the Csc task
+            if (e is TaskCommandLineEventArgs cmd
+                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+            {
+                Pipe.Write(e);
+            }
         }
     }
 }

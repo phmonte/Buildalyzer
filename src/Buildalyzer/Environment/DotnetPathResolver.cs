@@ -22,7 +22,12 @@ namespace Buildalyzer.Environment
         // Don't cache the result because it might change project to project due to global.json
         public string ResolvePath(string projectPath)
         {
-            List<string> output = GetInfo(projectPath);
+            return ResolvePath(projectPath, null);
+        }
+        public string ResolvePath(string projectPath, string dotnetExePath)
+        {
+            dotnetExePath = dotnetExePath ?? "dotnet";
+            List<string> output = GetInfo(projectPath, dotnetExePath);
             if (output.Count == 0)
             {
                 // Need to rety calling "dotnet --info" and do a hacky timeout for the process otherwise it occasionally locks up during testing (and possibly in the field)
@@ -30,7 +35,7 @@ namespace Buildalyzer.Environment
                 do
                 {
                     Thread.Sleep(500);
-                    output = GetInfo(projectPath);
+                    output = GetInfo(projectPath, dotnetExePath);
                     retry++;
                 } while (output.Count == 0 && retry < 5);
             }
@@ -53,7 +58,7 @@ namespace Buildalyzer.Environment
             return basePath;
         }
 
-        private List<string> GetInfo(string projectPath)
+        private List<string> GetInfo(string projectPath, string dotnetExePath)
         {
             // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
             // running 'dotnet --info'. Otherwise, we may get localized results
@@ -67,7 +72,7 @@ namespace Buildalyzer.Environment
 
             // global.json may change the version, so need to set working directory
             List<string> output = new List<string>();
-            using (ProcessRunner processRunner = new ProcessRunner("dotnet", "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory, output))
+            using (ProcessRunner processRunner = new ProcessRunner(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory, output))
             {
                 processRunner.Start();
                 processRunner.Process.WaitForExit(4000);

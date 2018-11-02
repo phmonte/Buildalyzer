@@ -22,7 +22,6 @@ namespace Buildalyzer.Environment
         // Used for cloning
         private IDictionary<string, string> _additionalGlobalProperties;
         private IDictionary<string, string> _additionalEnvironmentVariables;
-        private string _dotnetExePath;
 
         /// <summary>
         /// Indicates that a design-time build should be performed.
@@ -41,20 +40,20 @@ namespace Buildalyzer.Environment
 
         public string MsBuildExePath { get; }
 
+        public string DotnetExePath { get; }
+
         public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables => _environmentVariables;
-
-        public string DotNetExePath => _dotnetExePath;
 
         public BuildEnvironment(
             bool designTime,
             bool restore,
             string[] targetsToBuild,
             string msBuildExePath,
+            string dotnetExePath,
             IDictionary<string, string> additionalGlobalProperties = null,
-            IDictionary<string, string> additionalEnvironmentVariables = null,
-            string dotnetExePath = null)
+            IDictionary<string, string> additionalEnvironmentVariables = null)
         {
             DesignTime = designTime;
             Restore = restore;
@@ -68,6 +67,9 @@ namespace Buildalyzer.Environment
             {
                 throw new ArgumentNullException(nameof(msBuildExePath));
             }
+
+            // The dotnet path defaults to "dotnet" - if it's null then the user changed it and we should warn them
+            DotnetExePath = dotnetExePath ?? throw new ArgumentNullException(nameof(dotnetExePath));
 
             // Set global properties
             _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -98,7 +100,6 @@ namespace Buildalyzer.Environment
             // Set environment variables 
             _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
-            _dotnetExePath = dotnetExePath ?? "dotnet";
         }
 
         private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
@@ -131,8 +132,8 @@ namespace Buildalyzer.Environment
                 Restore,
                 targets,
                 MsBuildExePath,
+                DotnetExePath,
                 _additionalGlobalProperties,
-                _additionalEnvironmentVariables,
-                _dotnetExePath);
+                _additionalEnvironmentVariables);
     }
 }

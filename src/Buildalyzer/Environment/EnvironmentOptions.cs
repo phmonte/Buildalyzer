@@ -32,9 +32,18 @@ namespace Buildalyzer.Environment
         /// </remarks>
         public bool Restore { get; set; } = true;
 
+        /// <summary>
+        /// The full path to the <code>dotnet</code> executable you want to use for the build when building
+        /// projects using the .NET Core SDK. Defaults to <code>dotnet</code> which will look in folders
+        /// specified in the path environment variable.
+        /// </summary>
+        /// <remarks>
+        /// Set this to something else to customize the .NET Core runtime you want to use (I.e., preview versions).
+        /// </remarks>
+        public string DotnetExePath { get; set; } = "dotnet";
+
         public IDictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>();
 
         public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
-        public string DotNetExePath { get; set; } = "dotnet";
     }
 }

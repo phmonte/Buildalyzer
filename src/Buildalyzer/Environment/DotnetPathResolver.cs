@@ -18,12 +18,8 @@ namespace Buildalyzer.Environment
             _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger<DotnetPathResolver>();
         }
-
+        
         // Don't cache the result because it might change project to project due to global.json
-        public string ResolvePath(string projectPath)
-        {
-            return ResolvePath(projectPath, null);
-        }
         public string ResolvePath(string projectPath, string dotnetExePath)
         {
             dotnetExePath = dotnetExePath ?? "dotnet";
@@ -43,7 +39,7 @@ namespace Buildalyzer.Environment
             // Did we get any output?
             if (output == null || output.Count == 0)
             {
-                _logger?.LogWarning("Could not get results from `dotnet --info` call");
+                _logger?.LogWarning($"Could not get results from `{ dotnetExePath } --info` call");
                 return null;
             }
             
@@ -51,7 +47,7 @@ namespace Buildalyzer.Environment
             string basePath = ParseBasePath(output) ?? ParseInstalledSdksPath(output);
             if(string.IsNullOrWhiteSpace(basePath))
             {
-                _logger?.LogWarning("Could not locate SDK path in `dotnet --info` results");
+                _logger?.LogWarning($"Could not locate SDK path in `{ dotnetExePath } --info` results");
                 return null;
             }
 

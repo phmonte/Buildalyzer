@@ -242,7 +242,7 @@ namespace Buildalyzer
             if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
             {
                 // .NET Core MSBuild .dll needs to be run with dotnet
-                fileName = buildEnvironment.DotNetExePath;
+                fileName = buildEnvironment.DotnetExePath;
                 initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
             }
 

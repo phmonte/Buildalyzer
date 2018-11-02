@@ -60,13 +60,14 @@ namespace Buildalyzer.Environment
         {
             // Get paths
             DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
-            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path, options.DotNetExePath);
+            string dotnetPath = pathResolver.ResolvePath(_projectFile.Path, options.DotnetExePath);
             if (dotnetPath == null)
             {
                 return null;
             }
+
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-            if(options.EnvironmentVariables.ContainsKey(Environment.EnvironmentVariables.MSBUILD_EXE_PATH))
+            if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
             {
                 msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
             }
@@ -101,9 +102,9 @@ namespace Buildalyzer.Environment
                 options.Restore,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
+                options.DotnetExePath,
                 additionalGlobalProperties,
-                additionalEnvironmentVariables,
-                options.DotNetExePath);
+                additionalEnvironmentVariables);
         }
 
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
@@ -137,9 +138,9 @@ namespace Buildalyzer.Environment
                 options.Restore,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
+                options.DotnetExePath,
                 additionalGlobalProperties,
-                options.EnvironmentVariables,
-                options.DotNetExePath);
+                options.EnvironmentVariables);
         }
 
         private bool GetFrameworkMsBuildExePath(out string msBuildExePath)

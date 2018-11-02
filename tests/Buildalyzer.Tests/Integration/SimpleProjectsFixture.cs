@@ -269,6 +269,21 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void SdkProjectWithPackageReferenceGetsPackageReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
+
+            // When
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> packageReferences = analyzer.Build().First().PackageReferences;
+
+            // Then
+            packageReferences.ShouldNotBeNull(log.ToString());
+            packageReferences.Keys.ShouldContain("NodaTime", log.ToString());
+        }
+
+        [Test]
         public void SdkProjectWithProjectReferenceGetsReferences()
         {
             // Given
@@ -298,6 +313,21 @@ namespace Buildalyzer.Tests.Integration
             // Then
             references.ShouldNotBeNull(log.ToString());
             references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+        }
+
+        [Test]
+        public void LegacyFrameworkProjectWithPackageReferenceGetsPackageReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
+
+            // When
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> packageReferences = analyzer.Build().First().PackageReferences;
+
+            // Then
+            packageReferences.ShouldNotBeNull(log.ToString());
+            packageReferences.Keys.ShouldContain("NodaTime", log.ToString());
         }
 
         [Test]

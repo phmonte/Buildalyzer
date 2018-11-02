@@ -124,7 +124,8 @@ namespace Buildalyzer
 
         internal void ProcessCscCommandLine(string commandLine)
         {
-            if (string.IsNullOrWhiteSpace(commandLine))
+            //TODO: HACK - CSC gets called twice for Web projects with Razor pages, this ignores the 2nd pass
+            if (string.IsNullOrWhiteSpace(commandLine) || _cscCommandLineArguments != null)
             {
                 return;
             }

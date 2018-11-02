@@ -13,9 +13,6 @@ namespace Buildalyzer.Workspaces
 {
     public static class AnalyzerResultExtensions
     {
-        // Cache the project references for projects we've already seen to avoid rebuilding
-        private static ConcurrentDictionary<ProjectId, string[]> _projectReferences = new ConcurrentDictionary<ProjectId, string[]>();
-
         /// <summary>
         /// Gets a Roslyn workspace for the analyzed results.
         /// </summary>
@@ -56,21 +53,22 @@ namespace Buildalyzer.Workspaces
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
+
             // Get or create an ID for this project
             ProjectId projectId = ProjectId.CreateFromSerialized(analyzerResult.ProjectGuid);
 
             // Cache the project references
-            _projectReferences.AddOrUpdate(projectId, _ => analyzerResult.ProjectReferences.ToArray(), (_, __) => analyzerResult.ProjectReferences.ToArray());
+            analyzerResult.Manager.WorkspaceProjectReferences[projectId.Id] = analyzerResult.ProjectReferences.ToArray();
 
             // Create and add the project
             ProjectInfo projectInfo = GetProjectInfo(analyzerResult, workspace, projectId);
             Solution solution = workspace.CurrentSolution.AddProject(projectInfo);
-
+            
             // Check if this project is referenced by any other projects in the workspace
             foreach (Project existingProject in solution.Projects.ToArray())
             {
                 if(!existingProject.Id.Equals(projectId)
-                    && _projectReferences.TryGetValue(existingProject.Id, out string[] existingReferences)
+                    && analyzerResult.Manager.WorkspaceProjectReferences.TryGetValue(existingProject.Id.Id, out string[] existingReferences)
                     && existingReferences.Contains(analyzerResult.ProjectFilePath))
                 {
                     // Add the reference to the existing project
@@ -245,11 +243,6 @@ namespace Buildalyzer.Workspaces
                 default:
                     throw new InvalidOperationException("Could not determine supported language from project path");
             }
-        }
-
-        public static void ClearCacheReferences()
-        {
-            _projectReferences = new ConcurrentDictionary<ProjectId, string[]>();
         }
     }
 }

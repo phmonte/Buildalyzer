@@ -37,6 +37,13 @@ namespace Buildalyzer
 
         internal ConcurrentDictionary<string, string> EnvironmentVariables { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// This maps Roslyn project IDs to full normalized project file paths of references (since the Roslyn Project doesn't provide access to this data)
+        /// which allows us to match references with Roslyn projects that already exist in the Workspace/Solution (instead of rebuilding them).
+        /// This cache exists in <see cref="AnalyzerManager"/> so that it's lifetime can be controlled and it can be collected when <see cref="AnalyzerManager"/> goes out of scope.
+        /// </summary>
+        internal ConcurrentDictionary<Guid, string[]> WorkspaceProjectReferences = new ConcurrentDictionary<Guid, string[]>();
+
         public string SolutionFilePath { get; }
 
         public SolutionFile SolutionFile { get; }

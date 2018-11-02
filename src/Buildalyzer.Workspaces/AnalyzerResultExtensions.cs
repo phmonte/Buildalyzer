@@ -56,7 +56,6 @@ namespace Buildalyzer.Workspaces
             {
                 throw new ArgumentNullException(nameof(workspace));
             }
-
             // Get or create an ID for this project
             ProjectId projectId = ProjectId.CreateFromSerialized(analyzerResult.ProjectGuid);
 
@@ -246,6 +245,11 @@ namespace Buildalyzer.Workspaces
                 default:
                     throw new InvalidOperationException("Could not determine supported language from project path");
             }
+        }
+
+        public static void ClearCacheReferences()
+        {
+            _projectReferences = new ConcurrentDictionary<ProjectId, string[]>();
         }
     }
 }

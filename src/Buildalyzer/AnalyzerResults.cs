@@ -15,7 +15,7 @@ namespace Buildalyzer
         {
             foreach (AnalyzerResult result in results)
             {
-                _results.Add(result.TargetFramework ?? string.Empty, result);
+                _results[result.TargetFramework ?? string.Empty] = result;
             }
             _overallSuccess = _overallSuccess.HasValue ? _overallSuccess.Value && overallSuccess : overallSuccess;
         }

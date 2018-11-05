@@ -129,13 +129,18 @@ namespace Buildalyzer
             {
                 return;
             }
-            _cscCommandLineArguments = new List<(string, string)>();
+            _cscCommandLineArguments = ProcessCscCommandLine(commandLine);
+        }
+
+        internal static List<(string, string)> ProcessCscCommandLine(string commandLine)
+        {
+            List<(string, string)> args = new List<(string, string)>();
 
             string[] parts = commandLine.Split(new[] { ' ' });
 
             // Combine the initial command
             int start = Array.FindIndex(parts, x => x.Length > 0 && x[0] == '/');
-            _cscCommandLineArguments.Add((null, string.Join(" ", parts.Take(start)).Trim('"')));
+            args.Add((null, string.Join(" ", parts.Take(start)).Trim('"')));
 
             // Iterate the rest of them
             for (int c = start; c < parts.Length; c++)
@@ -149,7 +154,7 @@ namespace Buildalyzer
                         if (valueStart == -1 || valueStart >= parts[c].Length - 1)
                         {
                             // Argument without a value
-                            _cscCommandLineArguments.Add(
+                            args.Add(
                                 (valueStart == -1 ? parts[c].Substring(1) : parts[c].Substring(1, valueStart - 1), null));
                             continue;
                         }
@@ -160,35 +165,59 @@ namespace Buildalyzer
                     {
                         // The value is quoted, find the end quote
                         int first = c;
-                        while (c < parts.Length
-                            && parts[c][parts[c].Length - 1] != '"'
-                            && (parts[c].Length > 1 || parts[c][parts[c].Length - 2] != '\\'))
+                        while(c < parts.Length)
                         {
+                            // The last char is a quote
+                            if(((c == first && parts[c].Length > valueStart + 1) || (c != first && parts[c].Length > 0))
+                                && parts[c][parts[c].Length - 1] == '"')
+                            {
+                                // ...and it's not preceded by an escape
+                                if(parts[c].Length < 2 || parts[c][parts[c].Length - 2] != '\\')
+                                {
+                                    break;
+                                }
+                            }
                             c++;
                         }
 
                         if (first == c)
                         {
                             // The end quote was in the same part
-                            _cscCommandLineArguments.Add((
+                            args.Add((
                                 valueStart == 0 ? null : parts[c].Substring(1, valueStart - 2),
-                                parts[c].Substring(valueStart).Trim('"')));
+                                RemoveQuotes(parts[c].Substring(valueStart))));
                             continue;
                         }
 
                         // The end quote is in another part, join them
-                        _cscCommandLineArguments.Add((
+                        args.Add((
                             valueStart == 0 ? null : parts[first].Substring(1, valueStart - 2),
-                            string.Join(" ", parts.Skip(first).Take(c - first + 1)).Substring(valueStart).Trim('"')));
+                            RemoveQuotes(string.Join(" ", parts.Skip(first).Take(c - first + 1)).Substring(valueStart))));
                         continue;
                     }
 
                     // Not quoted, return the value
-                    _cscCommandLineArguments.Add((
+                    args.Add((
                         valueStart == 0 ? null : parts[c].Substring(1, valueStart - 2),
                         parts[c].Substring(valueStart)));
                 }
             }
+
+            return args;
+        }
+
+        /// <summary>
+        /// Removes quotes from the string, but only from the first and last character.
+        /// </summary>>
+        private static string RemoveQuotes(string str)
+        {
+            if(str.Length < 2)
+            {
+                return str.Trim('"');
+            }
+            int start = str[0] == '"' ? 1 : 0;
+            int length = str[str.Length - 1] == '"' ? str.Length - start - 1 : str.Length - start;
+            return str.Length > 1 ? str.Substring(start, length) : str;
         }
 
         private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<ProjectItem>

@@ -54,7 +54,7 @@ namespace Buildalyzer.Environment
                 }
             }
 
-            Process.EnableRaisingEvents = true;  // Raises Process.Exited immediatly instead of when checked via .WaitForExit() or .HasExited
+            Process.EnableRaisingEvents = true;  // Raises Process.Exited immediately instead of when checked via .WaitForExit() or .HasExited
             Process.Exited += ProcessExited;
         }
         
@@ -79,9 +79,9 @@ namespace Buildalyzer.Environment
 
         public bool WaitForExit(int timeout)
         {
-            var ret = Process.WaitForExit(timeout);
+            bool exited = Process.WaitForExit(timeout);
             ProcessOutput();
-            return ret;
+            return exited;
         }
 
         private void ProcessOutput()

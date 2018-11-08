@@ -1,5 +1,14 @@
-# 2.1.1
+# 2.2.0
 
+- [Fix] Several fixes for parsing the `csc` command line arguments from the build log (#89)
+- [Feature] Passes all defined constants from the build to Roslyn (#86)
+- [Feature] Now uses a single MSBuild submission and defers restore phase to MSBuild (#66)
+- [Feature] Better processing of `dotnet` console output (#94, thanks @jonstelly)
+- [Feature] Better support for two-phase builds like Razor projects (#92, #93, thanks @jonstelly)
+- [Feature] Parallelize project builds when creating a Roslyn workspace (#91, thanks @jonstelly)
+- [Refactoring] Scopes project ID cache when creating Roslyn workspaces to `AnalyzerManager` (#87. #88, thanks @wadinj)
+- [Feature] Adds support for setting a custom `dotnet.exe` path (#84, thanks @itn3000)
+- [Fix] Avoid exceptions when overwriting existing keys in `EnvironmentOptions` (#83, thanks @itn3000)
 - [Feature] Adds `AnalyzerResult.PackageReferences` to easily access project package references (#82, thanks @mholo65)
 
 # 2.1.0

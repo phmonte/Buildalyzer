@@ -138,8 +138,8 @@ namespace Buildalyzer
 
             string[] parts = commandLine.Split(new[] { ' ' });
 
-            // Combine the initial command
-            int start = Array.FindIndex(parts, x => x.Length > 0 && x[0] == '/');
+            // Combine the initial command (find the first argument by looking for the last part that contains "csc.")
+            int start = Array.FindIndex(parts, x => x.Length > 0 && x.ToLowerInvariant().Contains("csc.")) + 1;
             args.Add((null, string.Join(" ", parts.Take(start)).Trim('"')));
 
             // Iterate the rest of them

@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -32,7 +33,7 @@ namespace Buildalyzer.Tests
         public void ParsesCscCommandLineSourceFiles(string commandLine, string[] sourceFiles)
         {
             // Given
-            commandLine = @"csc.exe "
+            commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
                 + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
                 + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;
@@ -46,20 +47,22 @@ namespace Buildalyzer.Tests
 
         [TestCase("foo.cs bar.cs csc.dll", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs csc.exe bar.cs", new[] { "foo.cs", "bar.cs" })]
+        [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
         public void RemovesCscAssembliesFromSourceFiles(string commandLine, string[] sourceFiles)
         {
             // Given
-            commandLine = @"csc.exe "
+            commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
                 + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
                 + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;
-            AnalyzerResult result = new AnalyzerResult(@"C:\Code\Project\project.csproj", null, null);
+            string projectFilePath = Path.Combine("/", "Code", "Project", "project.csproj");
+            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
 
             // When
             result.ProcessCscCommandLine(commandLine, false);
 
             // Then
-            result.SourceFiles.ShouldBe(sourceFiles.Select(x => $@"C:\Code\Project\{ x }"));
+            result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
         }
     }
 }

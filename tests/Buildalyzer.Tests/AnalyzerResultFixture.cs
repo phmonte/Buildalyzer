@@ -32,7 +32,7 @@ namespace Buildalyzer.Tests
         public void ParsesCscCommandLineSourceFiles(string commandLine, string[] sourceFiles)
         {
             // Given
-            commandLine = @"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\Roslyn\csc.exe "
+            commandLine = @"csc.exe "
                 + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
                 + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;
@@ -49,7 +49,7 @@ namespace Buildalyzer.Tests
         public void RemovesCscAssembliesFromSourceFiles(string commandLine, string[] sourceFiles)
         {
             // Given
-            commandLine = @"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\Roslyn\csc.exe "
+            commandLine = @"csc.exe "
                 + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
                 + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;

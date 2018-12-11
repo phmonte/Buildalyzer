@@ -111,13 +111,13 @@ Task("Test")
             NoRestore = true,
             Configuration = configuration
         };
-        if (AppVeyor.IsRunningOnAppVeyor)
+        if (isRunningOnBuildServer)
         {
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
-            testSettings.Logger = "Appveyor";
+            testSettings.Logger = "PipelinesTestLogger";
 
             // Remove this when no longer using the tool (see above)
-            testSettings.TestAdapterPath = GetDirectories($"./tools/Appveyor.TestLogger.*/build/_common").First();
+            testSettings.TestAdapterPath = GetDirectories($"./tools/PipelinesTestLogger.*/contentFiles/any/any").First();
         }
 
         Information($"Running tests in {project}");
@@ -285,18 +285,7 @@ Task("BuildServer")
     .IsDependentOn("Pack")
     .IsDependentOn("Zip")
     .IsDependentOn("MyGet")
-    .WithCriteria(() => AppVeyor.IsRunningOnAppVeyor)
-    .Does(() =>
-    {
-        AppVeyor.UpdateBuildVersion(semVersion);
-        
-        foreach(var file in GetFiles($"{ buildDir }/**/*"))
-        {
-            Information(file.FullPath);
-            AppVeyor.UploadArtifact(file);
-        }
-    });
-
+    .WithCriteria(() => isRunningOnBuildServer);
 
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS

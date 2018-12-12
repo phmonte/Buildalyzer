@@ -6,7 +6,7 @@ jobs:
   - script: build -target BuildServer
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-      MYGET_API_KEY: $(MYGET_API_KEY)
+      MYGET_KEY: $(MYGET_API_KEY)
 - job: Linux
   pool:
     vmImage: 'ubuntu 16.04'

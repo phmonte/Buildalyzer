@@ -60,6 +60,9 @@ var docsDir = Directory("./docs");
 Setup(context =>
 {
     Information($"Building version {semVersion} of {projectName}.");
+    Information($"SYSTEM_TEAMFOUNDATIONCOLLECTIONURI: {EnvironmentVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI")}");
+    Information($"SYSTEM_TEAMPROJECT: {EnvironmentVariable("SYSTEM_TEAMPROJECT")}");
+    Information($"BUILD_BUILDID: {EnvironmentVariable("BUILD_BUILDID")}");
 });
 
 //////////////////////////////////////////////////////////////////////

@@ -8,7 +8,7 @@
 #addin nuget:?package=Cake.Wyam&version=1.5.1
 #addin "Octokit"
 #addin "NetlifySharp"
-#tool "PipelinesTestLogger&version=0.1.0"
+#tool "PipelinesTestLogger&version=0.1.1"
 
 using Octokit;
 using NetlifySharp;
@@ -60,9 +60,6 @@ var docsDir = Directory("./docs");
 Setup(context =>
 {
     Information($"Building version {semVersion} of {projectName}.");
-    Information($"SYSTEM_TEAMFOUNDATIONCOLLECTIONURI: {EnvironmentVariable("SYSTEM_TEAMFOUNDATIONCOLLECTIONURI")}");
-    Information($"SYSTEM_TEAMPROJECT: {EnvironmentVariable("SYSTEM_TEAMPROJECT")}");
-    Information($"BUILD_BUILDID: {EnvironmentVariable("BUILD_BUILDID")}");
 });
 
 //////////////////////////////////////////////////////////////////////

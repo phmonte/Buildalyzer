@@ -8,7 +8,7 @@
 #addin nuget:?package=Cake.Wyam&version=1.5.1
 #addin "Octokit"
 #addin "NetlifySharp"
-#tool "PipelinesTestLogger&version=0.2.2"
+#tool "AzurePipelines.TestLogger&version=0.3.0"
 
 using Octokit;
 using NetlifySharp;
@@ -113,10 +113,10 @@ Task("Test")
         if (isRunningOnBuildServer)
         {
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
-            testSettings.Logger = "PipelinesTestLogger";
+            testSettings.Logger = "AzurePipelines";
 
             // Remove this when no longer using the tool (see above)
-            testSettings.TestAdapterPath = GetDirectories($"./tools/PipelinesTestLogger.*/contentFiles/any/any").First();
+            testSettings.TestAdapterPath = GetDirectories($"./tools/AzurePipelines.TestLogger.*/contentFiles/any/any").First();
         }
 
         Information($"Running tests in {project}");

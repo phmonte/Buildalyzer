@@ -8,7 +8,7 @@
 #addin nuget:?package=Cake.Wyam&version=1.5.1
 #addin "Octokit"
 #addin "NetlifySharp"
-#tool "AzurePipelines.TestLogger&version=0.3.0"
+#tool "AzurePipelines.TestLogger&version=0.4.0"
 
 using Octokit;
 using NetlifySharp;

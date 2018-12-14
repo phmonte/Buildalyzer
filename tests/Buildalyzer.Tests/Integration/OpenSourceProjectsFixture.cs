@@ -35,8 +35,6 @@ namespace Buildalyzer.Tests.Integration
                 @"\bench\Autofac.Benchmarks\Autofac.Benchmarks.csproj"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
-            new TestRepository("https://github.com/nodatime/nodatime.git",
-                @"\src\NodaTime.Web.Blazor\NodaTime.Web.Blazor.csproj"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/serilog/serilog.git"), // SourceLink messed up from AppVeyor on SDK: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
             new TestRepository("https://github.com/cake-build/cake"),
             new TestRepository("https://github.com/Wyamio/Wyam.git")

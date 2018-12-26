@@ -155,10 +155,10 @@ namespace Buildalyzer.Tests.Integration
             AnalyzerResults results = analyzer.Build(options);
 #else
             // On non-Windows platforms we have to remove the .NET Framework target frameworks and only build .NET Core target frameworks
-            // See https://github.com/dotnet/sdk/issues/826            
+            // See https://github.com/dotnet/sdk/issues/826
             string[] excludedTargetFrameworks = new[] { "net2", "net3", "net4", "portable" };
             string[] targetFrameworks = analyzer.ProjectFile.TargetFrameworks.Where(x => !excludedTargetFrameworks.Any(y => x.StartsWith(y))).ToArray();
-            if(targetFrameworks.Length == 0)
+            if (targetFrameworks.Length == 0)
             {
                 Assert.Ignore();
             }

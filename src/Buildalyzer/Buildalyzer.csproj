@@ -9,7 +9,7 @@
     <Version>1.0.0</Version>
     <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/daveaglick/Buildalyzer/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>

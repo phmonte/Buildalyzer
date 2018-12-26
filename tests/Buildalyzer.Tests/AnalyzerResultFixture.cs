@@ -1,10 +1,10 @@
-﻿using NUnit.Framework;
-using Shouldly;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using NUnit.Framework;
+using Shouldly;
 
 namespace Buildalyzer.Tests
 {
@@ -13,10 +13,10 @@ namespace Buildalyzer.Tests
     {
         [TestCase("foo.cs", new[] { "foo.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
-        [TestCase("\"foo.cs\"", new [] { "foo.cs" })]
+        [TestCase("\"foo.cs\"", new[] { "foo.cs" })]
         [TestCase("\"fizz buzz.cs\"", new[] { "fizz buzz.cs" })]
         [TestCase("foo.cs \"fizz buzz.cs\"", new[] { "foo.cs", "fizz buzz.cs" })]
-        [TestCase("\"fizz - buzz.cs\"", new[] { "fizz - buzz.cs" })]  // #89
+        [TestCase("\"fizz - buzz.cs\"", new[] { "fizz - buzz.cs" })] // #89
         [TestCase("\"f oo.cs\"", new[] { "f oo.cs" })]
         [TestCase("\" foo.cs\"", new[] { " foo.cs" })]
         [TestCase("\"foo.cs \"", new[] { "foo.cs " })]
@@ -34,8 +34,7 @@ namespace Buildalyzer.Tests
         {
             // Given
             commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
-                + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
-                + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;
 
             // When
@@ -52,8 +51,7 @@ namespace Buildalyzer.Tests
         {
             // Given
             commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
-                + @"/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ "
-                + @"/errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
                 + commandLine;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.csproj");
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);

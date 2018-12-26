@@ -120,7 +120,7 @@ namespace Buildalyzer.Environment
             }
 
             string msBuildExePath;
-            if(options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+            if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
             {
                 msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
             }

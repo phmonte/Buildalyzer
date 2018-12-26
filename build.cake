@@ -8,7 +8,7 @@
 #addin nuget:?package=Cake.Wyam&version=1.5.1
 #addin "Octokit"
 #addin "NetlifySharp"
-#tool "AzurePipelines.TestLogger&version=0.4.7"
+#tool "AzurePipelines.TestLogger&version=1.0.0"
 #tool "nuget:?package=NuGet.CommandLine&version=4.7.1""
 
 using Octokit;
@@ -37,7 +37,7 @@ var configuration = Argument("configuration", "Release");
 var isLocal = BuildSystem.IsLocalBuild;
 var isRunningOnUnix = IsRunningOnUnix();
 var isRunningOnWindows = IsRunningOnWindows();
-var isRunningOnBuildServer = TFBuild.IsRunningOnVSTS;
+var isRunningOnBuildServer = !string.IsNullOrEmpty(EnvironmentVariable("AGENT_NAME")); // See https://github.com/cake-build/cake/issues/1684#issuecomment-397682686
 var isPullRequest = !string.IsNullOrWhiteSpace(EnvironmentVariable("SYSTEM_PULLREQUEST_PULLREQUESTID"));  // See https://github.com/cake-build/cake/issues/2149
 var buildNumber = TFBuild.Environment.Build.Number.Replace('.', '-');
 var branch = TFBuild.Environment.Repository.Branch;
@@ -115,8 +115,6 @@ Task("Test")
         {
             testSettings.Filter = "TestCategory!=ExcludeFromBuildServer";
             testSettings.Logger = "AzurePipelines";
-
-            // Remove this when no longer using the tool (see above)
             testSettings.TestAdapterPath = GetDirectories($"./tools/AzurePipelines.TestLogger.*/contentFiles/any/any").First();
         }
 
@@ -279,14 +277,6 @@ Task("Netlify")
         client.UpdateSite($"{siteName}.netlify.com", MakeAbsolute(docsDir).FullPath + "/output").SendAsync().Wait();
     });
 
-Task("BuildServer")
-    .Description("Runs a build from the build server and updates build server data.")
-    .IsDependentOn("Test")
-    .IsDependentOn("Pack")
-    .IsDependentOn("Zip")
-    .IsDependentOn("MyGet")
-    .WithCriteria(() => isRunningOnBuildServer);
-
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
 //////////////////////////////////////////////////////////////////////
@@ -299,6 +289,14 @@ Task("Release")
     .IsDependentOn("GitHub")
     .IsDependentOn("NuGet")
     .IsDependentOn("Netlify");
+    
+Task("BuildServer")
+    .Description("Runs a build from the build server and updates build server data.")
+    .IsDependentOn("Test")
+    .IsDependentOn("Pack")
+    .IsDependentOn("Zip")
+    .IsDependentOn("MyGet")
+    .WithCriteria(() => isRunningOnBuildServer);
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION

@@ -15,6 +15,8 @@ A utility to perform design-time builds of .NET projects without having to think
 
 **Donations**
 
+If you found this library useful, consider kicking me a few bucks. I promise to use it on something totally frivolous and unrelated.
+
 <a href="https://www.buymeacoffee.com/daveaglick"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
 ---

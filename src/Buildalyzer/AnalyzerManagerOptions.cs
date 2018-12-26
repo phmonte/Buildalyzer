@@ -15,7 +15,7 @@ namespace Buildalyzer
         {
             set
             {
-                if(value == null)
+                if (value == null)
                 {
                     LoggerFactory = null;
                     return;

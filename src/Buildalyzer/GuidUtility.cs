@@ -9,8 +9,8 @@ namespace Buildalyzer
     /// Helper methods for working with <see cref="Guid"/>.
     /// </summary>
     /// <remarks>
-    /// From https://github.com/LogosBible/Logos.Utility/blob/master/src/Logos.Utility/GuidUtility.cs
-    /// See also https://stackoverflow.com/a/5657517/807064
+    /// From https://github.com/LogosBible/Logos.Utility/blob/master/src/Logos.Utility/GuidUtility.cs.
+    /// See also https://stackoverflow.com/a/5657517/807064.
     /// </remarks>
     internal static class GuidUtility
     {
@@ -38,9 +38,14 @@ namespace Buildalyzer
         public static Guid Create(Guid namespaceId, string name, int version)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
             if (version != 3 && version != 5)
-                throw new ArgumentOutOfRangeException("version", "version must be either 3 or 5.");
+            {
+                throw new ArgumentOutOfRangeException(nameof(version), "version must be either 3 or 5.");
+            }
 
             // convert the name to a sequence of octets (as defined by the standard or conventions of its namespace) (step 3)
             // ASSUME: UTF-8 encoding is always appropriate

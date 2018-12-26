@@ -10,7 +10,7 @@ namespace Buildalyzer
         public static IEnumerable<XElement> GetDescendants(this XDocument document, string name) =>
             document.Descendants().Where(x => string.Equals(x.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
 
-        public static IEnumerable<XElement> GetDescendants(this XElement element, string name) => 
+        public static IEnumerable<XElement> GetDescendants(this XElement element, string name) =>
             element.Descendants().Where(x => string.Equals(x.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
 
         public static string GetAttributeValue(this XElement element, string name) =>

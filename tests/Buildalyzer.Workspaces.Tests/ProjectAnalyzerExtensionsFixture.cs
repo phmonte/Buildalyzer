@@ -20,7 +20,7 @@ namespace Buildalyzer.Workspaces.Tests
             // Given
             StringWriter log = new StringWriter();
             ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
-            
+
             // When
             Workspace workspace = analyzer.GetWorkspace();
 

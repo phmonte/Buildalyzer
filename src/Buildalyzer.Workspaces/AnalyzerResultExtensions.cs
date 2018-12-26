@@ -19,7 +19,7 @@ namespace Buildalyzer.Workspaces
         /// <param name="analyzerResult">The results from building a Buildalyzer project analyzer.</param>
         /// <param name="addProjectReferences">
         /// <c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.
-        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available. 
+        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>A Roslyn workspace.</returns>
         public static AdhocWorkspace GetWorkspace(this AnalyzerResult analyzerResult, bool addProjectReferences = false)
@@ -40,7 +40,7 @@ namespace Buildalyzer.Workspaces
         /// <param name="workspace">A Roslyn workspace.</param>
         /// <param name="addProjectReferences">
         /// <c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.
-        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available. 
+        /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>The newly added Roslyn project.</returns>
         public static Project AddToWorkspace(this AnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
@@ -63,11 +63,11 @@ namespace Buildalyzer.Workspaces
             // Create and add the project
             ProjectInfo projectInfo = GetProjectInfo(analyzerResult, workspace, projectId);
             Solution solution = workspace.CurrentSolution.AddProject(projectInfo);
-            
+
             // Check if this project is referenced by any other projects in the workspace
             foreach (Project existingProject in solution.Projects.ToArray())
             {
-                if(!existingProject.Id.Equals(projectId)
+                if (!existingProject.Id.Equals(projectId)
                     && analyzerResult.Manager.WorkspaceProjectReferences.TryGetValue(existingProject.Id.Id, out string[] existingReferences)
                     && existingReferences.Contains(analyzerResult.ProjectFilePath))
                 {
@@ -84,12 +84,12 @@ namespace Buildalyzer.Workspaces
             }
 
             // Add any project references not already added
-            if(addProjectReferences)
+            if (addProjectReferences)
             {
-                foreach(ProjectAnalyzer referencedAnalyzer in GetReferencedAnalyzerProjects(analyzerResult))
+                foreach (ProjectAnalyzer referencedAnalyzer in GetReferencedAnalyzerProjects(analyzerResult))
                 {
                     // Check if the workspace contains the project inside the loop since adding one might also add this one due to transitive references
-                    if(!workspace.CurrentSolution.Projects.Any(x => x.FilePath == referencedAnalyzer.ProjectFile.Path))
+                    if (!workspace.CurrentSolution.Projects.Any(x => x.FilePath == referencedAnalyzer.ProjectFile.Path))
                     {
                         referencedAnalyzer.AddToWorkspace(workspace, addProjectReferences);
                     }
@@ -128,7 +128,7 @@ namespace Buildalyzer.Workspaces
 
                 // Add any constants
                 string constants = analyzerResult.GetProperty("DefineConstants");
-                if(!string.IsNullOrWhiteSpace(constants))
+                if (!string.IsNullOrWhiteSpace(constants))
                 {
                     parseOptions = parseOptions
                         .WithPreprocessorSymbols(constants.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()));
@@ -136,9 +136,8 @@ namespace Buildalyzer.Workspaces
 
                 // Get language version
                 string langVersion = analyzerResult.GetProperty("LangVersion");
-                Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion;
-                if(!string.IsNullOrWhiteSpace(langVersion)
-                    && Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(langVersion, out languageVersion))
+                if (!string.IsNullOrWhiteSpace(langVersion)
+                    && Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(langVersion, out Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion))
                 {
                     parseOptions = parseOptions.WithLanguageVersion(languageVersion);
                 }
@@ -216,7 +215,7 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<DocumentInfo> GetDocuments(AnalyzerResult analyzerResult, ProjectId projectId) =>
             analyzerResult
-                .SourceFiles                ?.Where(File.Exists)
+                .SourceFiles?.Where(File.Exists)
                 .Select(x => DocumentInfo.Create(
                     DocumentId.CreateNewId(projectId),
                     Path.GetFileName(x),
@@ -228,7 +227,7 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<MetadataReference> GetMetadataReferences(AnalyzerResult analyzerResult) =>
             analyzerResult
-                .References                ?.Where(File.Exists)
+                .References?.Where(File.Exists)
                 .Select(x => MetadataReference.CreateFromFile(x))
             ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
 

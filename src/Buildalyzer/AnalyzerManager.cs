@@ -19,7 +19,7 @@ namespace Buildalyzer
 {
     public class AnalyzerManager
     {
-        internal readonly static SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
+        internal static readonly SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
         {
             SolutionProjectType.KnownToBeMSBuildFormat,
             SolutionProjectType.WebProject
@@ -32,7 +32,7 @@ namespace Buildalyzer
         public ILoggerFactory LoggerFactory { get; set; }
 
         internal IProjectTransformer ProjectTransformer { get; }
-        
+
         internal ConcurrentDictionary<string, string> GlobalProperties { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         internal ConcurrentDictionary<string, string> EnvironmentVariables { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -42,12 +42,14 @@ namespace Buildalyzer
         /// which allows us to match references with Roslyn projects that already exist in the Workspace/Solution (instead of rebuilding them).
         /// This cache exists in <see cref="AnalyzerManager"/> so that it's lifetime can be controlled and it can be collected when <see cref="AnalyzerManager"/> goes out of scope.
         /// </summary>
+#pragma warning disable SA1401 // Fields should be private
         internal ConcurrentDictionary<Guid, string[]> WorkspaceProjectReferences = new ConcurrentDictionary<Guid, string[]>();
+#pragma warning restore SA1401 // Fields should be private
 
         public string SolutionFilePath { get; }
 
         public SolutionFile SolutionFile { get; }
-        
+
         public AnalyzerManager(AnalyzerManagerOptions options = null)
             : this(null, options)
         {
@@ -103,7 +105,7 @@ namespace Buildalyzer
         public AnalyzerResults Analyze(string binLogPath, IEnumerable<Microsoft.Build.Framework.ILogger> buildLoggers = null)
         {
             binLogPath = NormalizePath(binLogPath);
-            if(!File.Exists(binLogPath))
+            if (!File.Exists(binLogPath))
             {
                 throw new ArgumentException($"The path {binLogPath} could not be found.");
             }
@@ -127,9 +129,9 @@ namespace Buildalyzer
             }
 
             projectFilePath = NormalizePath(projectFilePath);
-            if(!File.Exists(projectFilePath))
+            if (!File.Exists(projectFilePath))
             {
-                if(projectInSolution == null)
+                if (projectInSolution == null)
                 {
                     throw new ArgumentException($"The path {projectFilePath} could not be found.");
                 }

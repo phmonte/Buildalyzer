@@ -1,9 +1,9 @@
-﻿using Microsoft.Build.Framework;
-using MsBuildPipeLogger;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Build.Framework;
+using MsBuildPipeLogger;
 
 namespace Buildalyzer.Logger
 {
@@ -16,12 +16,12 @@ namespace Buildalyzer.Logger
         {
             // Parse the parameters
             string[] parameters = Parameters.Split(';').Select(x => x.Trim()).ToArray();
-            if(parameters.Length != 2)
+            if (parameters.Length != 2)
             {
                 throw new LoggerException("Unexpected number of parameters");
             }
             _pipeHandleAsString = parameters[0];
-            if(!bool.TryParse(parameters[1], out _logEverything))
+            if (!bool.TryParse(parameters[1], out _logEverything))
             {
                 throw new LoggerException("Second parameter (log everything) should be a bool");
             }
@@ -61,7 +61,7 @@ namespace Buildalyzer.Logger
         private void TargetStarted(object sender, TargetStartedEventArgs e)
         {
             // Only send the CoreCompile target
-            if(e.TargetName == "CoreCompile")
+            if (e.TargetName == "CoreCompile")
             {
                 Pipe.Write(e);
             }

@@ -1,17 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
 {
     internal class ProcessRunner : IDisposable
     {
         private readonly ILogger<ProcessRunner> _logger;
-        
+
         public List<string> Output { get; private set; }
         public List<string> Error { get; private set; }
         public int ExitCode => Process.ExitCode;
@@ -45,9 +45,9 @@ namespace Buildalyzer.Environment
             // Create the process info
 
             // Copy over environment variables
-            if(environmentVariables != null)
+            if (environmentVariables != null)
             {
-                foreach(KeyValuePair<string, string> variable in environmentVariables)
+                foreach (KeyValuePair<string, string> variable in environmentVariables)
                 {
                     Process.StartInfo.Environment[variable.Key] = variable.Value;
                     Process.StartInfo.EnvironmentVariables[variable.Key] = variable.Value;
@@ -57,7 +57,7 @@ namespace Buildalyzer.Environment
             Process.EnableRaisingEvents = true;  // Raises Process.Exited immediately instead of when checked via .WaitForExit() or .HasExited
             Process.Exited += ProcessExited;
         }
-        
+
         public ProcessRunner Start()
         {
             Process.Start();
@@ -94,6 +94,6 @@ namespace Buildalyzer.Environment
         {
             Process.Exited -= ProcessExited;
             Process.Close();
-        }                
+        }
     }
 }

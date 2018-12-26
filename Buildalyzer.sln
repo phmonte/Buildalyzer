@@ -11,10 +11,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Tests", "tests\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{8FD3A594-153D-4F6E-9D4F-12358C5C43B1}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		azure-pipelines.yml = azure-pipelines.yml
+		build.cake = build.cake
+		daveaglick.ruleset = daveaglick.ruleset
+		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		README.md = README.md
 		ReleaseNotes.md = ReleaseNotes.md
+		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces.Tests", "tests\Buildalyzer.Workspaces.Tests\Buildalyzer.Workspaces.Tests.csproj", "{2358397E-7B5D-47E7-AC53-10C61574A1B9}"
@@ -23,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces", "s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A52BD74E-3894-4A6E-8B9A-143A004F07F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buildalyzer.Logger", "src\Buildalyzer.Logger\Buildalyzer.Logger.csproj", "{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Logger", "src\Buildalyzer.Logger\Buildalyzer.Logger.csproj", "{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -19,7 +19,7 @@ namespace Buildalyzer
     public class ProjectAnalyzer
     {
         private readonly List<ILogger> _buildLoggers = new List<ILogger>();
-        
+
         // Project-specific global properties and environment variables
         private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly ConcurrentDictionary<string, string> _environmentVariables = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -38,6 +38,7 @@ namespace Buildalyzer
         /// Gets a GUID for the project. This checks for a GUID from the
         /// solution (if originally provided). If this isn't available, it
         /// will generate a UUID GUID by hashing the project path relative to the solution path (so it's repeatable).
+        /// </summary>
         public Guid ProjectGuid { get; }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Buildalyzer
         /// Additional environment variables may be added or changed by individual build environment.
         /// </remarks>
         public IReadOnlyDictionary<string, string> EnvironmentVariables => GetEffectiveEnvironmentVariables(null);
-        
+
         public IEnumerable<ILogger> BuildLoggers => _buildLoggers;
 
         public ILogger<ProjectAnalyzer> Logger { get; set; }
@@ -67,7 +68,7 @@ namespace Buildalyzer
 
         // The project file path should already be normalized
         internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, ProjectInSolution projectInSolution)
-        {            
+        {
             Manager = manager;
             Logger = Manager.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
             ProjectFile = new ProjectFile(projectFilePath, manager.ProjectTransformer);
@@ -141,7 +142,7 @@ namespace Buildalyzer
             {
                 targetFrameworks = new string[] { null };
             }
-            
+
             AnalyzerResults results = new AnalyzerResults();
             foreach (string targetFramework in targetFrameworks)
             {
@@ -165,7 +166,7 @@ namespace Buildalyzer
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="environmentOptions">The environment options to use for the build.</param>
         /// <returns>The result of the build process.</returns>
-        public AnalyzerResults Build(string targetFramework, EnvironmentOptions environmentOptions) => 
+        public AnalyzerResults Build(string targetFramework, EnvironmentOptions environmentOptions) =>
             Build(
                 targetFramework,
                 EnvironmentFactory.GetBuildEnvironment(
@@ -178,7 +179,7 @@ namespace Buildalyzer
         /// <param name="targetFramework">The target framework to build.</param>
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
         /// <returns>The result of the build process.</returns>
-        public AnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment) => 
+        public AnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment) =>
             BuildTargets(
                 buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment)),
                 targetFramework,
@@ -204,7 +205,7 @@ namespace Buildalyzer
         /// <param name="buildEnvironment">The build environment to use for the build.</param>
         /// <returns>The result of the build process.</returns>
         public AnalyzerResults Build(BuildEnvironment buildEnvironment) => Build((string)null, buildEnvironment);
-        
+
         // This is where the magic happens - returns one result per result target framework
         private AnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
@@ -258,7 +259,7 @@ namespace Buildalyzer
                 // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
                 effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
             }
-            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{(string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}")))}";
+            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}";
 
             // Get the target argument (/target)
             string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
@@ -305,7 +306,7 @@ namespace Buildalyzer
         private Dictionary<string, string> GetEffectiveGlobalProperties(BuildEnvironment buildEnvironment)
             => GetEffectiveDictionary(
                 true,  // Remove nulls to avoid passing null global properties. But null can be used in higher-precident dictionaries to ignore a lower-precident dictionary's value.
-               buildEnvironment?.GlobalProperties,
+                buildEnvironment?.GlobalProperties,
                 Manager.GlobalProperties,
                 _globalProperties);
 
@@ -339,14 +340,14 @@ namespace Buildalyzer
 
             return effectiveDictionary;
         }
-                        
+
         public void AddBinaryLogger(
             string binaryLogFilePath = null,
             BinaryLogger.ProjectImportsCollectionMode collectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed) =>
             AddBuildLogger(new BinaryLogger
             {
                 Parameters = binaryLogFilePath ?? Path.ChangeExtension(ProjectFile.Path, "binlog"),
-                CollectProjectImports = BinaryLogger.ProjectImportsCollectionMode.Embed,
+                CollectProjectImports = collectProjectImports,
                 Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
             });
 
@@ -381,5 +382,5 @@ namespace Buildalyzer
 
             _buildLoggers.Remove(logger);
         }
-    }    
+    }
 }

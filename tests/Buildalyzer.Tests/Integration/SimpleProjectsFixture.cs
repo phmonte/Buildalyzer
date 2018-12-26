@@ -1,13 +1,13 @@
-﻿using Buildalyzer.Environment;
-using Microsoft.Build.Framework;
-using NUnit.Framework;
-using Shouldly;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Buildalyzer.Environment;
+using Microsoft.Build.Framework;
+using NUnit.Framework;
+using Shouldly;
 
 namespace Buildalyzer.Tests.Integration
 {
@@ -15,10 +15,9 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class SimpleProjectsFixture
     {
-        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
         private const bool BinaryLog = false;
 
-        private static EnvironmentPreference[] Preferences =
+        private static readonly EnvironmentPreference[] Preferences =
         {
 #if Is_Windows
             EnvironmentPreference.Framework,
@@ -26,7 +25,7 @@ namespace Buildalyzer.Tests.Integration
             EnvironmentPreference.Core
         };
 
-        private static string[] ProjectFiles =
+        private static readonly string[] ProjectFiles =
         {
 #if Is_Windows
             @"LegacyFrameworkProject\LegacyFrameworkProject.csproj",
@@ -177,7 +176,7 @@ namespace Buildalyzer.Tests.Integration
             }
             finally
             {
-                if(File.Exists(binLogPath))
+                if (File.Exists(binLogPath))
                 {
                     File.Delete(binLogPath);
                 }
@@ -400,7 +399,7 @@ namespace Buildalyzer.Tests.Integration
         public void GetsProjectGuidFromProject([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given
-            string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
             ProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions
@@ -426,7 +425,7 @@ namespace Buildalyzer.Tests.Integration
         public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given
-            string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
             ProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions

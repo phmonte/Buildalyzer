@@ -1,10 +1,10 @@
-﻿using Microsoft.Build.Framework;
-using Microsoft.Build.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Logging;
 
 namespace Buildalyzer.Logging
 {

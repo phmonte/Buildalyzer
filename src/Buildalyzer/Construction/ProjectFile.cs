@@ -1,9 +1,9 @@
-﻿using Microsoft.Build.Evaluation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.Build.Evaluation;
 
 namespace Buildalyzer.Construction
 {
@@ -55,24 +55,15 @@ namespace Buildalyzer.Construction
         /// This does not perform evaluation of the project file, only parsing.
         /// If TargetFramework or TargetFrameworks contains a property that
         /// needs to be evaluated, this will contain the pre-evaluated value(s).
+        /// Try to find a TargetFrameworkIdentifier in the same PropertyGroup
+        /// and if no TargetFrameworkIdentifier was found, assume ".NETFramework".
         /// </remarks>
-        public string[] TargetFrameworks
-        {
-            get
-            {
-                if (_targetFrameworks == null)
-                {
-                    _targetFrameworks = GetTargetFrameworks(
-                        _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
-                        _projectElement.GetDescendants(ProjectFileNames.TargetFramework).Select(x => x.Value),
-                        _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
-                            // Try to find a TargetFrameworkIdentifier in the same PropertyGroup
-                            // If no TargetFrameworkIdentifier was found, assume ".NETFramework"
-                            .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value)));
-                }
-                return _targetFrameworks;
-            }
-        }
+        public string[] TargetFrameworks => _targetFrameworks
+            ?? (_targetFrameworks = GetTargetFrameworks(
+                _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
+                _projectElement.GetDescendants(ProjectFileNames.TargetFramework).Select(x => x.Value),
+                _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
+                    .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value))));
 
         /// <summary>
         /// Whether the project file uses an SDK.
@@ -84,7 +75,6 @@ namespace Buildalyzer.Construction
         public bool UsesSdk =>
             _projectElement.GetAttributeValue(ProjectFileNames.Sdk) != null
                 || _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Sdk) != null);
-
 
         /// <summary>
         /// Whether the project file requires a .NET Framework host and build tools to build.
@@ -117,14 +107,14 @@ namespace Buildalyzer.Construction
         /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).
         /// </summary>
         public string ToolsVersion => _projectElement.GetAttributeValue(ProjectFileNames.ToolsVersion);
-        
+
         internal XmlReader CreateReader()
         {
             XDocument document = new XDocument(_document);
             _transformer?.Transform(document);
             return document.CreateReader();
         }
-        
+
         internal static string[] GetTargetFrameworks(
             IEnumerable<string> targetFrameworksValues,
             IEnumerable<string> targetFrameworkValues,
@@ -132,7 +122,7 @@ namespace Buildalyzer.Construction
         {
             // Use TargetFrameworks and/or TargetFramework if either were found
             IEnumerable<string> allTargetFrameworks = null;
-            if(targetFrameworksValues != null)
+            if (targetFrameworksValues != null)
             {
                 allTargetFrameworks = targetFrameworksValues
                     .Where(x => x != null)
@@ -144,10 +134,10 @@ namespace Buildalyzer.Construction
                     ? targetFrameworkValues.Where(x => x != null).Select(x => x.Trim())
                     : allTargetFrameworks.Concat(targetFrameworkValues.Where(x => x != null).Select(x => x.Trim()));
             }
-            if(allTargetFrameworks != null)
+            if (allTargetFrameworks != null)
             {
                 string[] distinctTargetFrameworks = allTargetFrameworks.Distinct().ToArray();
-                if(distinctTargetFrameworks.Length > 0)
+                if (distinctTargetFrameworks.Length > 0)
                 {
                     // Only return if we actually found any
                     return distinctTargetFrameworks;
@@ -163,11 +153,10 @@ namespace Buildalyzer.Construction
                 .Select(value =>
                 {
                     // If we have a mapping, use it
-                    (string, bool) targetFramework;
-                    if(TargetFrameworkIdentifierToTargetFramework.TryGetValue(value.Item1, out targetFramework))
+                    if (TargetFrameworkIdentifierToTargetFramework.TryGetValue(value.Item1, out (string, bool) targetFramework))
                     {
                         // Append the TargetFrameworkVersion, stripping non-digits (this probably isn't correct in some cases)
-                        return targetFramework.Item1 + new string(value.Item2.Where(x => char.IsDigit(x) || (targetFramework.Item2 ? x == '.' : false)).ToArray());
+                        return targetFramework.Item1 + new string(value.Item2.Where(x => char.IsDigit(x) || (targetFramework.Item2 && x == '.')).ToArray());
                     }
 
                     // Otherwise ¯\_(ツ)_/¯
@@ -176,7 +165,7 @@ namespace Buildalyzer.Construction
                 .Where(x => x != null).ToArray()
                     ?? Array.Empty<string>();
         }
-        
+
         // Map from TargetFrameworkIdentifier back to a TargetFramework
         // Partly from https://github.com/onovotny/sdk/blob/83d93a58c0955386218d536580eac2ab1582b397/src/Tasks/Microsoft.NET.Build.Tasks/build/Microsoft.NET.TargetFrameworkInference.targets
         // See also https://blog.stephencleary.com/2012/05/framework-profiles-in-net.html

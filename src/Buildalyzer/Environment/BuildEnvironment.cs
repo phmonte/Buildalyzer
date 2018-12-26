@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
 {
@@ -20,19 +20,19 @@ namespace Buildalyzer.Environment
         private readonly Dictionary<string, string> _environmentVariables;
 
         // Used for cloning
-        private IDictionary<string, string> _additionalGlobalProperties;
-        private IDictionary<string, string> _additionalEnvironmentVariables;
+        private readonly IDictionary<string, string> _additionalGlobalProperties;
+        private readonly IDictionary<string, string> _additionalEnvironmentVariables;
 
         /// <summary>
         /// Indicates that a design-time build should be performed.
         /// </summary>
         /// <remarks>
-        /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md
+        /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.
         /// </remarks>
         public bool DesignTime { get; }
 
         /// <summary>
-        /// Runs the restore target prior to any other targets using the MSBuild <code>restore</code> switch.
+        /// Runs the restore target prior to any other targets using the MSBuild <c>restore</c> switch.
         /// </summary>
         public bool Restore { get; }
 
@@ -63,7 +63,7 @@ namespace Buildalyzer.Environment
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
             MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
                 ? envMsBuildExePath : msBuildExePath;
-            if(MsBuildExePath == null)
+            if (MsBuildExePath == null)
             {
                 throw new ArgumentNullException(nameof(msBuildExePath));
             }
@@ -81,7 +81,7 @@ namespace Buildalyzer.Environment
 
                 // MsBuildProperties.SolutionDir will get set by ProjectAnalyzer
             };
-            if(DesignTime)
+            if (DesignTime)
             {
                 _globalProperties.Add(MsBuildProperties.DesignTimeBuild, "true");
                 _globalProperties.Add(MsBuildProperties.BuildProjectReferences, "false");
@@ -97,16 +97,16 @@ namespace Buildalyzer.Environment
             }
             _additionalGlobalProperties = CopyItems(_globalProperties, additionalGlobalProperties);
 
-            // Set environment variables 
+            // Set environment variables
             _environmentVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
         }
 
         private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
         {
-            if(source != null)
+            if (source != null)
             {
-                foreach(KeyValuePair<string, string> item in source)
+                foreach (KeyValuePair<string, string> item in source)
                 {
                     destination[item.Key] = item.Value;
                 }

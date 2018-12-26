@@ -1,9 +1,3 @@
-using Buildalyzer.Environment;
-using LibGit2Sharp;
-using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
-using NUnit.Framework;
-using Shouldly;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Buildalyzer.Environment;
+using LibGit2Sharp;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Framework;
+using NUnit.Framework;
+using Shouldly;
 
 namespace Buildalyzer.Tests.Integration
 {
@@ -18,7 +18,6 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class OpenSourceProjectsFixture
     {
-        private const LoggerVerbosity Verbosity = LoggerVerbosity.Normal;
         private const bool BinaryLog = false;
 
         private static readonly EnvironmentPreference[] Preferences =
@@ -29,9 +28,10 @@ namespace Buildalyzer.Tests.Integration
             EnvironmentPreference.Core
         };
 
-        private static TestRepository[] Repositories =
+        private static readonly TestRepository[] Repositories =
         {
-            new TestRepository("https://github.com/autofac/Autofac.git",
+            new TestRepository(
+                "https://github.com/autofac/Autofac.git",
                 @"\bench\Autofac.Benchmarks\Autofac.Benchmarks.csproj"),
             new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
             new TestRepository(EnvironmentPreference.Framework, "https://github.com/JamesNK/Newtonsoft.Json.git"),  // Contains portable project, can't build using SDK
@@ -62,8 +62,8 @@ namespace Buildalyzer.Tests.Integration
 
             public override string ToString() => Url;
         }
-        
-        private static List<object[]> ProjectTestCases = new List<object[]>();
+
+        private static readonly List<object[]> ProjectTestCases = new List<object[]>();
 
         // Do setup in a static constructor since the TestCaseSource depends on it
         // See https://stackoverflow.com/a/40507964/807064
@@ -74,7 +74,7 @@ namespace Buildalyzer.Tests.Integration
                 string path = GetRepositoryPath(repository.Url);
                 CloneRepository(repository.Url, path);
             }
-            
+
             // Iterate all repositories
             foreach (TestRepository repository in Repositories)
             {
@@ -137,7 +137,7 @@ namespace Buildalyzer.Tests.Integration
             options.EnvironmentVariables.Add("ContinuousIntegrationBuild", null);
             options.EnvironmentVariables.Add("CI", "False");
             options.EnvironmentVariables.Add("CI_LINUX", "False");
-            options.EnvironmentVariables.Add("CI_WINDOWS", "False");            
+            options.EnvironmentVariables.Add("CI_WINDOWS", "False");
 
             // When
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
@@ -175,23 +175,23 @@ namespace Buildalyzer.Tests.Integration
         {
             if (!Directory.Exists(path))
             {
-                TestContext.Progress.WriteLine($"Cloning { path }");
+                TestContext.Progress.WriteLine($"Cloning {path}");
                 Directory.CreateDirectory(path);
                 string clonedPath = Repository.Clone(repository, path);
-                TestContext.Progress.WriteLine($"Cloned into { clonedPath }");
+                TestContext.Progress.WriteLine($"Cloned into {clonedPath}");
             }
             else if (!Repository.IsValid(path))
             {
-                TestContext.Progress.WriteLine($"Recloning { path }");
+                TestContext.Progress.WriteLine($"Recloning {path}");
                 Directory.Delete(path, true);
                 Thread.Sleep(1000);
                 Directory.CreateDirectory(path);
                 string clonedPath = Repository.Clone(repository, path);
-                TestContext.Progress.WriteLine($"Cloned into { clonedPath }");
+                TestContext.Progress.WriteLine($"Cloned into {clonedPath}");
             }
             else
             {
-                TestContext.Progress.WriteLine($"Updating { path }");
+                TestContext.Progress.WriteLine($"Updating {path}");
                 Repository repo = new Repository(path);
                 foreach (Remote remote in repo.Network.Remotes)
                 {

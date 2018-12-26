@@ -1,13 +1,13 @@
-﻿using Buildalyzer.Construction;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Buildalyzer.Construction;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace Buildalyzer
 {
@@ -15,7 +15,6 @@ namespace Buildalyzer
     {
         private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ProjectItem[]> _items = new Dictionary<string, ProjectItem[]>(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<string> _projectReferences = new HashSet<string>();
         private readonly Guid _projectGuid;
         private List<(string, string)> _cscCommandLineArguments;
 
@@ -26,7 +25,7 @@ namespace Buildalyzer
             Analyzer = analyzer;
 
             string projectGuid = GetProperty(nameof(ProjectGuid));
-            if(string.IsNullOrEmpty(projectGuid) || !Guid.TryParse(projectGuid, out _projectGuid))
+            if (string.IsNullOrEmpty(projectGuid) || !Guid.TryParse(projectGuid, out _projectGuid))
             {
                 _projectGuid = analyzer == null
                     ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFilePath)
@@ -60,7 +59,7 @@ namespace Buildalyzer
         /// will generate a UUID GUID by hashing the project path relative to the solution path (so it's repeatable).
         /// </summary>
         public Guid ProjectGuid => _projectGuid;
-                
+
         /// <summary>
         /// Gets the value of the specified property and returns <c>null</c>
         /// if the property could not be found.
@@ -98,25 +97,25 @@ namespace Buildalyzer
                 : Array.Empty<string>();
 
         /// <summary>
-        /// Contains the <code>PackageReference</code> items for the project.
-        /// The key is a package ID and the value is a <see cref="IReadOnlyDictionary{string, string}"/>
+        /// Contains the <c>PackageReference</c> items for the project.
+        /// The key is a package ID and the value is a <see cref="IReadOnlyDictionary{TKey, TValue}"/>
         /// that includes all the package reference metadata, typically including a "Version" key.
         /// </summary>
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> PackageReferences =>
             Items.TryGetValue("PackageReference", out ProjectItem[] items)
                 ? items.Distinct(new ProjectItemItemSpecEqualityComparer()).ToDictionary(x => x.ItemSpec, x => x.Metadata)
                 : new Dictionary<string, IReadOnlyDictionary<string, string>>();
-        
+
         internal void ProcessProject(ProjectStartedEventArgs e)
         {
             // Add properties
-            foreach(DictionaryEntry entry in e.Properties.Cast<DictionaryEntry>())
+            foreach (DictionaryEntry entry in e.Properties.Cast<DictionaryEntry>())
             {
                 _properties[entry.Key.ToString()] = entry.Value.ToString();
             }
 
             // Add items
-            foreach(IGrouping<string, DictionaryEntry> itemGroup in e.Items.Cast<DictionaryEntry>().GroupBy(x => x.Key.ToString()))
+            foreach (IGrouping<string, DictionaryEntry> itemGroup in e.Items.Cast<DictionaryEntry>().GroupBy(x => x.Key.ToString()))
             {
                 _items[itemGroup.Key] = itemGroup.Select(x => new ProjectItem((ITaskItem)x.Value)).ToArray();
             }
@@ -139,7 +138,7 @@ namespace Buildalyzer
             string[] parts = commandLine.Split(new[] { ' ' });
 
             // Combine the initial command (find the first argument by looking for the last part that contains "csc.")
-            int start = Array.FindIndex(parts, x => x.Length > 0 && x.ToLowerInvariant().Contains("csc.")) + 1;
+            int start = Array.FindIndex(parts, x => x.Length > 0 && x.IndexOf("csc.", StringComparison.InvariantCultureIgnoreCase) >= 0) + 1;
             args.Add((null, string.Join(" ", parts.Take(start)).Trim('"')));
 
             // Iterate the rest of them
@@ -165,14 +164,14 @@ namespace Buildalyzer
                     {
                         // The value is quoted, find the end quote
                         int first = c;
-                        while(c < parts.Length)
+                        while (c < parts.Length)
                         {
                             // The last char is a quote
-                            if(((c == first && parts[c].Length > valueStart + 1) || (c != first && parts[c].Length > 0))
+                            if (((c == first && parts[c].Length > valueStart + 1) || (c != first && parts[c].Length > 0))
                                 && parts[c][parts[c].Length - 1] == '"')
                             {
                                 // ...and it's not preceded by an escape
-                                if(parts[c].Length < 2 || parts[c][parts[c].Length - 2] != '\\')
+                                if (parts[c].Length < 2 || parts[c][parts[c].Length - 2] != '\\')
                                 {
                                     break;
                                 }
@@ -211,7 +210,7 @@ namespace Buildalyzer
         /// </summary>>
         private static string RemoveQuotes(string str)
         {
-            if(str.Length < 2)
+            if (str.Length < 2)
             {
                 return str.Trim('"');
             }

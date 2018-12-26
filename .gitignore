@@ -294,6 +294,3 @@ docs/config.wyam.dll
 *.btm.cs
 *.odx.cs
 *.xsd.cs
-
-# Ignore repos cloned in unit tests
-tests/repos

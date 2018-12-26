@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{8FD3A594-1
 		.gitignore = .gitignore
 		azure-pipelines.yml = azure-pipelines.yml
 		build.cake = build.cake
+		build.ps1 = build.ps1
 		daveaglick.ruleset = daveaglick.ruleset
 		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE

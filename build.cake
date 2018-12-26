@@ -9,7 +9,7 @@
 #addin "Octokit"
 #addin "NetlifySharp"
 #tool "AzurePipelines.TestLogger&version=1.0.0"
-#tool "nuget:?package=NuGet.CommandLine&version=4.7.1""
+#tool "nuget:?package=NuGet.CommandLine&version=4.9.2"
 
 using Octokit;
 using NetlifySharp;

@@ -20,16 +20,16 @@ namespace Buildalyzer.Tests
         [TestCase("\"f oo.cs\"", new[] { "f oo.cs" })]
         [TestCase("\" foo.cs\"", new[] { " foo.cs" })]
         [TestCase("\"foo.cs \"", new[] { "foo.cs " })]
-        [TestCase("\"foo.cs\\\"\"", new[] { "foo.cs\\\"" })]
+        [TestCase("\"foo.cs\\\"\"", new[] { "foo.cs\"" })]
         [TestCase("\"f oo.cs\" bar.cs", new[] { "f oo.cs", "bar.cs" })]
         [TestCase("\" foo.cs\" bar.cs", new[] { " foo.cs", "bar.cs" })]
         [TestCase("\"foo.cs \" bar.cs", new[] { "foo.cs ", "bar.cs" })]
-        [TestCase("\"foo.cs\\\"\" bar.cs", new[] { "foo.cs\\\"", "bar.cs" })]
-        [TestCase("\"fo\\\"o.cs\" bar.cs", new[] { "fo\\\"o.cs", "bar.cs" })]
+        [TestCase("\"foo.cs\\\"\" bar.cs", new[] { "foo.cs\"", "bar.cs" })]
+        [TestCase("\"fo\\\"o.cs\" bar.cs", new[] { "fo\"o.cs", "bar.cs" })]
         [TestCase("bar.cs \"f oo.cs\"", new[] { "bar.cs", "f oo.cs" })]
         [TestCase("bar.cs \" foo.cs\"", new[] { "bar.cs", " foo.cs" })]
-        [TestCase("bar.cs \"foo.cs\\\"\"", new[] { "bar.cs", "foo.cs\\\"" })]
-        [TestCase("\"foo.cs\\\" bar.cs\"", new[] { "foo.cs\\\" bar.cs" })]
+        [TestCase("bar.cs \"foo.cs\\\"\"", new[] { "bar.cs", "foo.cs\"" })]
+        [TestCase("\"foo.cs\\\" bar.cs\"", new[] { "foo.cs\" bar.cs" })]
         public void ParsesCscCommandLineSourceFiles(string commandLine, string[] sourceFiles)
         {
             // Given
@@ -61,6 +61,24 @@ namespace Buildalyzer.Tests
 
             // Then
             result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
+        }
+
+        [Test]
+        public void ParsesCscCommandLineWithAliasReference()
+        {
+            // Given
+            string commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe")
+                + @" /reference:Data1=""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll""";
+
+            // When
+            List<(string, string)> result = AnalyzerResult.ProcessCscCommandLine(commandLine);
+
+            // Then
+            result.Count.ShouldBe(2);
+            result.Where(x => x.Item1 == "reference")
+                .Select(x => x.Item2)
+                .Single()
+                .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
         }
     }
 }

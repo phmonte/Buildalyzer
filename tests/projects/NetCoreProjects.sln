@@ -1,0 +1,26 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.489
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProject", "SdkNetCoreProject\SdkNetCoreProject.csproj", "{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestEmptySolutionFolder", "TestEmptySolutionFolder", "{2D087EE8-ECCB-41D6-809D-D95B58B37F26}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}.Release|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7C1B0FB-9BAD-4333-8F3E-E3ABB494C4E5}
+	EndGlobalSection
+EndGlobal

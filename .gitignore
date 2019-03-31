@@ -294,3 +294,7 @@ docs/config.wyam.dll
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+*.ncrunchsolution
+
+*.ncrunchproject

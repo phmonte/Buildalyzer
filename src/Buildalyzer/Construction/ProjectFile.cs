@@ -106,7 +106,7 @@ namespace Buildalyzer.Construction
         /// <summary>
         /// The list of <c>PackageReference</c> items in the project file.
         /// </summary>
-        public IReadOnlyList<PackageReference> PackageReference => _projectElement.GetDescendants(ProjectFileNames.PackageReference).Select(s => new PackageReference(s)).ToList();
+        public IReadOnlyList<PackageReference> PackageReferences => _projectElement.GetDescendants(ProjectFileNames.PackageReference).Select(s => new PackageReference(s)).ToList();
 
         /// <summary>
         /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).

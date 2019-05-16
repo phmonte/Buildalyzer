@@ -172,9 +172,12 @@ namespace Buildalyzer.Tests.Integration
                 sourceFiles.ShouldNotBeNull(log.ToString());
                 new[]
                 {
-                    "Class1",
-                    "AssemblyAttributes",
-                    "AssemblyInfo"
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
+                "AssemblyAttributes",
+#endif
+                "Class1",
+                "AssemblyInfo"
                 }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
             }
             finally
@@ -202,14 +205,20 @@ namespace Buildalyzer.Tests.Integration
             results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
             new[]
             {
-                "Class1",
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
+#endif
+                "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
             new[]
             {
-                "Class2",
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
+#endif
+                "Class2",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(results["netstandard2.0"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
@@ -228,8 +237,11 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-                "Class1",
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
+#endif
+                "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
@@ -249,8 +261,11 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-                "Class2",
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
+#endif
+                "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }

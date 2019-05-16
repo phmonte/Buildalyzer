@@ -135,7 +135,8 @@ namespace Buildalyzer
         {
             List<(string, string)> args = new List<(string, string)>();
 
-            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine).GetEnumerator())
+            bool initialCommand = true;
+            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommand).GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
@@ -144,6 +145,7 @@ namespace Buildalyzer
 
                 // Initial command (csc)
                 args.Add((null, enumerator.Current));
+                initialCommand = false;
 
                 // Iterate the rest of parts
                 while (enumerator.MoveNext())
@@ -175,7 +177,7 @@ namespace Buildalyzer
             return args;
         }
 
-        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine)
+        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, bool initialCommand)
         {
             StringBuilder part = new StringBuilder();
             bool isInQuote = false;
@@ -210,7 +212,7 @@ namespace Buildalyzer
                         case '\f':
                         case '\r':
                         case ' ':
-                            if (isInQuote)
+                            if (isInQuote || initialCommand)
                             {
                                 // Treat as a normal char
                                 part.Append((char)c);
@@ -228,6 +230,11 @@ namespace Buildalyzer
                         default:
                             part.Append((char)c);
                             break;
+                    }
+
+                    if (initialCommand && part.ToString().EndsWith("csc.", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        initialCommand = false;
                     }
                 }
             }

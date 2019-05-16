@@ -80,5 +80,16 @@ namespace Buildalyzer.Tests
                 .Single()
                 .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
         }
+
+        [TestCase("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\Bin\\Roslyn\\csc.exe /noconfig")]
+        [TestCase("/one two/three/csc.dll /noconfig")]
+        public void TreatsCscCommandAsSingleArg(string commandLine)
+        {
+            // Given, When
+            List<(string, string)> result = AnalyzerResult.ProcessCscCommandLine(commandLine);
+
+            // Then
+            result.Count.ShouldBe(2);
+        }
     }
 }

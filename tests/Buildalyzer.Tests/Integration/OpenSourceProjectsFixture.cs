@@ -147,7 +147,7 @@ namespace Buildalyzer.Tests.Integration
 #pragma warning disable 0162
             if (BinaryLog)
             {
-                analyzer.AddBinaryLogger($@"E:\Temp\{Path.GetFileNameWithoutExtension(solutionPath)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
+                analyzer.AddBinaryLogger($@"C:\Temp\{Path.GetFileNameWithoutExtension(solutionPath)}.{Path.GetFileNameWithoutExtension(analyzer.ProjectFile.Path)}.core.binlog");
             }
 #pragma warning restore 0162
 

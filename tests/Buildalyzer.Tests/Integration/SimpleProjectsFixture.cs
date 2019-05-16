@@ -266,7 +266,7 @@ namespace Buildalyzer.Tests.Integration
                 "AssemblyAttributes",
                 "AssemblyInfo",
 #endif
-                "Class1"
+                "Class2"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 

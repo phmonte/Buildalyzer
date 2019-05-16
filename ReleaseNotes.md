@@ -1,3 +1,9 @@
+# 2.3.0
+
+- [Feature] Package references are now available directly in `ProjectFile` (#111, thanks @eNeRGy164)
+- [Feature] Better future-proof MSBuild path discovery (#106, thanks @colombod)
+- [Fix] Fixes for csc arguments parser (#100, thanks azyobuzin)
+
 # 2.2.0
 
 - [Fix] Several fixes for parsing the `csc` command line arguments from the build log (#89)

@@ -113,8 +113,11 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-                "Class1",
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
+#endif
+                "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }

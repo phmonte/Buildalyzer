@@ -151,20 +151,17 @@ namespace Buildalyzer.Environment
                 // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
                 // Try to poll for it. From https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/4649f55f900a324421bad5a714a2584926a02138/src/StructuredLogViewer/MSBuildLocator.cs
                 string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
-                msBuildExePath = new[]
+                DirectoryInfo vsDirectory = new DirectoryInfo(Path.Combine(programFilesX86, "Microsoft Visual Studio"));
+                if (vsDirectory.Exists)
                 {
-                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Enterprise", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
-                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Professional", "MSBuild", "15.0", "Bin", "MSBuild.exe"),
-                    Path.Combine(programFilesX86, "Microsoft Visual Studio", "2017", "Community", "MSBuild", "15.0", "Bin", "MSBuild.exe")
+                    msBuildExePath = vsDirectory
+                        .GetDirectories("MSBuild", SearchOption.AllDirectories)
+                        .SelectMany(msBuildDir => msBuildDir.GetFiles("MSBuild.exe", SearchOption.AllDirectories))
+                        .OrderByDescending(msBuild => msBuild.LastWriteTimeUtc)
+                        .FirstOrDefault()?.FullName;
                 }
-                .Where(File.Exists)
-                .FirstOrDefault();
             }
-            if (string.IsNullOrEmpty(msBuildExePath))
-            {
-                return false;
-            }
-            return true;
+            return !string.IsNullOrEmpty(msBuildExePath);
         }
 
         private bool OnlyTargetsFramework(string targetFramework) =>

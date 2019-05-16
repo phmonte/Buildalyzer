@@ -131,7 +131,7 @@ namespace Buildalyzer.Tests.Integration
                 Preference = preference
             };
 
-            // Set some enviornment variables to make it seem like we're not in a CI build
+            // Set some environment variables to make it seem like we're not in a CI build
             // Sometimes this messes up libraries like SourceLink since we're building as part of a test and not for CI
             options.EnvironmentVariables.Add("APPVEYOR", "False");
             options.EnvironmentVariables.Add("ContinuousIntegrationBuild", null);

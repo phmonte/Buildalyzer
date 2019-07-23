@@ -96,6 +96,10 @@ namespace Buildalyzer.Environment
             {
                 additionalEnvironmentVariables.Add(EnvironmentVariables.MSBuildSDKsPath, Path.Combine(dotnetPath, "Sdks"));
             }
+            if (!additionalEnvironmentVariables.ContainsKey(EnvironmentVariables.COREHOST_TRACE))
+            {
+                additionalEnvironmentVariables.Add(EnvironmentVariables.COREHOST_TRACE, "0");
+            }
 
             return new BuildEnvironment(
                 options.DesignTime,

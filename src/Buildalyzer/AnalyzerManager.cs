@@ -69,7 +69,8 @@ namespace Buildalyzer
                 // Initialize all the projects in the solution
                 foreach (ProjectInSolution projectInSolution in SolutionFile.ProjectsInOrder)
                 {
-                    if (!SupportedProjectTypes.Contains(projectInSolution.ProjectType))
+                    if (!SupportedProjectTypes.Contains(projectInSolution.ProjectType)
+                        || (options?.ProjectFilter != null && !options.ProjectFilter(projectInSolution)))
                     {
                         continue;
                     }

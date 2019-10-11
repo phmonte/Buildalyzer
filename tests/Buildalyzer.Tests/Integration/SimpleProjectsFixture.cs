@@ -383,6 +383,25 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void FiltersProjectsInSolution()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+
+            // When
+            AnalyzerManager manager = new AnalyzerManager(
+                GetProjectPath("TestProjects.sln"),
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log,
+                    ProjectFilter = x => x.AbsolutePath.Contains("Core")
+                });
+
+            // Then
+            ProjectFiles.Select(x => GetProjectPath(x)).Where(x => x.Contains("Core")).ShouldBe(manager.Projects.Keys, true, log.ToString());
+        }
+
+        [Test]
         public void IgnoreSolutionItemsThatAreNotProjects()
         {
             // Given / When

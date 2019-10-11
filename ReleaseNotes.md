@@ -1,5 +1,6 @@
 # 2.3.1
 
+- [Feature] Adds back project filtering (#118)
 - [Fix] Added "System.Reflection.TypeExtensions" as a direct dependency for .NET Framework consumers (#116)
 - [Fix] Disable the COREHOST_TRACE environment variable (#115, thanks @sapsari)
 

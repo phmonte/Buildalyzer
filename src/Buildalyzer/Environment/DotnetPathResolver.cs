@@ -52,6 +52,7 @@ namespace Buildalyzer.Environment
             {
                 { EnvironmentVariables.DOTNET_CLI_UI_LANGUAGE, "en-US" },
                 { EnvironmentVariables.MSBUILD_EXE_PATH, null },
+                { EnvironmentVariables.COREHOST_TRACE, "0" },
                 { MsBuildProperties.MSBuildExtensionsPath, null }
             };
 

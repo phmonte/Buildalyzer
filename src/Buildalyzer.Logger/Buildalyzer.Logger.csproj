@@ -38,14 +38,4 @@
         <BuildOutputInPackage Include="@(LoggerFiles)" />
     </ItemGroup>
   </Target>
-
-  <!-- Also need to copy to build output so tests can find it -->
-  <Target Name="CopyLogger" DependsOnTargets="GetLoggerFiles" BeforeTargets="BeforeBuild">
-    <ItemGroup>
-        <Content Include="@(LoggerFiles)">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <DeploymentContent>true</DeploymentContent>
-        </Content>
-    </ItemGroup>
-  </Target>
 </Project>

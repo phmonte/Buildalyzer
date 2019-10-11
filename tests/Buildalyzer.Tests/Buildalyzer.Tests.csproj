@@ -12,7 +12,7 @@
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="Shouldly" Version="3.0.0" />
-    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.2" />
+    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.2" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,5 +23,11 @@
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <DefineConstants>Is_Windows</DefineConstants>
   </PropertyGroup>
-
+  
+  <!-- Need to copy the MsBuildPipeLogger logger into output so Buildalyzer.Logger can find it -->
+  <!-- See https://github.com/NuGet/Home/issues/4837#issuecomment-474184722 and https://github.com/NuGet/NuGet.Client/pull/2271 -->
+  <Target Name="CopyMsBuildPipeLogger" AfterTargets="Build">
+    <Copy SourceFiles="$(PkgMsBuildPipeLogger_Logger)\lib\netstandard1.3\MsBuildPipeLogger.Logger.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+  
 </Project>

@@ -1,3 +1,8 @@
+# 2.3.1
+
+- [Fix] Added "System.Reflection.TypeExtensions" as a direct dependency for .NET Framework consumers (#116)
+- [Fix] Disable the COREHOST_TRACE environment variable (#115, thanks @sapsari)
+
 # 2.3.0
 
 - [Feature] Package references are now available directly in `ProjectFile` (#111, thanks @eNeRGy164)

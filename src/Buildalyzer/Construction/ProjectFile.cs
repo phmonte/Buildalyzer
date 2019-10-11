@@ -24,16 +24,14 @@ namespace Buildalyzer.Construction
 
         private readonly XDocument _document;
         private readonly XElement _projectElement;
-        private readonly IProjectTransformer _transformer;
 
         private string[] _targetFrameworks = null;
 
         // The project file path should already be normalized
-        internal ProjectFile(string path, IProjectTransformer transformer)
+        internal ProjectFile(string path)
         {
             Path = path;
             _document = XDocument.Load(path);
-            _transformer = transformer;
 
             // Get the project element
             _projectElement = _document.GetDescendants(ProjectFileNames.Project).FirstOrDefault();
@@ -112,13 +110,6 @@ namespace Buildalyzer.Construction
         /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).
         /// </summary>
         public string ToolsVersion => _projectElement.GetAttributeValue(ProjectFileNames.ToolsVersion);
-
-        internal XmlReader CreateReader()
-        {
-            XDocument document = new XDocument(_document);
-            _transformer?.Transform(document);
-            return document.CreateReader();
-        }
 
         internal static string[] GetTargetFrameworks(
             IEnumerable<string> targetFrameworksValues,

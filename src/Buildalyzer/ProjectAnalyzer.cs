@@ -71,7 +71,7 @@ namespace Buildalyzer
         {
             Manager = manager;
             Logger = Manager.LoggerFactory?.CreateLogger<ProjectAnalyzer>();
-            ProjectFile = new ProjectFile(projectFilePath, manager.ProjectTransformer);
+            ProjectFile = new ProjectFile(projectFilePath);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
             ProjectInSolution = projectInSolution;
             SolutionDirectory = string.IsNullOrEmpty(manager.SolutionFilePath)

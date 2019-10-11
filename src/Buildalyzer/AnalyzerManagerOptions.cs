@@ -11,7 +11,6 @@ namespace Buildalyzer
     public class AnalyzerManagerOptions
     {
         public ILoggerFactory LoggerFactory { get; set; }
-        public IProjectTransformer ProjectTransformer { get; set; }
 
         /// <summary>
         /// A filter that indicates whether a give project should be loaded.

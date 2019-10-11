@@ -31,8 +31,6 @@ namespace Buildalyzer
 
         public ILoggerFactory LoggerFactory { get; set; }
 
-        internal IProjectTransformer ProjectTransformer { get; }
-
         internal ConcurrentDictionary<string, string> GlobalProperties { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         internal ConcurrentDictionary<string, string> EnvironmentVariables { get; } = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -59,7 +57,6 @@ namespace Buildalyzer
         {
             options = options ?? new AnalyzerManagerOptions();
             LoggerFactory = options.LoggerFactory;
-            ProjectTransformer = options.ProjectTransformer;
 
             if (!string.IsNullOrEmpty(solutionFilePath))
             {

@@ -1,5 +1,6 @@
-# 2.3.1
+# 2.4.0
 
+- [Fix] Removes `IProjectTransformer` since Buildalyzer no longer feeds project files to the MSBuild API (#114)
 - [Feature] Adds back project filtering (#118)
 - [Fix] Added "System.Reflection.TypeExtensions" as a direct dependency for .NET Framework consumers (#116)
 - [Fix] Disable the COREHOST_TRACE environment variable (#115, thanks @sapsari)

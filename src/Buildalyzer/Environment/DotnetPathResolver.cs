@@ -109,11 +109,26 @@ namespace Buildalyzer.Environment
             {
                 return null;
             }
+
             index++;
-            while (!string.IsNullOrWhiteSpace(lines[index + 1]))
+            while (true)
             {
+                if (index >= lines.Count - 1)
+                {
+                    throw new InvalidOperationException("Could not find the .NET SDK.");
+                }
+
+                // Not a version number or an empty string?
+                string temp = lines[index].Trim();
+                if (string.IsNullOrWhiteSpace(temp) || !char.IsDigit(temp[0]))
+                {
+                    index--;
+                    break;
+                }
+
                 index++;
             }
+
             string[] segments = lines[index]
                 .Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => !string.IsNullOrWhiteSpace(x))

@@ -15,7 +15,7 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class SimpleProjectsFixture
     {
-        private const bool BinaryLog = false;
+        private const bool BinaryLog = true;
 
         private static readonly EnvironmentPreference[] Preferences =
         {
@@ -479,6 +479,25 @@ namespace Buildalyzer.Tests.Integration
             results.Count.ShouldBeGreaterThan(0);
             results.OverallSuccess.ShouldBeTrue();
             results.ShouldAllBe(x => x.Succeeded);
+        }
+
+        [Test]
+        public void BuildsFSharpProject()
+        {
+            // Given
+            const string projectFile = @"FSharpProject\FSharpProject.fsproj";
+            StringWriter log = new StringWriter();
+            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            AnalyzerResults results = analyzer.Build();
+
+            // Then
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }
 
         private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

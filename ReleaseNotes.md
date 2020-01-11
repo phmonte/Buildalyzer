@@ -1,3 +1,9 @@
+# 2.5.0
+
+- [Fix] Fix for finding the default SDK in some scenarios due to differences in output from dotnet (#120, thanks @patriksvensson)
+- [Refactoring] Updates `Microsoft.CodeAnalysis` dependencies in `Buildalyzer.Workspaces` (#124, thanks @farnyser)
+- [Feature] Support for F# projects (#123)
+
 # 2.4.0
 
 - [Fix] Removes `IProjectTransformer` since Buildalyzer no longer feeds project files to the MSBuild API (#114)

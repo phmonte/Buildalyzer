@@ -15,7 +15,7 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class SimpleProjectsFixture
     {
-        private const bool BinaryLog = true;
+        private const bool BinaryLog = false;
 
         private static readonly EnvironmentPreference[] Preferences =
         {

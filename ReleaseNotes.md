@@ -1,3 +1,7 @@
+# 2.5.1
+
+- [Fix] Removed the explicit encoding parameter when generating a `SourceText` in Buildalyzer.Workspaces (#128)
+
 # 2.5.0
 
 - [Fix] Fix for finding the default SDK in some scenarios due to differences in output from dotnet (#120, thanks @patriksvensson)

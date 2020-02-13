@@ -221,7 +221,7 @@ namespace Buildalyzer.Workspaces
                     Path.GetFileName(x),
                     loader: TextLoader.From(
                         TextAndVersion.Create(
-                            SourceText.From(File.ReadAllText(x), Encoding.Default), VersionStamp.Create())),
+                            SourceText.From(File.ReadAllText(x)), VersionStamp.Create())),
                     filePath: x))
             ?? Array.Empty<DocumentInfo>();
 

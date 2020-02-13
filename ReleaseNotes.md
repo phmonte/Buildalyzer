@@ -1,6 +1,7 @@
 # 2.5.1
 
 - [Fix] Removed the explicit encoding parameter when generating a `SourceText` in Buildalyzer.Workspaces (#128)
+- [Fix] Fixes a race condition in `ProcessRunner` in `Process.WaitForExit()` calls (#125, thanks @duncanawoods)
 
 # 2.5.0
 

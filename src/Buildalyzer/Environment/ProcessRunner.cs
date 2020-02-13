@@ -90,7 +90,18 @@ namespace Buildalyzer.Environment
 
         public void WaitForExit() => Process.WaitForExit();
 
-        public bool WaitForExit(int timeout) => Process.WaitForExit(timeout);
+        public bool WaitForExit(int timeout)
+        {
+            bool exited = Process.WaitForExit(timeout);
+            if (exited)
+            {
+                // To ensure that asynchronous event handling has been completed, call the WaitForExit() overload that takes no parameter after receiving a true from this overload.
+                // From https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process.waitforexit?redirectedfrom=MSDN&view=netcore-3.1#System_Diagnostics_Process_WaitForExit_System_Int32_
+                // See also https://github.com/dotnet/runtime/issues/27128
+                Process.WaitForExit();
+            }
+            return exited;
+        }
 
         public void Dispose()
         {

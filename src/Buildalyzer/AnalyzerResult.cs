@@ -3,15 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using Buildalyzer.Construction;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 
 namespace Buildalyzer
 {
-    public class AnalyzerResult
+    public class AnalyzerResult : IAnalyzerResult
     {
         private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, ProjectItem[]> _items = new Dictionary<string, ProjectItem[]>(StringComparer.OrdinalIgnoreCase);

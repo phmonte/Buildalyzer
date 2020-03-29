@@ -22,7 +22,7 @@ namespace Buildalyzer.Workspaces
         /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>A Roslyn workspace.</returns>
-        public static AdhocWorkspace GetWorkspace(this ProjectAnalyzer analyzer, bool addProjectReferences = false)
+        public static AdhocWorkspace GetWorkspace(this IProjectAnalyzer analyzer, bool addProjectReferences = false)
         {
             if (analyzer == null)
             {
@@ -43,7 +43,7 @@ namespace Buildalyzer.Workspaces
         /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>The newly added Roslyn project.</returns>
-        public static Project AddToWorkspace(this ProjectAnalyzer analyzer, Workspace workspace, bool addProjectReferences = false)
+        public static Project AddToWorkspace(this IProjectAnalyzer analyzer, Workspace workspace, bool addProjectReferences = false)
         {
             if (analyzer == null)
             {

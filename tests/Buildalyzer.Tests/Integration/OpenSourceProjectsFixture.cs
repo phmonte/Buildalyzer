@@ -124,7 +124,7 @@ namespace Buildalyzer.Tests.Integration
             {
                 LogWriter = log
             });
-            ProjectAnalyzer analyzer = manager.GetProject(projectPath);
+            IProjectAnalyzer analyzer = manager.GetProject(projectPath);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -151,7 +151,7 @@ namespace Buildalyzer.Tests.Integration
 #pragma warning restore 0162
 
 #if Is_Windows
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 #else
             // On non-Windows platforms we have to remove the .NET Framework target frameworks and only build .NET Core target frameworks
             // See https://github.com/dotnet/sdk/issues/826

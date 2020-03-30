@@ -161,7 +161,7 @@ namespace Buildalyzer.Tests.Integration
             {
                 Assert.Ignore();
             }
-            AnalyzerResults results = analyzer.Build(targetFrameworks, options);
+            IAnalyzerResults results = analyzer.Build(targetFrameworks, options);
 #endif
 
             // Then

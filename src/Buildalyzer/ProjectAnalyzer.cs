@@ -26,7 +26,7 @@ namespace Buildalyzer
 
         public AnalyzerManager Manager { get; }
 
-        public ProjectFile ProjectFile { get; }
+        public IProjectFile ProjectFile { get; }
 
         public EnvironmentFactory EnvironmentFactory { get; }
 

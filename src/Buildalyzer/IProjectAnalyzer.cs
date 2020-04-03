@@ -17,7 +17,7 @@ namespace Buildalyzer
         bool IgnoreFaultyImports { get; set; }
         ILogger<ProjectAnalyzer> Logger { get; set; }
         AnalyzerManager Manager { get; }
-        ProjectFile ProjectFile { get; }
+        IProjectFile ProjectFile { get; }
         Guid ProjectGuid { get; }
         ProjectInSolution ProjectInSolution { get; }
         string SolutionDirectory { get; }

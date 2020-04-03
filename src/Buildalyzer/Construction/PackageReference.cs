@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace Buildalyzer.Construction
 {
-    public class PackageReference
+    public class PackageReference : IPackageReference
     {
         public string Name { get; }
         public string Version { get; }

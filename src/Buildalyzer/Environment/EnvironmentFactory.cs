@@ -13,10 +13,10 @@ namespace Buildalyzer.Environment
     public class EnvironmentFactory
     {
         private readonly IAnalyzerManager _manager;
-        private readonly ProjectFile _projectFile;
+        private readonly IProjectFile _projectFile;
         private readonly ILogger<EnvironmentFactory> _logger;
 
-        internal EnvironmentFactory(IAnalyzerManager manager, ProjectFile projectFile)
+        internal EnvironmentFactory(IAnalyzerManager manager, IProjectFile projectFile)
         {
             _manager = manager;
             _projectFile = projectFile;

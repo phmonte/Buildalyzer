@@ -1,3 +1,7 @@
+# 2.6.0
+
+- [Refactoring] Refactored key classes into interfaces for easier testing (#132, thanks @richardwerkman)
+
 # 2.5.1
 
 - [Fix] Removed the explicit encoding parameter when generating a `SourceText` in Buildalyzer.Workspaces (#128)

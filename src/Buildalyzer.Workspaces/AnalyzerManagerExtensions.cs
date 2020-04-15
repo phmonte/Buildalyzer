@@ -7,10 +7,10 @@ namespace Buildalyzer.Workspaces
 {
     public static class AnalyzerManagerExtensions
     {
-        public static AdhocWorkspace GetWorkspace(this AnalyzerManager manager)
+        public static AdhocWorkspace GetWorkspace(this IAnalyzerManager manager)
         {
             // Run builds in parallel
-            List<AnalyzerResult> results = manager.Projects.Values
+            List<IAnalyzerResult> results = manager.Projects.Values
                 .AsParallel()
                 .Select(p => p.Build().FirstOrDefault())
                 .Where(x => x != null)

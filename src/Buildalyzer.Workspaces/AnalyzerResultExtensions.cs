@@ -22,7 +22,7 @@ namespace Buildalyzer.Workspaces
         /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>A Roslyn workspace.</returns>
-        public static AdhocWorkspace GetWorkspace(this AnalyzerResult analyzerResult, bool addProjectReferences = false)
+        public static AdhocWorkspace GetWorkspace(this IAnalyzerResult analyzerResult, bool addProjectReferences = false)
         {
             if (analyzerResult == null)
             {
@@ -43,7 +43,7 @@ namespace Buildalyzer.Workspaces
         /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
         /// <returns>The newly added Roslyn project.</returns>
-        public static Project AddToWorkspace(this AnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
+        public static Project AddToWorkspace(this IAnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
         {
             if (analyzerResult == null)
             {
@@ -100,7 +100,7 @@ namespace Buildalyzer.Workspaces
             return workspace.CurrentSolution.GetProject(projectId);
         }
 
-        private static ProjectInfo GetProjectInfo(AnalyzerResult analyzerResult, Workspace workspace, ProjectId projectId)
+        private static ProjectInfo GetProjectInfo(IAnalyzerResult analyzerResult, Workspace workspace, ProjectId projectId)
         {
             string projectName = Path.GetFileNameWithoutExtension(analyzerResult.ProjectFilePath);
             string languageName = GetLanguageName(analyzerResult.ProjectFilePath);
@@ -120,7 +120,7 @@ namespace Buildalyzer.Workspaces
             return projectInfo;
         }
 
-        private static ParseOptions CreateParseOptions(AnalyzerResult analyzerResult, string languageName)
+        private static ParseOptions CreateParseOptions(IAnalyzerResult analyzerResult, string languageName)
         {
             if (languageName == LanguageNames.CSharp)
             {
@@ -164,7 +164,7 @@ namespace Buildalyzer.Workspaces
             return null;
         }
 
-        private static CompilationOptions CreateCompilationOptions(AnalyzerResult analyzerResult, string languageName)
+        private static CompilationOptions CreateCompilationOptions(IAnalyzerResult analyzerResult, string languageName)
         {
             string outputType = analyzerResult.GetProperty("OutputType");
             OutputKind? kind = null;
@@ -200,20 +200,20 @@ namespace Buildalyzer.Workspaces
             return null;
         }
 
-        private static IEnumerable<ProjectReference> GetExistingProjectReferences(AnalyzerResult analyzerResult, Workspace workspace) =>
+        private static IEnumerable<ProjectReference> GetExistingProjectReferences(IAnalyzerResult analyzerResult, Workspace workspace) =>
             analyzerResult.ProjectReferences
                 .Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath == x))
                 .Where(x => x != null)
                 .Select(x => new ProjectReference(x.Id))
             ?? Array.Empty<ProjectReference>();
 
-        private static IEnumerable<ProjectAnalyzer> GetReferencedAnalyzerProjects(AnalyzerResult analyzerResult) =>
+        private static IEnumerable<IProjectAnalyzer> GetReferencedAnalyzerProjects(IAnalyzerResult analyzerResult) =>
             analyzerResult.ProjectReferences
-                .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out ProjectAnalyzer a) ? a : null)
+                .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out IProjectAnalyzer a) ? a : null)
                 .Where(x => x != null)
             ?? Array.Empty<ProjectAnalyzer>();
 
-        private static IEnumerable<DocumentInfo> GetDocuments(AnalyzerResult analyzerResult, ProjectId projectId) =>
+        private static IEnumerable<DocumentInfo> GetDocuments(IAnalyzerResult analyzerResult, ProjectId projectId) =>
             analyzerResult
                 .SourceFiles?.Where(File.Exists)
                 .Select(x => DocumentInfo.Create(
@@ -225,7 +225,7 @@ namespace Buildalyzer.Workspaces
                     filePath: x))
             ?? Array.Empty<DocumentInfo>();
 
-        private static IEnumerable<MetadataReference> GetMetadataReferences(AnalyzerResult analyzerResult) =>
+        private static IEnumerable<MetadataReference> GetMetadataReferences(IAnalyzerResult analyzerResult) =>
             analyzerResult
                 .References?.Where(File.Exists)
                 .Select(x => MetadataReference.CreateFromFile(x))

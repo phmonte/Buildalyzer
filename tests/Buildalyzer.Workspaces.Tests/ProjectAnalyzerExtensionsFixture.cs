@@ -19,7 +19,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
@@ -33,7 +33,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
@@ -48,7 +48,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
@@ -64,7 +64,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
             GetProjectAnalyzer(@"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj", log, analyzer.Manager);
 
             // When
@@ -79,7 +79,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
@@ -90,7 +90,7 @@ namespace Buildalyzer.Workspaces.Tests
             compilation.GetSymbolsWithName(x => x == "Class2").ShouldNotBeEmpty(log.ToString());
         }
 
-        private ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
+        private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             // The path will get normalized inside the .GetProject() call below
             string projectPath = Path.GetFullPath(

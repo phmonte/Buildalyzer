@@ -51,7 +51,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -60,7 +60,7 @@ namespace Buildalyzer.Tests.Integration
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -75,7 +75,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference,
@@ -85,7 +85,7 @@ namespace Buildalyzer.Tests.Integration
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -100,7 +100,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -129,7 +129,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -154,7 +154,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -195,10 +195,10 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            AnalyzerResults results = analyzer.Build();
+            IAnalyzerResults results = analyzer.Build();
 
             // Then
             results.Count.ShouldBe(2);
@@ -228,7 +228,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
             IReadOnlyList<string> sourceFiles = analyzer.Build("net462").First().SourceFiles;
@@ -252,7 +252,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
             IReadOnlyList<string> sourceFiles = analyzer.Build("netstandard2.0").First().SourceFiles;
@@ -275,7 +275,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
             IReadOnlyList<string> references = analyzer.Build().First().References;
@@ -290,7 +290,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
             IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> packageReferences = analyzer.Build().First().PackageReferences;
@@ -305,7 +305,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", log);
 
             // When
             IEnumerable<string> references = analyzer.Build().First().ProjectReferences;
@@ -322,7 +322,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
             IReadOnlyList<string> references = analyzer.Build().First().References;
@@ -337,7 +337,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
             IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> packageReferences = analyzer.Build().First().PackageReferences;
@@ -352,7 +352,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
 
             // When
             IEnumerable<string> references = analyzer.Build().First().ProjectReferences;
@@ -417,7 +417,7 @@ namespace Buildalyzer.Tests.Integration
             // Given
             AnalyzerManager manager = new AnalyzerManager(
                 GetProjectPath("TestProjects.sln"));
-            ProjectAnalyzer analyzer = manager.Projects.First(x => x.Key.EndsWith("SdkNetStandardProject.csproj")).Value;
+            IProjectAnalyzer analyzer = manager.Projects.First(x => x.Key.EndsWith("SdkNetStandardProject.csproj")).Value;
             EnvironmentOptions options = new EnvironmentOptions
             {
                 Preference = preference
@@ -426,7 +426,7 @@ namespace Buildalyzer.Tests.Integration
             // When
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.First().ProjectGuid.ToString().ShouldBe("016713d9-b665-4272-9980-148801a9b88f");
@@ -437,7 +437,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
-            ProjectAnalyzer analyzer = new AnalyzerManager()
+            IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions
             {
@@ -447,7 +447,7 @@ namespace Buildalyzer.Tests.Integration
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             // The generated GUIDs are based on subpath, so they'll be different from Windows to Linux
@@ -463,7 +463,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
-            ProjectAnalyzer analyzer = new AnalyzerManager()
+            IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions
             {
@@ -473,7 +473,7 @@ namespace Buildalyzer.Tests.Integration
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build(options);
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0);
@@ -487,12 +487,12 @@ namespace Buildalyzer.Tests.Integration
             // Given
             const string projectFile = @"FSharpProject\FSharpProject.fsproj";
             StringWriter log = new StringWriter();
-            ProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
             DeleteProjectDirectory(projectFile, "obj");
             DeleteProjectDirectory(projectFile, "bin");
-            AnalyzerResults results = analyzer.Build();
+            IAnalyzerResults results = analyzer.Build();
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
@@ -500,9 +500,9 @@ namespace Buildalyzer.Tests.Integration
             results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }
 
-        private static ProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
-            ProjectAnalyzer analyzer = new AnalyzerManager(
+            IProjectAnalyzer analyzer = new AnalyzerManager(
                 new AnalyzerManagerOptions
                 {
                     LogWriter = log

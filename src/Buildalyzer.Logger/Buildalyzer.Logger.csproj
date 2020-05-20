@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3</TargetFrameworks>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <Authors>Dave Glick and contributors</Authors>
@@ -15,10 +14,12 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
+  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  <OutputType>Library</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="14.3.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build" Version="15.8.166" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" PrivateAssets="All" />
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.2" PrivateAssets="All" IsLogger="true" />
   </ItemGroup>
   

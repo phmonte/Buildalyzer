@@ -1,3 +1,11 @@
+# 3.0.0
+
+- Added support for specifying additional MSBuild arguments via `EnvironmentOptions.Arguments`.
+- Updated the MSBuild.StructuredLogger package to version 2.1.133
+- Updated MSBuild packages to 16.5.0 (#140, thanks @colombod)
+- Updated Microsoft.CodeAnalysis packages to 3.6.0
+- The result of these package updates is that while Buildalyzer itself targets .NET Standard 2.0, any consuming application will need to target either .NET Core 2.1 or .NET Framework 4.7.2 (or higher)
+
 # 2.6.0
 
 - [Refactoring] Refactored key classes into interfaces for easier testing (#132, thanks @richardwerkman)

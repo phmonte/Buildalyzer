@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <Authors>Dave Glick and contributors</Authors>
@@ -10,19 +10,22 @@
     <Version>1.0.0</Version>
     <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-  <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
-  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  <OutputType>Library</OutputType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.8.166" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.8.166" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build" Version="14.3.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" PrivateAssets="All" />
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.2" PrivateAssets="All" IsLogger="true" />
   </ItemGroup>
-  
+
   <!-- Get the logger files for later use -->
   <Target Name="GetLoggerFiles" DependsOnTargets="ResolveReferences">
     <ItemGroup>
@@ -30,13 +33,13 @@
     </ItemGroup>
     <Error Condition="'@(LoggerFiles)' == ''" Text="Could not find MsBuildPipeLogger.Logger files" />
   </Target>
-  
+
   <!-- Workaround to pack package reference directly -->
   <!-- See https://github.com/NuGet/Home/issues/3891 -->
   <!-- And https://github.com/NuGet/Home/issues/4837 -->
   <Target Name="PackLogger" DependsOnTargets="GetLoggerFiles">
     <ItemGroup>
-        <BuildOutputInPackage Include="@(LoggerFiles)" />
+      <BuildOutputInPackage Include="@(LoggerFiles)" />
     </ItemGroup>
   </Target>
 </Project>

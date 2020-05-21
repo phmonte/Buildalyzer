@@ -113,7 +113,7 @@ namespace Buildalyzer
                 targetFrameworks = new string[] { null };
             }
 
-            // Create a new build envionment for each target
+            // Create a new build environment for each target
             AnalyzerResults results = new AnalyzerResults();
             foreach (string targetFramework in targetFrameworks)
             {
@@ -247,6 +247,11 @@ namespace Buildalyzer
                 initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
             }
 
+            // Environment arguments
+            string environmentArguments = buildEnvironment.Arguments.Any()
+                ? string.Join(" ", buildEnvironment.Arguments)
+                : string.Empty;
+
             // Get the logger arguments (/l)
             string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
             bool logEverything = _buildLoggers.Count > 0;
@@ -273,7 +278,7 @@ namespace Buildalyzer
             // Get the restore argument (/restore)
             string restoreArgument = buildEnvironment.Restore ? "/restore" : string.Empty;
 
-            arguments = $"{initialArguments} /noconsolelogger {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+            arguments = $"{initialArguments} /noconsolelogger {environmentArguments} {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
             return fileName;
         }
 

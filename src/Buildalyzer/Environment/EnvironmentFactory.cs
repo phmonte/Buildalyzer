@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
@@ -114,6 +115,7 @@ namespace Buildalyzer.Environment
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 options.DotnetExePath,
+                options.Arguments,
                 additionalGlobalProperties,
                 additionalEnvironmentVariables);
         }
@@ -150,6 +152,7 @@ namespace Buildalyzer.Environment
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 options.DotnetExePath,
+                options.Arguments,
                 additionalGlobalProperties,
                 options.EnvironmentVariables);
         }

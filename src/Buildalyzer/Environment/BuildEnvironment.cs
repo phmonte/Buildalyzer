@@ -42,6 +42,8 @@ namespace Buildalyzer.Environment
 
         public string DotnetExePath { get; }
 
+        public IEnumerable<string> Arguments { get; }
+
         public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables => _environmentVariables;
@@ -52,12 +54,14 @@ namespace Buildalyzer.Environment
             string[] targetsToBuild,
             string msBuildExePath,
             string dotnetExePath,
+            IEnumerable<string> arguments,
             IDictionary<string, string> additionalGlobalProperties = null,
             IDictionary<string, string> additionalEnvironmentVariables = null)
         {
             DesignTime = designTime;
             Restore = restore;
             TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
+            Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
 
             // Check if we've already specified a path to MSBuild
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
@@ -133,6 +137,7 @@ namespace Buildalyzer.Environment
                 targets,
                 MsBuildExePath,
                 DotnetExePath,
+                Arguments,
                 _additionalGlobalProperties,
                 _additionalEnvironmentVariables);
     }

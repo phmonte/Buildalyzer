@@ -42,8 +42,19 @@ namespace Buildalyzer.Environment
         /// </remarks>
         public string DotnetExePath { get; set; } = "dotnet";
 
+        /// <summary>
+        /// The global MSBuild properties to set.
+        /// </summary>
         public IDictionary<string, string> GlobalProperties { get; } = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Environment variables to set.
+        /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Additional MSBuild command-line arguments to use.
+        /// </summary>
+        public IList<string> Arguments { get; } = new List<string>();
     }
 }

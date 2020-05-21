@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -35,6 +36,7 @@ namespace Buildalyzer.Tests.Integration
             @"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj",
 #endif
             @"SdkNetCoreProject\SdkNetCoreProject.csproj",
+            @"SdkNetCore31Project\SdkNetCore31Project.csproj",
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj",
             @"SdkNetCoreProjectWithImportedProps\SdkNetCoreProjectWithImportedProps.csproj",
@@ -498,6 +500,56 @@ namespace Buildalyzer.Tests.Integration
             results.Count.ShouldBeGreaterThan(0, log.ToString());
             results.OverallSuccess.ShouldBeTrue(log.ToString());
             results.ShouldAllBe(x => x.Succeeded, log.ToString());
+        }
+
+        [Test]
+        public void GetsSourceFilesFromVersion9BinLog()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(
+                @"SdkNetCore31Project\SdkNetCore31Project.csproj",
+                log);
+            string binLogPath = Path.ChangeExtension(Path.GetTempFileName(), ".binlog");
+            EnvironmentOptions options = new EnvironmentOptions();
+            options.Arguments.Add("/bl:" + binLogPath); // Tell MSBuild to produce the binlog so we use the latest internal logger
+
+            try
+            {
+                // When
+                analyzer.Build(options);
+                using (Stream stream = File.OpenRead(binLogPath))
+                {
+                    using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress))
+                    {
+                        using (BinaryReader reader = new BinaryReader(gzip))
+                        {
+                            // Verify this produced a version 9 binlog
+                            reader.ReadInt32().ShouldBe(9);
+                        }
+                    }
+                }
+                IReadOnlyList<string> sourceFiles = analyzer.Manager.Analyze(binLogPath).First().SourceFiles;
+
+                // Then
+                sourceFiles.ShouldNotBeNull(log.ToString());
+                new[]
+                {
+#if Is_Windows
+                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
+                "AssemblyAttributes",
+#endif
+                "Class1",
+                "AssemblyInfo"
+                }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
+            }
+            finally
+            {
+                if (File.Exists(binLogPath))
+                {
+                    File.Delete(binLogPath);
+                }
+            }
         }
 
         private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

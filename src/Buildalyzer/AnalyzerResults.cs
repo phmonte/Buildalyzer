@@ -1,11 +1,12 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Buildalyzer
 {
     public class AnalyzerResults : IEnumerable<IAnalyzerResult>, IAnalyzerResults
     {
-        private readonly Dictionary<string, IAnalyzerResult> _results = new Dictionary<string, IAnalyzerResult>();
+        private readonly ConcurrentDictionary<string, IAnalyzerResult> _results = new ConcurrentDictionary<string, IAnalyzerResult>();
 
         private bool? _overallSuccess = null;
 

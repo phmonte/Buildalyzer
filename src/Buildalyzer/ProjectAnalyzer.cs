@@ -22,6 +22,7 @@ namespace Buildalyzer
 
         // Project-specific global properties and environment variables
         private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         private readonly ConcurrentDictionary<string, string> _environmentVariables = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public AnalyzerManager Manager { get; }
@@ -220,7 +221,6 @@ namespace Buildalyzer
                         string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
                         using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
                         {
-                            processRunner.Exited = () => cancellation.Cancel();
                             processRunner.Start();
                             pipeLogger.ReadAll();
                             processRunner.WaitForExit();

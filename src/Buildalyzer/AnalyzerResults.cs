@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Buildalyzer
 {
-    public class AnalyzerResults : IEnumerable<IAnalyzerResult>, IAnalyzerResults
+    public class AnalyzerResults : IAnalyzerResults
     {
         private readonly ConcurrentDictionary<string, IAnalyzerResult> _results = new ConcurrentDictionary<string, IAnalyzerResult>();
 

@@ -233,9 +233,10 @@ namespace Buildalyzer.Tests.Integration
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build("net462").First().SourceFiles;
+            IAnalyzerResults results = analyzer.Build("net462");
 
             // Then
+            IReadOnlyList<string> sourceFiles = results.First(x => x.TargetFramework == "net462").SourceFiles;
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
@@ -257,9 +258,10 @@ namespace Buildalyzer.Tests.Integration
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
-            IReadOnlyList<string> sourceFiles = analyzer.Build("netstandard2.0").First().SourceFiles;
+            IAnalyzerResults results = analyzer.Build("netstandard2.0");
 
             // Then
+            IReadOnlyList<string> sourceFiles = results.First(x => x.TargetFramework == "netstandard2.0").SourceFiles;
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {

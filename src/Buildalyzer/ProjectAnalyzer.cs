@@ -35,36 +35,20 @@ namespace Buildalyzer
 
         public ProjectInSolution ProjectInSolution { get; }
 
-        /// <summary>
-        /// Gets a GUID for the project. This checks for a GUID from the
-        /// solution (if originally provided). If this isn't available, it
-        /// will generate a UUID GUID by hashing the project path relative to the solution path (so it's repeatable).
-        /// </summary>
+        /// <inheritdoc/>
         public Guid ProjectGuid { get; }
 
-        /// <summary>
-        /// The global properties for MSBuild to be used for every build from this analyzer.
-        /// </summary>
-        /// <remarks>
-        /// Additional global properties may be added or changed by individual build environment.
-        /// </remarks>
+        /// <inheritdoc/>
         public IReadOnlyDictionary<string, string> GlobalProperties => GetEffectiveGlobalProperties(null);
 
-        /// <summary>
-        /// The environment variables for MSBuild to be used for every build from this analyzer.
-        /// </summary>
-        /// <remarks>
-        /// Additional environment variables may be added or changed by individual build environment.
-        /// </remarks>
+        /// <inheritdoc/>
         public IReadOnlyDictionary<string, string> EnvironmentVariables => GetEffectiveEnvironmentVariables(null);
 
         public IEnumerable<ILogger> BuildLoggers => _buildLoggers;
 
         public ILogger<ProjectAnalyzer> Logger { get; set; }
 
-        /// <summary>
-        /// Controls whether empty, invalid, and missing targets should be ignored during project load.
-        /// </summary>
+        /// <inheritdoc/>
         public bool IgnoreFaultyImports { get; set; } = true;
 
         // The project file path should already be normalized
@@ -87,20 +71,11 @@ namespace Buildalyzer
             SetGlobalProperty(MsBuildProperties.SolutionDir, SolutionDirectory);
         }
 
-        /// <summary>
-        /// Builds the requested target framework(s).
-        /// </summary>
-        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
-        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string[] targetFrameworks) =>
             Build(targetFrameworks, new EnvironmentOptions());
 
-        /// <summary>
-        /// Builds the requested target framework(s).
-        /// </summary>
-        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
-        /// <param name="environmentOptions">The environment options to use for the build.</param>
-        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string[] targetFrameworks, EnvironmentOptions environmentOptions)
         {
             if (environmentOptions == null)
@@ -125,12 +100,7 @@ namespace Buildalyzer
             return results;
         }
 
-        /// <summary>
-        /// Builds the requested target framework(s).
-        /// </summary>
-        /// <param name="targetFrameworks">The set of target frameworks to build.</param>
-        /// <param name="buildEnvironment">The build environment to use for the build.</param>
-        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string[] targetFrameworks, BuildEnvironment buildEnvironment)
         {
             if (buildEnvironment == null)
@@ -153,20 +123,11 @@ namespace Buildalyzer
             return results;
         }
 
-        /// <summary>
-        /// Builds a specific target framework.
-        /// </summary>
-        /// <param name="targetFramework">The target framework to build.</param>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string targetFramework) =>
             Build(targetFramework, EnvironmentFactory.GetBuildEnvironment(targetFramework));
 
-        /// <summary>
-        /// Builds a specific target framework.
-        /// </summary>
-        /// <param name="targetFramework">The target framework to build.</param>
-        /// <param name="environmentOptions">The environment options to use for the build.</param>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string targetFramework, EnvironmentOptions environmentOptions) =>
             Build(
                 targetFramework,
@@ -174,12 +135,7 @@ namespace Buildalyzer
                     targetFramework,
                     environmentOptions ?? throw new ArgumentNullException(nameof(environmentOptions))));
 
-        /// <summary>
-        /// Builds a specific target framework.
-        /// </summary>
-        /// <param name="targetFramework">The target framework to build.</param>
-        /// <param name="buildEnvironment">The build environment to use for the build.</param>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment) =>
             BuildTargets(
                 buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment)),
@@ -187,24 +143,13 @@ namespace Buildalyzer
                 buildEnvironment.TargetsToBuild,
                 new AnalyzerResults());
 
-        /// <summary>
-        /// Builds the project without specifying a target framework. In a multi-targeted project this will return a <see cref="AnalyzerResult"/> for each target framework.
-        /// </summary>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build() => Build((string)null);
 
-        /// <summary>
-        /// Builds the project without specifying a target framework. In a multi-targeted project this will return a <see cref="AnalyzerResult"/> for each target framework.
-        /// </summary>
-        /// <param name="environmentOptions">The environment options to use for the build.</param>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(EnvironmentOptions environmentOptions) => Build((string)null, environmentOptions);
 
-        /// <summary>
-        /// Builds the project without specifying a target framework. In a multi-targeted project this will return a <see cref="AnalyzerResult"/> for each target framework.
-        /// </summary>
-        /// <param name="buildEnvironment">The build environment to use for the build.</param>
-        /// <returns>The result of the build process.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Build(BuildEnvironment buildEnvironment) => Build((string)null, buildEnvironment);
 
         // This is where the magic happens - returns one result per result target framework
@@ -362,14 +307,7 @@ namespace Buildalyzer
                 Verbosity = Microsoft.Build.Framework.LoggerVerbosity.Diagnostic
             });
 
-        /// <summary>
-        /// Adds an MSBuild logger to the build. Note that this may have a large penalty on build performance.
-        /// </summary>
-        /// <remarks>
-        /// Normally, the minimum required amount of log events are forwarded from the MSBuild process to Buildalyzer.
-        /// By attaching arbitrary loggers, MSBuild must forward every log event so the logger has a chance to handle it.
-        /// </remarks>
-        /// <param name="logger">The logger to add.</param>
+        /// <inheritdoc/>
         public void AddBuildLogger(ILogger logger)
         {
             if (logger == null)
@@ -380,10 +318,7 @@ namespace Buildalyzer
             _buildLoggers.Add(logger);
         }
 
-        /// <summary>
-        /// Removes an MSBuild logger from the build.
-        /// </summary>
-        /// <param name="logger">The logger to remove.</param>
+        /// <inheritdoc/>
         public void RemoveBuildLogger(ILogger logger)
         {
             if (logger == null)

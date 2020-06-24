@@ -87,12 +87,7 @@ namespace Buildalyzer
 
         public IProjectAnalyzer GetProject(string projectFilePath) => GetProject(projectFilePath, null);
 
-        /// <summary>
-        /// Analyzes an MSBuild binary log file.
-        /// </summary>
-        /// <param name="binLogPath">The path to the binary log file.</param>
-        /// <param name="buildLoggers">MSBuild loggers to replay events from the log to.</param>
-        /// <returns>A dictionary of target frameworks to <see cref="AnalyzerResult"/>.</returns>
+        /// <inheritdoc/>
         public IAnalyzerResults Analyze(string binLogPath, IEnumerable<Microsoft.Build.Framework.ILogger> buildLoggers = null)
         {
             binLogPath = NormalizePath(binLogPath);

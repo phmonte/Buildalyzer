@@ -1,3 +1,5 @@
+# 3.0.2
+
 # 3.0.1
 
 - Fixed (hopefully) several bugs related to concurrency (#142, #134, #138, thanks @duncanawoods and @SierraNL).

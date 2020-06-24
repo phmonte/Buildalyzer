@@ -503,6 +503,29 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void BuildsLotsOfProjects()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            AnalyzerManager manager = new AnalyzerManager(
+                GetProjectPath(@"LotsOfProjects\LotsOfProjects.sln"),
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                });
+            List<IProjectAnalyzer> projects = manager.Projects.Values.ToList();
+
+            // When
+            List<IAnalyzerResults> analyzerResults = projects
+                .AsParallel()
+                .Select(x => x.Build())
+                .ToList();
+
+            // Then
+            analyzerResults.Count.ShouldBe(50);
+        }
+
+        [Test]
         public void GetsSourceFilesFromVersion9BinLog()
         {
             // Given

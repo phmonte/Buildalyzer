@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -208,12 +208,6 @@ namespace Buildalyzer
             {
                 // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
                 effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
-            }
-            if (Path.GetExtension(ProjectFile.Path).Equals(".fsproj", StringComparison.OrdinalIgnoreCase)
-                && effectiveGlobalProperties.ContainsKey(MsBuildProperties.SkipCompilerExecution))
-            {
-                // We can't skip the compiler for design-time builds in F# (it causes strange errors regarding file copying)
-                effectiveGlobalProperties.Remove(MsBuildProperties.SkipCompilerExecution);
             }
             string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}";
 

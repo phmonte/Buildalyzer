@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -114,8 +114,14 @@ namespace Buildalyzer.Logging
 
         private void MessageRaised(object sender, BuildMessageEventArgs e)
         {
-            // Process the command line arguments for the Csc task
+            // Process the command line arguments for the Fsc task
             AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
+            if (e.SenderName.Equals("Fsc", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(e.Message) && _targetStack.Any(x => x.TargetName == "CoreCompile") && _currentResult.Count != 0)
+            {
+                result.ProcessFscCommandLine(e.Message);
+            }
+
+            // Process the command line arguments for the Csc task
             if (result != null
                 && e is TaskCommandLineEventArgs cmd
                 && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))

@@ -226,6 +226,16 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void SolutionDirShouldEndWithDirectorySeparator()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
+
+            analyzer.SolutionDirectory.ShouldEndWith(Path.DirectorySeparatorChar.ToString());
+        }
+
+        [Test]
         public void MultiTargetingBuildFrameworkTargetFrameworkGetsSourceFiles()
         {
             // Given

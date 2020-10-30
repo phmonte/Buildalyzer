@@ -116,7 +116,7 @@ namespace Buildalyzer.Logging
         {
             // Process the command line arguments for the Fsc task
             AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
-            if (e.SenderName.Equals("Fsc", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(e.Message) && _targetStack.Any(x => x.TargetName == "CoreCompile") && _currentResult.Count != 0)
+            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrWhiteSpace(e.Message) && _targetStack.Any(x => x.TargetName == "CoreCompile") && _currentResult.Count != 0)
             {
                 result.ProcessFscCommandLine(e.Message);
             }

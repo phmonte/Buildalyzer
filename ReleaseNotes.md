@@ -1,3 +1,5 @@
+# 3.1.1
+
 # 3.1.0
 
 - Added `SourceFiles` and `References` for F# projects (#146, thanks @dukedagmor)

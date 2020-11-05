@@ -1,4 +1,9 @@
-# 3.0.2
+# 3.1.1
+
+# 3.1.0
+
+- Added `SourceFiles` and `References` for F# projects (#146, thanks @dukedagmor)
+- Fixed an inconsistency between Buildalyzer and MSBuild by adding a trailing directory separator to the solution path (#147, #148, thanks @laurenceSaes)
 
 # 3.0.1
 

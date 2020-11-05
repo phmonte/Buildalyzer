@@ -1,5 +1,5 @@
 // The following environment variables need to be set for Publish target:
-// NUGET_KEY
+// DAVEAGLICK_NUGET_API_KEY
 // MYGET_KEY
 // GITHUB_TOKEN
 
@@ -204,7 +204,7 @@ Task("NuGet")
     .WithCriteria(() => isLocal)
     .Does(() =>
     {
-        var nugetKey = EnvironmentVariable("NUGET_KEY");
+        var nugetKey = EnvironmentVariable("DAVEAGLICK_NUGET_API_KEY");
         if (string.IsNullOrEmpty(nugetKey))
         {
             throw new InvalidOperationException("Could not resolve NuGet API key.");
@@ -277,7 +277,7 @@ Task("Default")
     
 Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
-    .IsDependentOn("GitHub")
+    // .IsDependentOn("GitHub")
     .IsDependentOn("NuGet");
     
 Task("BuildServer")

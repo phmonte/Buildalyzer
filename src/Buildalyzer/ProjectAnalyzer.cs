@@ -59,12 +59,12 @@ namespace Buildalyzer
             ProjectFile = new ProjectFile(projectFilePath);
             EnvironmentFactory = new EnvironmentFactory(Manager, ProjectFile);
             ProjectInSolution = projectInSolution;
-            SolutionDirectory = string.IsNullOrEmpty(manager.SolutionFilePath)
-                ? Path.GetDirectoryName(projectFilePath) : Path.GetDirectoryName(manager.SolutionFilePath);
+            SolutionDirectory = (string.IsNullOrEmpty(manager.SolutionFilePath)
+                ? Path.GetDirectoryName(projectFilePath) : Path.GetDirectoryName(manager.SolutionFilePath)) + Path.DirectorySeparatorChar;
 
             // Get (or create) a project GUID
             ProjectGuid = projectInSolution == null
-                ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFile.Path.Substring(SolutionDirectory.Length))
+                ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFile.Path.Substring(SolutionDirectory.Length - 1))
                 : Guid.Parse(projectInSolution.ProjectGuid);
 
             // Set the solution directory global property

@@ -90,6 +90,21 @@ namespace Buildalyzer.Workspaces.Tests
             compilation.GetSymbolsWithName(x => x == "Class2").ShouldNotBeEmpty(log.ToString());
         }
 
+        [Test]
+        public void SupportsAnalyzers()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetCoreProjectWithAnalyzer\SdkNetCoreProjectWithAnalyzer.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace();
+            Project project = workspace.CurrentSolution.Projects.First();
+
+            // Then
+            project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
+        }
+
         private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             // The path will get normalized inside the .GetProject() call below

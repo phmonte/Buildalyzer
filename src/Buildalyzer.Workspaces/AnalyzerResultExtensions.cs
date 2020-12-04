@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 
@@ -115,6 +117,7 @@ namespace Buildalyzer.Workspaces
                 documents: GetDocuments(analyzerResult, projectId),
                 projectReferences: GetExistingProjectReferences(analyzerResult, workspace),
                 metadataReferences: GetMetadataReferences(analyzerResult),
+                analyzerReferences: GetAnalyzerReferences(analyzerResult, workspace),
                 parseOptions: CreateParseOptions(analyzerResult, languageName),
                 compilationOptions: CreateCompilationOptions(analyzerResult, languageName));
             return projectInfo;
@@ -230,6 +233,16 @@ namespace Buildalyzer.Workspaces
                 .References?.Where(File.Exists)
                 .Select(x => MetadataReference.CreateFromFile(x))
             ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
+
+        private static IEnumerable<AnalyzerReference> GetAnalyzerReferences(IAnalyzerResult analyzerResult, Workspace workspace)
+        {
+            IAnalyzerAssemblyLoader loader = workspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
+
+            return analyzerResult
+                .AnalyzerReferences?.Where(File.Exists)
+                .Select(x => new AnalyzerFileReference(x, loader))
+                ?? (IEnumerable<AnalyzerReference>)Array.Empty<AnalyzerReference>();
+        }
 
         private static string GetLanguageName(string projectPath)
         {

@@ -82,6 +82,12 @@ namespace Buildalyzer
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
+        public string[] AnalyzerReferences =>
+            _cscCommandLineArguments
+                ?.Where(x => x.Item1 == "analyzer")
+                .Select(x => x.Item2)
+                .ToArray() ?? Array.Empty<string>();
+
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out ProjectItem[] items)
                 ? items.Select(x => AnalyzerManager.NormalizePath(

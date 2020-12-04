@@ -41,6 +41,8 @@ namespace Buildalyzer
 
         string[] References { get; }
 
+        string[] AnalyzerReferences { get; }
+
         string[] SourceFiles { get; }
 
         bool Succeeded { get; }

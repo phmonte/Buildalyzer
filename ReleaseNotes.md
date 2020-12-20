@@ -1,5 +1,9 @@
 # 3.1.1
 
+- Added Workspaces support for analyzers and source generators (#157, #158, thanks @svick)
+- Updated the Microsoft.CodeAnalysis packages to 3.8.0 (#155, thanks @jjonescz)
+- Added a fix for F# support (#151, #152, thanks @dukedagmor)
+
 # 3.1.0
 
 - Added `SourceFiles` and `References` for F# projects (#146, thanks @dukedagmor)

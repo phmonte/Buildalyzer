@@ -171,6 +171,11 @@ namespace Buildalyzer
             return args;
         }
 
+        public bool HasFscArguments()
+        {
+            return _fscCommandLineArguments?.Count > 0;
+        }
+
         private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, bool initialCommand)
         {
             StringBuilder part = new StringBuilder();

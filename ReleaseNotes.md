@@ -1,3 +1,5 @@
+# 3.1.2
+
 # 3.1.1
 
 - Added Workspaces support for analyzers and source generators (#157, #158, thanks @svick)

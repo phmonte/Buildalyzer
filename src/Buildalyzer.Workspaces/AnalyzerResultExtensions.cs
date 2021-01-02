@@ -212,7 +212,7 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<IProjectAnalyzer> GetReferencedAnalyzerProjects(IAnalyzerResult analyzerResult) =>
             analyzerResult.ProjectReferences
-                .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out IProjectAnalyzer a) ? a : null)
+                .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out IProjectAnalyzer a) ? a : analyzerResult.Manager.GetProject(x))
                 .Where(x => x != null)
             ?? Array.Empty<ProjectAnalyzer>();
 

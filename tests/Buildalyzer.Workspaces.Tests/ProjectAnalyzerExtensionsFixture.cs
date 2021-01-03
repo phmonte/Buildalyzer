@@ -65,7 +65,6 @@ namespace Buildalyzer.Workspaces.Tests
             // Given
             StringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
-            GetProjectAnalyzer(@"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj", log, analyzer.Manager);
 
             // When
             Workspace workspace = analyzer.GetWorkspace(addProjectReferences);

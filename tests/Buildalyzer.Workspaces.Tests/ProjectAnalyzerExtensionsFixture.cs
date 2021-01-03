@@ -59,7 +59,7 @@ namespace Buildalyzer.Workspaces.Tests
         }
 
         [TestCase(false, 1)]
-        [TestCase(true, 2)]
+        [TestCase(true, 3)]
         public void AddsProjectReferences(bool addProjectReferences, int totalProjects)
         {
             // Given

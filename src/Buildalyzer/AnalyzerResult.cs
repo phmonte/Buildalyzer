@@ -12,7 +12,7 @@ namespace Buildalyzer
     public class AnalyzerResult : IAnalyzerResult
     {
         private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, ProjectItem[]> _items = new Dictionary<string, ProjectItem[]>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IProjectItem[]> _items = new Dictionary<string, IProjectItem[]>(StringComparer.OrdinalIgnoreCase);
         private readonly Guid _projectGuid;
         private List<(string, string)> _cscCommandLineArguments;
         private List<(string, string)> _fscCommandLineArguments;
@@ -44,7 +44,7 @@ namespace Buildalyzer
 
         public IReadOnlyDictionary<string, string> Properties => _properties;
 
-        public IReadOnlyDictionary<string, ProjectItem[]> Items => _items;
+        public IReadOnlyDictionary<string, IProjectItem[]> Items => _items;
 
         /// <inheritdoc/>
         public Guid ProjectGuid => _projectGuid;
@@ -89,14 +89,14 @@ namespace Buildalyzer
                 .ToArray() ?? Array.Empty<string>();
 
         public IEnumerable<string> ProjectReferences =>
-            Items.TryGetValue("ProjectReference", out ProjectItem[] items)
+            Items.TryGetValue("ProjectReference", out IProjectItem[] items)
                 ? items.Select(x => AnalyzerManager.NormalizePath(
                     Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec)))
                 : Array.Empty<string>();
 
         /// <inheritdoc/>
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> PackageReferences =>
-            Items.TryGetValue("PackageReference", out ProjectItem[] items)
+            Items.TryGetValue("PackageReference", out IProjectItem[] items)
                 ? items.Distinct(new ProjectItemItemSpecEqualityComparer()).ToDictionary(x => x.ItemSpec, x => x.Metadata)
                 : new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
@@ -360,10 +360,10 @@ namespace Buildalyzer
             }
         }
 
-        private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<ProjectItem>
+        private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>
         {
-            public bool Equals(ProjectItem x, ProjectItem y) => x.ItemSpec.Equals(y.ItemSpec);
-            public int GetHashCode(ProjectItem obj) => obj.ItemSpec.GetHashCode();
+            public bool Equals(IProjectItem x, IProjectItem y) => x.ItemSpec.Equals(y.ItemSpec);
+            public int GetHashCode(IProjectItem obj) => obj.ItemSpec.GetHashCode();
         }
     }
 }

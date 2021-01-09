@@ -11,7 +11,7 @@ namespace Buildalyzer
         /// </summary>
         ProjectAnalyzer Analyzer { get; }
 
-        IReadOnlyDictionary<string, ProjectItem[]> Items { get; }
+        IReadOnlyDictionary<string, IProjectItem[]> Items { get; }
 
         AnalyzerManager Manager { get; }
 

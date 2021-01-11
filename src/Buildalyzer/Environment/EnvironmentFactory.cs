@@ -184,6 +184,7 @@ namespace Buildalyzer.Environment
         private bool IsFrameworkTargetFramework(string targetFramework) =>
             targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                 && targetFramework.Length > 3
-                && char.IsDigit(targetFramework[4]);
+                && char.IsDigit(targetFramework[4])
+                && char.GetNumericValue(targetFramework[4]) <= 4;
     }
 }

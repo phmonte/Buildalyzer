@@ -1,3 +1,5 @@
+# 3.2.1
+
 # 3.2.0
 
 - Refactored `ProjectItem` to an interface `IProjectItem` for easier mocking/testing (#161, #162, thanks @fbd)

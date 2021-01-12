@@ -2,6 +2,7 @@
 
 - Refactored `ProjectItem` to an interface `IProjectItem` for easier mocking/testing (#161, #162, thanks @fbd)
 - Fixed .NET Framework TFM identification for .NET Core/.NET 5 and others (#163, #164, thanks @slang25)
+- Automatically adds project references that didn't originally exist in the manager when building a Roslyn workspace (#159, #160, thanks @slang25)
 
 # 3.1.1
 

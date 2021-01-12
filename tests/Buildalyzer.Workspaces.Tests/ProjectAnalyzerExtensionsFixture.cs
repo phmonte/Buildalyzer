@@ -73,6 +73,21 @@ namespace Buildalyzer.Workspaces.Tests
             workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
         }
 
+        [TestCase(false, 1)]
+        [TestCase(true, 4)]
+        public void AddsTransitiveProjectReferences(bool addProjectReferences, int totalProjects)
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\TransitiveProjectReference\TransitiveProjectReference.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
+
+            // Then
+            workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
+        }
+
         [Test]
         public void SupportsConstants()
         {

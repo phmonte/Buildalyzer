@@ -1,5 +1,7 @@
 # 3.1.2
 
+- Fixed .NET Framework TFM identification for .NET Core/.NET 5 and others (#163, #164, thanks @slang25)
+
 # 3.1.1
 
 - Added Workspaces support for analyzers and source generators (#157, #158, thanks @svick)

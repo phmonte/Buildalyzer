@@ -1,5 +1,6 @@
-# 3.1.2
+# 3.2.0
 
+- Refactored `ProjectItem` to an interface `IProjectItem` for easier mocking/testing (#161, #162, thanks @fbd)
 - Fixed .NET Framework TFM identification for .NET Core/.NET 5 and others (#163, #164, thanks @slang25)
 
 # 3.1.1

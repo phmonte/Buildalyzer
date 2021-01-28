@@ -125,43 +125,54 @@ namespace Buildalyzer.Workspaces
 
         private static ParseOptions CreateParseOptions(IAnalyzerResult analyzerResult, string languageName)
         {
+            // language-specific code is in local functions, to prevent assembly loading failures when assembly for the other language is not available
             if (languageName == LanguageNames.CSharp)
             {
-                CSharpParseOptions parseOptions = new CSharpParseOptions();
-
-                // Add any constants
-                string constants = analyzerResult.GetProperty("DefineConstants");
-                if (!string.IsNullOrWhiteSpace(constants))
+                ParseOptions CreateCSharpParseOptions()
                 {
-                    parseOptions = parseOptions
-                        .WithPreprocessorSymbols(constants.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()));
+                    CSharpParseOptions parseOptions = new CSharpParseOptions();
+
+                    // Add any constants
+                    string constants = analyzerResult.GetProperty("DefineConstants");
+                    if (!string.IsNullOrWhiteSpace(constants))
+                    {
+                        parseOptions = parseOptions
+                            .WithPreprocessorSymbols(constants.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()));
+                    }
+
+                    // Get language version
+                    string langVersion = analyzerResult.GetProperty("LangVersion");
+                    if (!string.IsNullOrWhiteSpace(langVersion)
+                        && Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(langVersion, out Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion))
+                    {
+                        parseOptions = parseOptions.WithLanguageVersion(languageVersion);
+                    }
+
+                    return parseOptions;
                 }
 
-                // Get language version
-                string langVersion = analyzerResult.GetProperty("LangVersion");
-                if (!string.IsNullOrWhiteSpace(langVersion)
-                    && Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(langVersion, out Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion))
-                {
-                    parseOptions = parseOptions.WithLanguageVersion(languageVersion);
-                }
-
-                return parseOptions;
+                return CreateCSharpParseOptions();
             }
 
             if (languageName == LanguageNames.VisualBasic)
             {
-                VisualBasicParseOptions parseOptions = new VisualBasicParseOptions();
-
-                // Get language version
-                string langVersion = analyzerResult.GetProperty("LangVersion");
-                Microsoft.CodeAnalysis.VisualBasic.LanguageVersion languageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default;
-                if (!string.IsNullOrWhiteSpace(langVersion)
-                    && Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(langVersion, ref languageVersion))
+                ParseOptions CreateVBParseOptions()
                 {
-                    parseOptions = parseOptions.WithLanguageVersion(languageVersion);
+                    VisualBasicParseOptions parseOptions = new VisualBasicParseOptions();
+
+                    // Get language version
+                    string langVersion = analyzerResult.GetProperty("LangVersion");
+                    Microsoft.CodeAnalysis.VisualBasic.LanguageVersion languageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.Default;
+                    if (!string.IsNullOrWhiteSpace(langVersion)
+                        && Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(langVersion, ref languageVersion))
+                    {
+                        parseOptions = parseOptions.WithLanguageVersion(languageVersion);
+                    }
+
+                    return parseOptions;
                 }
 
-                return parseOptions;
+                return CreateVBParseOptions();
             }
 
             return null;
@@ -189,14 +200,19 @@ namespace Buildalyzer.Workspaces
 
             if (kind.HasValue)
             {
+                // language-specific code is in local functions, to prevent assembly loading failures when assembly for the other language is not available
                 if (languageName == LanguageNames.CSharp)
                 {
-                    return new CSharpCompilationOptions(kind.Value);
+                    CompilationOptions CreateCSharpCompilationOptions() => new CSharpCompilationOptions(kind.Value);
+
+                    return CreateCSharpCompilationOptions();
                 }
 
                 if (languageName == LanguageNames.VisualBasic)
                 {
-                    return new VisualBasicCompilationOptions(kind.Value);
+                    CompilationOptions CreateVBCompilationOptions() => new VisualBasicCompilationOptions(kind.Value);
+
+                    return CreateVBCompilationOptions();
                 }
             }
 

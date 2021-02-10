@@ -10,7 +10,7 @@ namespace Buildalyzer.Construction
 
         internal PackageReference(XElement packageReferenceElement)
         {
-            this.Name = packageReferenceElement.GetAttributeValue("Include");
+            this.Name = packageReferenceElement.GetAttributeValue("Include") ?? packageReferenceElement.GetAttributeValue("Update");
             this.Version = packageReferenceElement.GetAttributeValue("Version");
         }
     }

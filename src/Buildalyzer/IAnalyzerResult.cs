@@ -11,7 +11,7 @@ namespace Buildalyzer
         /// </summary>
         ProjectAnalyzer Analyzer { get; }
 
-        IReadOnlyDictionary<string, ProjectItem[]> Items { get; }
+        IReadOnlyDictionary<string, IProjectItem[]> Items { get; }
 
         AnalyzerManager Manager { get; }
 
@@ -40,6 +40,8 @@ namespace Buildalyzer
         IReadOnlyDictionary<string, string> Properties { get; }
 
         string[] References { get; }
+
+        string[] AnalyzerReferences { get; }
 
         string[] SourceFiles { get; }
 

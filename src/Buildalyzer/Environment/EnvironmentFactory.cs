@@ -181,9 +181,14 @@ namespace Buildalyzer.Environment
         private bool OnlyTargetsFramework(string targetFramework) =>
             targetFramework == null ? _projectFile.TargetFrameworks.All(x => IsFrameworkTargetFramework(x)) : IsFrameworkTargetFramework(targetFramework);
 
-        private bool IsFrameworkTargetFramework(string targetFramework) =>
-            targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+        // Internal for testing
+        // Because the .NET Core/.NET 5 TFMs are better defined, we just check if this is one of them and then negate
+        internal static bool IsFrameworkTargetFramework(string targetFramework) =>
+            !(targetFramework.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase)
+            || targetFramework.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase)
+            || (targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
                 && targetFramework.Length > 3
-                && char.IsDigit(targetFramework[4]);
+                && int.TryParse(new string(new[] { targetFramework[3] }), out int version)
+                && version >= 5));
     }
 }

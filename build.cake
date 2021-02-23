@@ -277,7 +277,7 @@ Task("Default")
     
 Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
-    // .IsDependentOn("GitHub")
+    .IsDependentOn("GitHub")
     .IsDependentOn("NuGet");
     
 Task("BuildServer")

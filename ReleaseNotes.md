@@ -1,4 +1,16 @@
+# 3.2.1
+
+# 3.2.0
+
+- Refactored `ProjectItem` to an interface `IProjectItem` for easier mocking/testing (#161, #162, thanks @fbd)
+- Fixed .NET Framework TFM identification for .NET Core/.NET 5 and others (#163, #164, thanks @slang25)
+- Automatically adds project references that didn't originally exist in the manager when building a Roslyn workspace (#159, #160, thanks @slang25)
+
 # 3.1.1
+
+- Added Workspaces support for analyzers and source generators (#157, #158, thanks @svick)
+- Updated the Microsoft.CodeAnalysis packages to 3.8.0 (#155, thanks @jjonescz)
+- Added a fix for F# support (#151, #152, thanks @dukedagmor)
 
 # 3.1.0
 

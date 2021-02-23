@@ -59,13 +59,27 @@ namespace Buildalyzer.Workspaces.Tests
         }
 
         [TestCase(false, 1)]
-        [TestCase(true, 2)]
+        [TestCase(true, 3)]
         public void AddsProjectReferences(bool addProjectReferences, int totalProjects)
         {
             // Given
             StringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
-            GetProjectAnalyzer(@"projects\LegacyFrameworkProject\LegacyFrameworkProject.csproj", log, analyzer.Manager);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
+
+            // Then
+            workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
+        }
+
+        [TestCase(false, 1)]
+        [TestCase(true, 4)]
+        public void AddsTransitiveProjectReferences(bool addProjectReferences, int totalProjects)
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\TransitiveProjectReference\TransitiveProjectReference.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
@@ -88,6 +102,21 @@ namespace Buildalyzer.Workspaces.Tests
             // Then
             compilation.GetSymbolsWithName(x => x == "Class1").ShouldBeEmpty(log.ToString());
             compilation.GetSymbolsWithName(x => x == "Class2").ShouldNotBeEmpty(log.ToString());
+        }
+
+        [Test]
+        public void SupportsAnalyzers()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetCoreProjectWithAnalyzer\SdkNetCoreProjectWithAnalyzer.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace();
+            Project project = workspace.CurrentSolution.Projects.First();
+
+            // Then
+            project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
         }
 
         private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)

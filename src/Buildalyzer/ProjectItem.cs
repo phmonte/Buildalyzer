@@ -8,7 +8,7 @@ using Microsoft.Build.Logging;
 
 namespace Buildalyzer
 {
-    public class ProjectItem
+    public class ProjectItem : IProjectItem
     {
         public string ItemSpec { get; }
         public IReadOnlyDictionary<string, string> Metadata { get; }

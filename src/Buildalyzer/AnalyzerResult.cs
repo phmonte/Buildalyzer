@@ -299,7 +299,6 @@ namespace Buildalyzer
             {
                 while (reader.Read() is int c && c >= 0)
                 {
-                    Console.Write((char)c);
                     switch (c)
                     {
                         case '\\':

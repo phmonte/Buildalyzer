@@ -8,6 +8,7 @@ namespace Buildalyzer.Construction
         bool IsMultiTargeted { get; }
         IReadOnlyList<IPackageReference> PackageReferences { get; }
         string Path { get; }
+        string Name { get; }
         bool RequiresNetFramework { get; }
         string[] TargetFrameworks { get; }
         string ToolsVersion { get; }

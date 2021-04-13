@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
-using Microsoft.Build.Evaluation;
 
 namespace Buildalyzer.Construction
 {
@@ -31,6 +30,7 @@ namespace Buildalyzer.Construction
         internal ProjectFile(string path)
         {
             Path = path;
+            Name = new FileInfo(path).Name;
             _document = XDocument.Load(path);
 
             // Get the project element
@@ -45,6 +45,11 @@ namespace Buildalyzer.Construction
         /// The full path to the project file.
         /// </summary>
         public string Path { get; }
+
+        /// <summary>
+        /// Project name.
+        /// </summary>
+        public string Name { get; }
 
         /// <summary>
         /// The target framework(s) in the project file.

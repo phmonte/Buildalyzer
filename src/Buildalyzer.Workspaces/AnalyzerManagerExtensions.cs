@@ -18,6 +18,13 @@ namespace Buildalyzer.Workspaces
 
             // Add each result to a new workspace
             AdhocWorkspace workspace = new AdhocWorkspace();
+
+            if (!string.IsNullOrEmpty(manager.SolutionFilePath))
+            {
+                SolutionInfo solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, manager.SolutionFilePath);
+                workspace.AddSolution(solutionInfo);
+            }
+
             foreach (AnalyzerResult result in results)
             {
                 result.AddToWorkspace(workspace);

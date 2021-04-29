@@ -29,6 +29,23 @@ namespace Buildalyzer.Workspaces.Tests
         }
 
         [Test]
+        public void LoadsSolution()
+        {
+            // Given
+            string solutionPath = GetFullPath(@"projects\TestProjects.sln");
+            StringWriter log = new StringWriter();
+            AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions { LogWriter = log });
+
+            // When
+            Workspace workspace = manager.GetWorkspace();
+
+            // Then
+            workspace.CurrentSolution.FilePath.ShouldBe(solutionPath);
+            workspace.CurrentSolution.Projects.ShouldContain(p => p.Name == "LegacyFrameworkProject");
+            workspace.CurrentSolution.Projects.ShouldContain(p => p.Name == "SdkFrameworkProject");
+        }
+
+        [Test]
         public void SupportsCompilation()
         {
             // Given
@@ -122,18 +139,21 @@ namespace Buildalyzer.Workspaces.Tests
         private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             // The path will get normalized inside the .GetProject() call below
-            string projectPath = Path.GetFullPath(
-                Path.Combine(
-                    Path.GetDirectoryName(typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
-                    @"..\..\..\..\" + projectFile));
+            string projectPath = GetFullPath(projectFile);
             if (manager == null)
             {
-                manager = new AnalyzerManager(new AnalyzerManagerOptions
-                {
-                    LogWriter = log
-                });
+                manager = new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
             }
+
             return manager.GetProject(projectPath);
+        }
+
+        private static string GetFullPath(string partialPath)
+        {
+            return Path.GetFullPath(
+                Path.Combine(
+                    Path.GetDirectoryName(typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
+                    @"..\..\..\..\" + partialPath));
         }
     }
 }

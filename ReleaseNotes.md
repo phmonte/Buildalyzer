@@ -1,5 +1,11 @@
 # 3.2.1
 
+- Sets SolutionFilePath in the Workspace Solution when it's available (#177, thanks @markrendle)
+- Fixed `ProjectAnalyzer` exceptions when the solution file is not in the source root (#175, #176, thanks @psfinaki)
+- Fixed a small QOL change needed when using Buildalyzer for F# (#172, thanks @dukedagmor)
+- Fixed bug when `PackageReference` contains the name of a package in `Update` instead of `Include` (#170, #171, thanks @eNeRGy164)
+- Refactored Buildalyzer.Workspaces so a Microsoft.CodeAnalysis.VisualBasic.Workspaces reference is not needed when not using Visual Basic features (#168, #169, thanks @svick)
+
 # 3.2.0
 
 - Refactored `ProjectItem` to an interface `IProjectItem` for easier mocking/testing (#161, #162, thanks @fbd)

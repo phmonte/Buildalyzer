@@ -1,3 +1,5 @@
+# 3.2.2
+
 # 3.2.1
 
 - Sets SolutionFilePath in the Workspace Solution when it's available (#177, thanks @markrendle)

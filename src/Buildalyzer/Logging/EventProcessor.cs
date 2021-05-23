@@ -83,18 +83,22 @@ namespace Buildalyzer.Logging
                     _currentResult.Push(result);
                     return;
                 }
+                _currentResult.Push(null);
             }
 
             // Push a null result so the stack is balanced on project finish
-            _currentResult.Push(null);
+            // _currentResult.Push(null);
         }
 
         private void ProjectFinished(object sender, ProjectFinishedEventArgs e)
         {
-            AnalyzerResult result = _currentResult.Pop();
-            if (result != null)
+            if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
             {
-                result.Succeeded = e.Succeeded;
+                AnalyzerResult result = _currentResult.Pop();
+                if (result != null)
+                {
+                    result.Succeeded = e.Succeeded;
+                }
             }
         }
 

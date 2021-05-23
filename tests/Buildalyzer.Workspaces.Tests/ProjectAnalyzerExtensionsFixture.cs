@@ -119,6 +119,22 @@ namespace Buildalyzer.Workspaces.Tests
             project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
         }
 
+        [Test]
+        public void HandlesWpfCustomControlLibrary()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\WpfCustomControlLibrary1\WpfCustomControlLibrary1.csproj", log);
+
+            // When
+            AdhocWorkspace workspace = analyzer.GetWorkspace();
+            Project project = workspace.CurrentSolution.Projects.First();
+
+            // Then
+            Assert.NotNull(project);
+            Assert.IsNotEmpty(project.Documents);
+        }
+
         private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)
         {
             // The path will get normalized inside the .GetProject() call below

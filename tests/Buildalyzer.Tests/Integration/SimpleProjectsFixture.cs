@@ -40,6 +40,7 @@ namespace Buildalyzer.Tests.Integration
             @"SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj",
             @"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj",
             @"SdkNetCoreProjectWithImportedProps\SdkNetCoreProjectWithImportedProps.csproj",
+            @"SdkNetCoreProjectWithAnalyzer\SdkNetCoreProjectWithAnalyzer.csproj",
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
@@ -197,6 +198,29 @@ namespace Buildalyzer.Tests.Integration
 
 #if Is_Windows
         [Test]
+        public void WpfControlLibraryGetsSourceFiles()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"WpfCustomControlLibrary1\WpfCustomControlLibrary1.csproj", log);
+
+            // When
+            IAnalyzerResults results = analyzer.Build();
+
+            // Then
+            IReadOnlyList<string> sourceFiles = results.SingleOrDefault()?.SourceFiles;
+            sourceFiles.ShouldNotBeNull(log.ToString());
+            new[]
+            {
+                "CustomControl1.cs",
+                "AssemblyInfo.cs",
+                "Resources.Designer.cs",
+                "Settings.Designer.cs",
+                "GeneratedInternalTypeHelper.g.cs"
+            }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x)), log.ToString());
+        }
+
+        [Test]
         public void MultiTargetingBuildAllTargetFrameworksGetsSourceFiles()
         {
             // Given
@@ -211,19 +235,15 @@ namespace Buildalyzer.Tests.Integration
             results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
             new[]
             {
-#if Is_Windows
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
-#endif
                 "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
             new[]
             {
-#if Is_Windows
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
-#endif
                 "Class2",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(results["netstandard2.0"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
@@ -254,10 +274,8 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-#if Is_Windows
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
-#endif
                 "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
@@ -469,8 +487,9 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             // The generated GUIDs are based on subpath, so they'll be different from Windows to Linux
+            // They can also change between MSBuild versions, so this may need to be updated periodically
 #if Is_Windows
-            results.First().ProjectGuid.ToString().ShouldBe("646a532e-8943-5a4b-b106-e1341b4d3535");
+            results.First().ProjectGuid.ToString().ShouldBe("432bfde1-4768-5837-8e20-8bb49c9d4734");
 #else
             results.First().ProjectGuid.ToString().ShouldBe("c9df4376-d954-5554-bd10-b9976b7afa9d");
 #endif

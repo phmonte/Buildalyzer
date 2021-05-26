@@ -83,15 +83,15 @@ namespace Buildalyzer.Logging
                     _currentResult.Push(result);
                     return;
                 }
+
+                // Push a null result so the stack is balanced on project finish
                 _currentResult.Push(null);
             }
-
-            // Push a null result so the stack is balanced on project finish
-            // _currentResult.Push(null);
         }
 
         private void ProjectFinished(object sender, ProjectFinishedEventArgs e)
         {
+            // Make sure this is the same project, nested MSBuild tasks may have spawned additional builds of other projects
             if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
             {
                 AnalyzerResult result = _currentResult.Pop();

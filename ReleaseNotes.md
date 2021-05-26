@@ -1,3 +1,5 @@
+# 3.2.3
+
 # 3.2.2
 
 - Fixed a bug with WPF custom control libraries (#178, #179, thanks @markrendle)

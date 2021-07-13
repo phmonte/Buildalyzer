@@ -28,8 +28,8 @@ Buildalyzer lets you run MSBuild from your own code and returns information abou
 
 ```csharp
 AnalyzerManager manager = new AnalyzerManager();
-ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
-AnalyzerResults results = analyzer.Build();
+IProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
+IAnalyzerResults results = analyzer.Build();
 string[] sourceFiles = results.First().SourceFiles;
 ```
 
@@ -76,7 +76,7 @@ To get a `ProjectAnalyzer` you first create an `AnalyzerManager` and then call `
 
 ```csharp
 AnalyzerManager manager = new AnalyzerManager();
-ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
+IProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
 ```
 
 You can add all projects in a solution to the `AnalyzerManager` by passing the solution path as the first argument of the `AnalyzerManager` constructor. This will parse the solution file and execute `GetProject()` for each of the projects that it finds.
@@ -123,7 +123,7 @@ Buildalyzer can also read [MSBuild binary log files](http://msbuildlog.com/):
 
 ```csharp
 AnalyzerManager manager = new AnalyzerManager();
-AnalyzerResults results = manager.Analyze(@"C:\MyCode\MyProject.binlog");
+IAnalyzerResults results = manager.Analyze(@"C:\MyCode\MyProject.binlog");
 string[] sourceFiles = results.First().SourceFiles;
 ```
 
@@ -152,10 +152,11 @@ The extension library `Buildalyzer.Workspaces` adds extension methods to the Bui
 
 ```csharp
 using Buildalyzer.Workspaces;
+using Microsoft.CodeAnalysis;
 // ...
 
 AnalyzerManager manager = new AnalyzerManager();
-ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
+IProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
 AdhocWorkspace workspace = analyzer.GetWorkspace();
 ```
 
@@ -163,10 +164,11 @@ You can also create your own workspace and add Buildalyzer projects to it:
 
 ```csharp
 using Buildalyzer.Workspaces;
+using Microsoft.CodeAnalysis;
 // ...
 
 AnalyzerManager manager = new AnalyzerManager();
-ProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
+IProjectAnalyzer analyzer = manager.GetProject(@"C:\MyCode\MyProject.csproj");
 AdhocWorkspace workspace = new AdhocWorkspace();
 Project roslynProject = analyzer.AddToWorkspace(workspace);
 ```

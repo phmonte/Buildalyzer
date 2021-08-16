@@ -6,9 +6,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProject", "L
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProjectWithReference", "LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", "{D1F5AD80-ADED-4286-8FA4-3A8A6E818D34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProject", "SdkNetCoreProject\SdkNetCoreProject.csproj", "{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCore2Project", "SdkNetCore2Project\SdkNetCore2Project.csproj", "{D7B9E66A-287B-475B-BBD0-F4A94DC8121A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectImport", "SdkNetCoreProjectImport\SdkNetCoreProjectImport.csproj", "{1B6BAC54-921F-4487-B8DA-AE1346030DD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCore2ProjectImport", "SdkNetCore2ProjectImport\SdkNetCore2ProjectImport.csproj", "{1B6BAC54-921F-4487-B8DA-AE1346030DD1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProject", "SdkNetStandardProject\SdkNetStandardProject.csproj", "{016713D9-B665-4272-9980-148801A9B88F}"
 EndProject
@@ -20,13 +20,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkFrameworkProject", "SdkF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProjectWithPackageReference", "LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", "{CD3445E2-A34A-4D87-9E8A-5081CBFA2F86}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectWithImportedProps", "SdkNetCoreProjectWithImportedProps\SdkNetCoreProjectWithImportedProps.csproj", "{A50B19F8-7FAA-4BE9-B292-666B60714F79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCore2ProjectWithImportedProps", "SdkNetCore2ProjectWithImportedProps\SdkNetCore2ProjectWithImportedProps.csproj", "{A50B19F8-7FAA-4BE9-B292-666B60714F79}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkMultiTargetingProject", "SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", "{A4B9EAF8-861F-4194-9748-30AB6080ED90}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProjectWithPackageReference", "SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", "{340391DE-8611-4E04-8EF5-CD5CF546D647}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectWithReference", "SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", "{7B920FD1-84C7-4B87-AA03-F9C558EAC332}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCore2ProjectWithReference", "SdkNetCore2ProjectWithReference\SdkNetCore2ProjectWithReference.csproj", "{7B920FD1-84C7-4B87-AA03-F9C558EAC332}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetStandardProjectWithConstants", "SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", "{9146E23A-6939-4BDF-9BB1-E0F5E7B97AAE}"
 EndProject
@@ -36,9 +36,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfCustomControlLibrary1", 
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharpProject", "FSharpProject\FSharpProject.fsproj", "{E35A6E4B-9E1F-495B-A61D-9285AE8A8777}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCoreProjectWithAnalyzer", "SdkNetCoreProjectWithAnalyzer\SdkNetCoreProjectWithAnalyzer.csproj", "{3A1FE1AA-5C24-409F-94D1-3D387F0E26DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNetCore2ProjectWithAnalyzer", "SdkNetCore2ProjectWithAnalyzer\SdkNetCore2ProjectWithAnalyzer.csproj", "{3A1FE1AA-5C24-409F-94D1-3D387F0E26DB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransitiveProjectReference", "TransitiveProjectReference\TransitiveProjectReference.csproj", "{786A9A41-7629-4457-BC9D-67AC055533A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet5Project", "SdkNet5Project\SdkNet5Project.csproj", "{8620AAAE-7C03-442E-B3E8-06001641B972}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6Project", "SdkNet6Project\SdkNet6Project.csproj", "{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +122,14 @@ Global
 		{786A9A41-7629-4457-BC9D-67AC055533A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{786A9A41-7629-4457-BC9D-67AC055533A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{786A9A41-7629-4457-BC9D-67AC055533A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8620AAAE-7C03-442E-B3E8-06001641B972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8620AAAE-7C03-442E-B3E8-06001641B972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8620AAAE-7C03-442E-B3E8-06001641B972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8620AAAE-7C03-442E-B3E8-06001641B972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

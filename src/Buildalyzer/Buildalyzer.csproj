@@ -34,7 +34,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.133" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.507" />
     <PackageReference Include="MsBuildPipeLogger.Server" Version="1.1.3" />
     <PackageReference Include="System.Reflection.TypeExtensions" Version="4.6.0" />
   </ItemGroup>

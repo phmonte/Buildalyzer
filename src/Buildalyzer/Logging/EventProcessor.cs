@@ -63,6 +63,8 @@ namespace Buildalyzer.Logging
         }
 
         // In binlog 14 we need to gather properties and items during evaluation and "glue" them with the project event args
+        // But can never remove ProjectStarted: "even v14 will log them on ProjectStarted if any legacy loggers are present (for compat)"
+        // See https://twitter.com/KirillOsenkov/status/1427686459713019904
         private void StatusEventRaised(object sender, BuildStatusEventArgs e)
         {
             // Needed to add an extern alias, see https://github.com/KirillOsenkov/MSBuildStructuredLog/issues/521
@@ -160,19 +162,24 @@ namespace Buildalyzer.Logging
 
         private void MessageRaised(object sender, BuildMessageEventArgs e)
         {
-            // Process the command line arguments for the Fsc task
             AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
-            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true && !string.IsNullOrWhiteSpace(e.Message) && _targetStack.Any(x => x.TargetName == "CoreCompile") && _currentResult.Count != 0 && !result.HasFscArguments())
+            if (result is object)
             {
-                result.ProcessFscCommandLine(e.Message);
-            }
+                // Process the command line arguments for the Fsc task
+                if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
+                    && !string.IsNullOrWhiteSpace(e.Message)
+                    && _targetStack.Any(x => x.TargetName == "CoreCompile")
+                    && !result.HasFscArguments())
+                {
+                    result.ProcessFscCommandLine(e.Message);
+                }
 
-            // Process the command line arguments for the Csc task
-            if (result != null
-                && e is TaskCommandLineEventArgs cmd
-                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
+                // Process the command line arguments for the Csc task
+                if (e is TaskCommandLineEventArgs cmd
+                    && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
+                }
             }
         }
 

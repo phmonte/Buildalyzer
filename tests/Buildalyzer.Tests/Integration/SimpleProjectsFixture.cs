@@ -560,55 +560,57 @@ namespace Buildalyzer.Tests.Integration
             analyzerResults.Count.ShouldBe(50);
         }
 
-        [Test]
-        public void GetsSourceFilesFromVersion14BinLog()
+        // To produce different versions, create a global.json and then run `dotnet clean` and `dotnet build -bl:SdkNetCore31Project-vX.binlog` from the source project folder
+        [TestCase("SdkNetCore31Project-v9.binlog", 9)]
+        [TestCase("SdkNetCore31Project-v14.binlog", 14)]
+        public void GetsSourceFilesFromBinLogFile(string path, int expectedVersion)
         {
-            // Given
-            StringWriter log = new StringWriter();
-            IProjectAnalyzer analyzer = GetProjectAnalyzer(
-                @"SdkNetCore31Project\SdkNetCore31Project.csproj",
-                log);
-            string binLogPath = Path.ChangeExtension(Path.GetTempFileName(), ".binlog");
+            // Verify this is the expected version
+            path = Path.GetFullPath(
+                Path.Combine(
+                    Path.GetDirectoryName(typeof(SimpleProjectsFixture).Assembly.Location),
+                    "..",
+                    "..",
+                    "..",
+                    "..",
+                    "binlogs",
+                    path))
+                .Replace('\\', Path.DirectorySeparatorChar);
             EnvironmentOptions options = new EnvironmentOptions();
-            options.Arguments.Add("/bl:" + binLogPath); // Tell MSBuild to produce the binlog so we use the latest internal logger
-
-            try
+            using (Stream stream = File.OpenRead(path))
             {
-                // When
-                analyzer.Build(options);
-                using (Stream stream = File.OpenRead(binLogPath))
+                using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress))
                 {
-                    using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress))
+                    using (BinaryReader reader = new BinaryReader(gzip))
                     {
-                        using (BinaryReader reader = new BinaryReader(gzip))
-                        {
-                            // Verify this produced a version 14 binlog
-                            reader.ReadInt32().ShouldBe(14);
-                        }
+                        reader.ReadInt32().ShouldBe(expectedVersion);
                     }
                 }
-                IAnalyzerResults analyzerResults = analyzer.Manager.Analyze(binLogPath);
-                IReadOnlyList<string> sourceFiles = analyzerResults.First().SourceFiles;
+            }
 
-                // Then
-                sourceFiles.ShouldNotBeNull(log.ToString());
-                new[]
+            // Given
+            StringWriter log = new StringWriter();
+            AnalyzerManager analyzerManager = new AnalyzerManager(
+                new AnalyzerManagerOptions
                 {
-#if Is_Windows
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
-                "AssemblyAttributes",
-#endif
-                "Class1",
-                "AssemblyInfo"
-                }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
-            }
-            finally
+                    LogWriter = log
+                });
+
+            // When
+            IAnalyzerResults analyzerResults = analyzerManager.Analyze(path);
+            IReadOnlyList<string> sourceFiles = analyzerResults.First().SourceFiles;
+
+            // Then
+            sourceFiles.ShouldNotBeNull(log.ToString());
+            new[]
             {
-                if (File.Exists(binLogPath))
-                {
-                    File.Delete(binLogPath);
-                }
-            }
+#if Is_Windows
+            // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
+            "AssemblyAttributes",
+#endif
+            "Class1",
+            "AssemblyInfo"
+            }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 
         private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

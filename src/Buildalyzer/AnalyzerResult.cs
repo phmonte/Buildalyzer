@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Buildalyzer.Construction;
+using Buildalyzer.Logging;
 using Microsoft.Build.Framework;
 
 namespace Buildalyzer
@@ -100,16 +101,16 @@ namespace Buildalyzer
                 ? items.Distinct(new ProjectItemItemSpecEqualityComparer()).ToDictionary(x => x.ItemSpec, x => x.Metadata)
                 : new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
-        internal void ProcessProject(ProjectStartedEventArgs e)
+        internal void ProcessProject(PropertiesAndItems propertiesAndItems)
         {
             // Add properties
-            foreach (DictionaryEntry entry in e.Properties.ToDictionaryEntries())
+            foreach (DictionaryEntry entry in propertiesAndItems.Properties.ToDictionaryEntries())
             {
                 _properties[entry.Key.ToString()] = entry.Value.ToString();
             }
 
             // Add items
-            foreach (IGrouping<string, DictionaryEntry> itemGroup in e.Items.ToDictionaryEntries().GroupBy(x => x.Key.ToString()))
+            foreach (IGrouping<string, DictionaryEntry> itemGroup in propertiesAndItems.Items.ToDictionaryEntries().GroupBy(x => x.Key.ToString()))
             {
                 _items[itemGroup.Key] = itemGroup.Select(x => new ProjectItem((ITaskItem)x.Value)).ToArray();
             }

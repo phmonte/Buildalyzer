@@ -1,3 +1,5 @@
+extern alias StructuredLogger;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ namespace Buildalyzer.Logging
         private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
         private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
         private readonly Stack<TargetStartedEventArgs> _targetStack = new Stack<TargetStartedEventArgs>();
+        private readonly Dictionary<int, PropertiesAndItems> _evalulationResults = new Dictionary<int, PropertiesAndItems>();
         private readonly AnalyzerManager _manager;
         private readonly ProjectAnalyzer _analyzer;
         private readonly ILogger<EventProcessor> _logger;
@@ -45,6 +48,7 @@ namespace Buildalyzer.Logging
             // Send events to the tree constructor
             if (analyze)
             {
+                eventSource.StatusEventRaised += StatusEventRaised;
                 eventSource.ProjectStarted += ProjectStarted;
                 eventSource.ProjectFinished += ProjectFinished;
                 eventSource.TargetStarted += TargetStarted;
@@ -55,6 +59,29 @@ namespace Buildalyzer.Logging
                 {
                     eventSource.ErrorRaised += ErrorRaised;
                 }
+            }
+        }
+
+        // In binlog 14 we need to gather properties and items during evaluation and "glue" them with the project event args
+        private void StatusEventRaised(object sender, BuildStatusEventArgs e)
+        {
+            // Needed to add an extern alias, see https://github.com/KirillOsenkov/MSBuildStructuredLog/issues/521
+            // Also need to account for either type coming from either a StructuredLogging reader or MSBuild
+            if (e is ProjectEvaluationFinishedEventArgs msBuildEv)
+            {
+                _evalulationResults[msBuildEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
+                {
+                    Properties = msBuildEv.Properties,
+                    Items = msBuildEv.Items
+                };
+            }
+            else if (e is StructuredLogger::Microsoft.Build.Framework.ProjectEvaluationFinishedEventArgs slEv)
+            {
+                _evalulationResults[slEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
+                {
+                    Properties = slEv.Properties,
+                    Items = slEv.Items
+                };
             }
         }
 
@@ -69,8 +96,20 @@ namespace Buildalyzer.Logging
             // Make sure this is the same project, nested MSBuild tasks may have spawned additional builds of other projects
             if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
             {
+                // Get the items and properties from the evaluation if needed
+                PropertiesAndItems propertiesAndItems = e.Properties is null
+                    ? (_evalulationResults.TryGetValue(e.BuildEventContext.EvaluationId, out PropertiesAndItems evaluationResult)
+                        ? evaluationResult
+                        : null)
+                    : new PropertiesAndItems
+                    {
+                        Properties = e.Properties,
+                        Items = e.Items
+                    };
+
                 // Get the TFM for this project
-                string tfm = e.Properties
+                string tfm = propertiesAndItems
+                    ?.Properties
                     ?.ToDictionaryEntries()
                     .FirstOrDefault(x => string.Equals(x.Key.ToString(), "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase))
                     .Value
@@ -82,7 +121,7 @@ namespace Buildalyzer.Logging
                         result = new AnalyzerResult(_projectFilePath, _manager, _analyzer);
                         _results[tfm] = result;
                     }
-                    result.ProcessProject(e);
+                    result.ProcessProject(propertiesAndItems);
                     _currentResult.Push(result);
                     return;
                 }

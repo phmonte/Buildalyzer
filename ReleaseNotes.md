@@ -4,6 +4,7 @@
 - No longer attempts to add F# projects from a solution to the Roslyn workspace in Buildalyzer.Workspaces which causes an exception in Roslyn.
 - Updated structure logging support to the latest package providing binlog version 14 parsing (#184).
 - Updated Microsoft.CodeAnalysis package references in Buildalyzer.Workspaces to 3.11.0.
+- Updated MSBuild libraries for programmatic use by Buildalyzer to 16.10.0.
 
 # 3.2.2
 

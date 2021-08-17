@@ -98,6 +98,37 @@ namespace Buildalyzer.Workspaces
                 }
             }
 
+            // By now all the references of this project have been recursively added, so resolve any remaining transitive project references
+            Project project = workspace.CurrentSolution.GetProject(projectId);
+            HashSet<ProjectReference> referencedProjects = new HashSet<ProjectReference>(project.ProjectReferences);
+            HashSet<ProjectId> visitedProjectIds = new HashSet<ProjectId>();
+            Stack<ProjectReference> projectReferenceStack = new Stack<ProjectReference>(project.ProjectReferences);
+            while (projectReferenceStack.Count > 0)
+            {
+                ProjectReference projectReference = projectReferenceStack.Pop();
+                Project nestedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
+                if (nestedProject is object && visitedProjectIds.Add(nestedProject.Id))
+                {
+                    foreach (ProjectReference nestedProjectReference in nestedProject.ProjectReferences)
+                    {
+                        projectReferenceStack.Push(nestedProjectReference);
+                        referencedProjects.Add(nestedProjectReference);
+                    }
+                }
+            }
+            foreach (ProjectReference referencedProject in referencedProjects)
+            {
+                if (!project.ProjectReferences.Contains(referencedProject))
+                {
+                    ProjectReference projectReference = new ProjectReference(referencedProject.ProjectId);
+                    solution = workspace.CurrentSolution.AddProjectReference(project.Id, projectReference);
+                    if (!workspace.TryApplyChanges(solution))
+                    {
+                        throw new InvalidOperationException("Could not apply workspace solution changes");
+                    }
+                }
+            }
+
             // Find and return this project
             return workspace.CurrentSolution.GetProject(projectId);
         }

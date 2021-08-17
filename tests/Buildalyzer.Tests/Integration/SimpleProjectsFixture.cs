@@ -474,7 +474,7 @@ namespace Buildalyzer.Tests.Integration
         public void GetsProjectGuidFromProject([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given
-            const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            const string projectFile = @"SdkNetCore2Project\SdkNetCore2Project.csproj";
             IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions
@@ -501,7 +501,7 @@ namespace Buildalyzer.Tests.Integration
         public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given
-            const string projectFile = @"SdkNetCoreProject\SdkNetCoreProject.csproj";
+            const string projectFile = @"SdkNetCore2Project\SdkNetCore2Project.csproj";
             IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
             EnvironmentOptions options = new EnvironmentOptions

@@ -103,13 +103,13 @@ namespace Buildalyzer
         internal void ProcessProject(ProjectStartedEventArgs e)
         {
             // Add properties
-            foreach (DictionaryEntry entry in e.Properties.Cast<DictionaryEntry>())
+            foreach (DictionaryEntry entry in e.Properties.ToDictionaryEntries())
             {
                 _properties[entry.Key.ToString()] = entry.Value.ToString();
             }
 
             // Add items
-            foreach (IGrouping<string, DictionaryEntry> itemGroup in e.Items.Cast<DictionaryEntry>().GroupBy(x => x.Key.ToString()))
+            foreach (IGrouping<string, DictionaryEntry> itemGroup in e.Items.ToDictionaryEntries().GroupBy(x => x.Key.ToString()))
             {
                 _items[itemGroup.Key] = itemGroup.Select(x => new ProjectItem((ITaskItem)x.Value)).ToArray();
             }

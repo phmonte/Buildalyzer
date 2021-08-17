@@ -44,7 +44,7 @@ namespace Buildalyzer.Workspaces
         /// <c>true</c> to add projects to the workspace for project references that exist in the same <see cref="AnalyzerManager"/>.
         /// If <c>true</c> this will trigger (re)building all referenced projects. Directly add <see cref="AnalyzerResult"/> instances instead if you already have them available.
         /// </param>
-        /// <returns>The newly added Roslyn project.</returns>
+        /// <returns>The newly added Roslyn project, or <c>null</c> if the project couldn't be added to the workspace.</returns>
         public static Project AddToWorkspace(this IAnalyzerResult analyzerResult, Workspace workspace, bool addProjectReferences = false)
         {
             if (analyzerResult == null)
@@ -62,8 +62,13 @@ namespace Buildalyzer.Workspaces
             // Cache the project references
             analyzerResult.Manager.WorkspaceProjectReferences[projectId.Id] = analyzerResult.ProjectReferences.ToArray();
 
-            // Create and add the project
+            // Create and add the project, but only if it's a support Roslyn project type
             ProjectInfo projectInfo = GetProjectInfo(analyzerResult, workspace, projectId);
+            if (projectInfo is null)
+            {
+                // Something went wrong (maybe not a support project type), so don't add this project
+                return null;
+            }
             Solution solution = workspace.CurrentSolution.AddProject(projectInfo);
 
             // Check if this project is referenced by any other projects in the workspace
@@ -136,8 +141,11 @@ namespace Buildalyzer.Workspaces
         private static ProjectInfo GetProjectInfo(IAnalyzerResult analyzerResult, Workspace workspace, ProjectId projectId)
         {
             string projectName = Path.GetFileNameWithoutExtension(analyzerResult.ProjectFilePath);
-            string languageName = GetLanguageName(analyzerResult.ProjectFilePath);
-            ProjectInfo projectInfo = ProjectInfo.Create(
+            if (!TryGetSupportedLanguageName(analyzerResult.ProjectFilePath, out string languageName))
+            {
+                return null;
+            }
+            return ProjectInfo.Create(
                 projectId,
                 VersionStamp.Create(),
                 projectName,
@@ -151,7 +159,6 @@ namespace Buildalyzer.Workspaces
                 analyzerReferences: GetAnalyzerReferences(analyzerResult, workspace),
                 parseOptions: CreateParseOptions(analyzerResult, languageName),
                 compilationOptions: CreateCompilationOptions(analyzerResult, languageName));
-            return projectInfo;
         }
 
         private static ParseOptions CreateParseOptions(IAnalyzerResult analyzerResult, string languageName)
@@ -291,16 +298,19 @@ namespace Buildalyzer.Workspaces
                 ?? (IEnumerable<AnalyzerReference>)Array.Empty<AnalyzerReference>();
         }
 
-        private static string GetLanguageName(string projectPath)
+        private static bool TryGetSupportedLanguageName(string projectPath, out string languageName)
         {
             switch (Path.GetExtension(projectPath))
             {
                 case ".csproj":
-                    return LanguageNames.CSharp;
+                    languageName = LanguageNames.CSharp;
+                    return true;
                 case ".vbproj":
-                    return LanguageNames.VisualBasic;
+                    languageName = LanguageNames.VisualBasic;
+                    return true;
                 default:
-                    throw new InvalidOperationException("Could not determine supported language from project path");
+                    languageName = null;
+                    return false;
             }
         }
     }

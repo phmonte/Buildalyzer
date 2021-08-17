@@ -126,7 +126,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             StringWriter log = new StringWriter();
-            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetCoreProjectWithAnalyzer\SdkNetCoreProjectWithAnalyzer.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetCore2ProjectWithAnalyzer\SdkNetCore2ProjectWithAnalyzer.csproj", log);
 
             // When
             Workspace workspace = analyzer.GetWorkspace();

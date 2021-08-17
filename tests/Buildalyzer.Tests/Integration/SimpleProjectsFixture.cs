@@ -343,7 +343,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             StringWriter log = new StringWriter();
-            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCoreProjectWithReference\SdkNetCoreProjectWithReference.csproj", log);
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCore2ProjectWithReference\SdkNetCore2ProjectWithReference.csproj", log);
 
             // When
             IEnumerable<string> references = analyzer.Build().First().ProjectReferences;
@@ -470,6 +470,7 @@ namespace Buildalyzer.Tests.Integration
             results.First().ProjectGuid.ToString().ShouldBe("016713d9-b665-4272-9980-148801a9b88f");
         }
 
+#if Is_Windows
         [Test]
         public void GetsProjectGuidFromProject([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
@@ -488,14 +489,11 @@ namespace Buildalyzer.Tests.Integration
             IAnalyzerResults results = analyzer.Build(options);
 
             // Then
-            // The generated GUIDs are based on subpath, so they'll be different from Windows to Linux
-            // They can also change between MSBuild versions, so this may need to be updated periodically
-#if Is_Windows
-            results.First().ProjectGuid.ToString().ShouldBe("432bfde1-4768-5837-8e20-8bb49c9d4734");
-#else
-            results.First().ProjectGuid.ToString().ShouldBe("c9df4376-d954-5554-bd10-b9976b7afa9d");
-#endif
+            // The generated GUIDs are based on subpath and can also change between MSBuild versions,
+            // so this may need to be updated periodically
+            results.First().ProjectGuid.ToString().ShouldBe("1ff50b40-c27b-5cea-b265-29c5436a8a7b");
         }
+#endif
 
         [Test]
         public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
@@ -563,7 +561,7 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
-        public void GetsSourceFilesFromVersion9BinLog()
+        public void GetsSourceFilesFromVersion14BinLog()
         {
             // Given
             StringWriter log = new StringWriter();
@@ -584,12 +582,13 @@ namespace Buildalyzer.Tests.Integration
                     {
                         using (BinaryReader reader = new BinaryReader(gzip))
                         {
-                            // Verify this produced a version 9 binlog
-                            reader.ReadInt32().ShouldBe(9);
+                            // Verify this produced a version 14 binlog
+                            reader.ReadInt32().ShouldBe(14);
                         }
                     }
                 }
-                IReadOnlyList<string> sourceFiles = analyzer.Manager.Analyze(binLogPath).First().SourceFiles;
+                IAnalyzerResults analyzerResults = analyzer.Manager.Analyze(binLogPath);
+                IReadOnlyList<string> sourceFiles = analyzerResults.First().SourceFiles;
 
                 // Then
                 sourceFiles.ShouldNotBeNull(log.ToString());

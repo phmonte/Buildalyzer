@@ -1,3 +1,5 @@
+# 3.2.4
+
 # 3.2.3
 
 - Fixed a bug where Buildalyzer.Workspaces would not add transitive references to projects in the Roslyn workspace (#181).

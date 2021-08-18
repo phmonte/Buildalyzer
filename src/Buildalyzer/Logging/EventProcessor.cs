@@ -1,5 +1,3 @@
-extern alias StructuredLogger;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -67,22 +65,12 @@ namespace Buildalyzer.Logging
         // See https://twitter.com/KirillOsenkov/status/1427686459713019904
         private void StatusEventRaised(object sender, BuildStatusEventArgs e)
         {
-            // Needed to add an extern alias, see https://github.com/KirillOsenkov/MSBuildStructuredLog/issues/521
-            // Also need to account for either type coming from either a StructuredLogging reader or MSBuild
             if (e is ProjectEvaluationFinishedEventArgs msBuildEv)
             {
                 _evalulationResults[msBuildEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
                 {
                     Properties = msBuildEv.Properties,
                     Items = msBuildEv.Items
-                };
-            }
-            else if (e is StructuredLogger::Microsoft.Build.Framework.ProjectEvaluationFinishedEventArgs slEv)
-            {
-                _evalulationResults[slEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
-                {
-                    Properties = slEv.Properties,
-                    Items = slEv.Items
                 };
             }
         }

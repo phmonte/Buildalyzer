@@ -1,5 +1,7 @@
 # 3.2.4
 
+- Updated structured logging library to consolidate MSBuild and binary logging types (internal change, should be no impact to consumers).
+
 # 3.2.3
 
 - Fixed a bug where Buildalyzer.Workspaces would not add transitive references to projects in the Roslyn workspace (#181).

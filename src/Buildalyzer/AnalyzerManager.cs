@@ -1,14 +1,12 @@
-﻿extern alias StructuredLogger;
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
+using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.Extensions.Logging;
-using StructuredLogger::Microsoft.Build.Logging.StructuredLogger;
 
 namespace Buildalyzer
 {

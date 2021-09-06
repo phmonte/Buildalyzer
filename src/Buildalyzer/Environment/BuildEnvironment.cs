@@ -98,6 +98,7 @@ namespace Buildalyzer.Environment
                 _globalProperties.Add(MsBuildProperties.AddModules, "false");
                 _globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
                 _globalProperties.Add(MsBuildProperties.GeneratePackageOnBuild, "false");  // Prevent NuGet.Build.Tasks.Pack.targets from running the pack targets (since we didn't build anything)
+                _globalProperties.Add(MsBuildProperties.UseAppHost, "false"); // Prevent creation of native host executable https://docs.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#useapphost
             }
             _additionalGlobalProperties = CopyItems(_globalProperties, additionalGlobalProperties);
 

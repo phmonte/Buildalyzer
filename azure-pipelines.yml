@@ -8,7 +8,7 @@ jobs:
       version: '2.x'
   - task: UseDotNet@2
     inputs:
-      version: '3.x'
+      version: '6.x'
   - script: build -target BuildServer
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)

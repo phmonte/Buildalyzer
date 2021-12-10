@@ -171,12 +171,7 @@ namespace Buildalyzer.Workspaces
                     CSharpParseOptions parseOptions = new CSharpParseOptions();
 
                     // Add any constants
-                    string constants = analyzerResult.GetProperty("DefineConstants");
-                    if (!string.IsNullOrWhiteSpace(constants))
-                    {
-                        parseOptions = parseOptions
-                            .WithPreprocessorSymbols(constants.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()));
-                    }
+                    parseOptions = parseOptions.WithPreprocessorSymbols(analyzerResult.PreprocessorSymbols);
 
                     // Get language version
                     string langVersion = analyzerResult.GetProperty("LangVersion");

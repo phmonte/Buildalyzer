@@ -89,6 +89,13 @@ namespace Buildalyzer
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
+        public string[] PreprocessorSymbols =>
+            _cscCommandLineArguments
+                ?.Where(x => x.Item1 == "define")
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray() ?? Array.Empty<string>();
+
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
                 ? items.Select(x => AnalyzerManager.NormalizePath(

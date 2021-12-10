@@ -49,6 +49,8 @@ namespace Buildalyzer
 
         string TargetFramework { get; }
 
+        string[] PreprocessorSymbols { get; }
+
         /// <summary>
         /// Gets the value of the specified property and returns <c>null</c>
         /// if the property could not be found.

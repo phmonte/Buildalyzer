@@ -76,22 +76,22 @@ namespace Buildalyzer
 
         public string[] References =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1 == "reference")
+                ?.Where(x => x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
                 .ToArray() ?? _fscCommandLineArguments
-                ?.Where(x => x.Item1 == "r")
+                ?.Where(x => x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] AnalyzerReferences =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1 == "analyzer")
+                ?.Where(x => x.Item1.Equals("analyzer", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] PreprocessorSymbols =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1 == "define")
+                ?.Where(x => x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
                 .Select(x => x.Trim())
                 .ToArray() ?? Array.Empty<string>();

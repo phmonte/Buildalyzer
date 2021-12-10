@@ -354,6 +354,28 @@ namespace Buildalyzer.Tests.Integration
             references.ShouldContain(x => x.EndsWith("SdkNetStandardProject.csproj"), log.ToString());
         }
 
+        [Test]
+        public void SdkProjectWithDefineContstantsGetsPreprocessorSymbols()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
+
+            // When
+            IEnumerable<string> preprocessorSymbols = analyzer.Build().First().PreprocessorSymbols;
+
+            // Then
+            preprocessorSymbols.ShouldNotBeNull(log.ToString());
+            preprocessorSymbols.ShouldContain("DEF2", log.ToString());
+            preprocessorSymbols.ShouldContain("NETSTANDARD2_0", log.ToString());
+
+            // If this test runs on .NET 5 or greater, the NETSTANDARD2_0_OR_GREATER preprocessor symbol should be added. Can't test on lower SDK versions
+
+#if NETSTANDARD2_0_OR_GREATER
+            preprocessorSymbols.ShouldContain("NETSTANDARD2_0_OR_GREATER", log.ToString());
+#endif
+        }
+
 #if Is_Windows
         [Test]
         public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()

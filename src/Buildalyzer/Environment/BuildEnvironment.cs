@@ -12,9 +12,12 @@ namespace Buildalyzer.Environment
     public sealed class BuildEnvironment
     {
         // https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.runtimeinformation.frameworkdescription
+        // .NET "Core" will return ".NET Core" up to 3.x and ".NET" for > 5
         public static bool IsRunningOnCore =>
-            System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                .Replace(" ", string.Empty).Trim().StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase);
+            !System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                .Replace(" ", string.Empty)
+                .Trim()
+                .StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase);
 
         private readonly Dictionary<string, string> _globalProperties;
         private readonly Dictionary<string, string> _environmentVariables;

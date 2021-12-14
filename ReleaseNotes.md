@@ -1,3 +1,9 @@
+# 3.2.5
+
+- Added a strongly-typed `PreprocessorSymbols` collection to `AnalyzerResults` and used it to flow constants through to `Buildalyzer.Workspaces` for .NET 5 and up projects (#191, #192, thanks @richardwerkman).
+- Set `UseAppHost` to false for Buildalyzer builds since there's no need to create native executables for analysis (#185, #187, thanks @slang25).
+- Added a test project for checking .NET 6 compatibility (#185, #186, thanks @bernd5).
+
 # 3.2.4
 
 - Updated structured logging library to consolidate MSBuild and binary logging types (internal change, should be no impact to consumers).

@@ -76,22 +76,23 @@ namespace Buildalyzer
 
         public string[] References =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
-                .ToArray() ?? _fscCommandLineArguments
-                ?.Where(x => x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
+                .ToArray()
+            ?? _fscCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] AnalyzerReferences =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1.Equals("analyzer", StringComparison.OrdinalIgnoreCase))
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("analyzer", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] PreprocessorSymbols =>
             _cscCommandLineArguments
-                ?.Where(x => x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
                 .Select(x => x.Trim())
                 .ToArray() ?? Array.Empty<string>();

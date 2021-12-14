@@ -104,10 +104,14 @@ namespace Buildalyzer.Environment
         // Fallback if a base path couldn't be found (I.e., global.json version is not available)
         internal static string ParseInstalledSdksPath(List<string> lines)
         {
-            int index = lines.IndexOf(".NET Core SDKs installed:");
+            int index = lines.IndexOf(".NET SDKs installed:");
             if (index == -1)
             {
-                return null;
+                index = lines.IndexOf(".NET Core SDKs installed:");
+                if (index == -1)
+                {
+                    return null;
+                }
             }
 
             index++;

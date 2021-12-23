@@ -1,3 +1,7 @@
+# 3.2.6
+
+- Specifies an encoding for source text in `Buildalyzer.Workspaces` to avoid CS8055 errors ("Cannot emit debug information for a source text without encoding") when compiling the workspace (#128).
+
 # 3.2.5
 
 - Added a strongly-typed `PreprocessorSymbols` collection to `AnalyzerResults` and used it to flow constants through to `Buildalyzer.Workspaces` for .NET 5 and up projects (#191, #192, thanks @richardwerkman).

@@ -77,7 +77,7 @@ Task("Restore")
     .Description("Restores all NuGet packages.")
     .IsDependentOn("Clean")
     .Does(() =>
-    {                
+    {
         DotNetCoreRestore($"./{projectName}.sln", new DotNetCoreRestoreSettings
         {
             MSBuildSettings = msBuildSettings
@@ -119,7 +119,7 @@ Task("Test")
         DotNetCoreTest(MakeAbsolute(project).ToString(), testSettings);
     })
     .DeferOnError();
-    
+
 Task("Pack")
     .Description("Packs the NuGet packages.")
     .IsDependentOn("Build")
@@ -128,10 +128,10 @@ Task("Pack")
         DotNetCorePackSettings packSettings = new DotNetCorePackSettings
         {
             Configuration = configuration,
-            OutputDirectory = buildDir,            
+            OutputDirectory = buildDir,
             MSBuildSettings = msBuildSettings
         };
-        
+
         foreach (var project in GetFiles("./src/*/*.csproj"))
         {
             DotNetCorePack(MakeAbsolute(project).ToString(), packSettings);
@@ -152,17 +152,17 @@ Task("Sign")
         foreach (var nupkg in GetFiles($"{ buildDir }/*.nupkg"))
         {
             StartProcess("nuget", "sign \"" + nupkg.ToString() + "\" -CertificatePath \"davidglick.pfx\" -CertificatePassword \"" + certPass + "\" -Timestamper \"http://timestamp.digicert.com\" -NonInteractive");
-        }        
+        }
     });
 
 Task("Zip")
     .Description("Zips the build output.")
     .IsDependentOn("Build")
     .Does(() =>
-    {  
+    {
         foreach(var projectDir in GetDirectories("./src/*"))
         {
-            CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, $"{ projectDir.FullPath }/bin/{ configuration }");  
+            CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, $"{ projectDir.FullPath }/bin/{ configuration }");
             var files = GetFiles($"{ projectDir.FullPath }/bin/{ configuration }/**/*");
             files.Remove(files.Where(x => x.GetExtension() == ".nupkg").ToList());
             var zipFile = File($"{ projectDir.GetDirectoryName() }-v{ semVersion }.zip");
@@ -170,7 +170,7 @@ Task("Zip")
                 $"{ projectDir.FullPath }/bin/{ configuration }",
                 $"{ buildDir }/{ zipFile }",
                 files);
-        }   
+        }
     });
 
 Task("MyGet")
@@ -190,7 +190,7 @@ Task("MyGet")
 
         foreach (var nupkg in GetFiles($"{ buildDir }/*.nupkg"))
         {
-            NuGetPush(nupkg, new NuGetPushSettings 
+            NuGetPush(nupkg, new NuGetPushSettings
             {
                 ApiKey = mygetKey,
                 Source = $"https://www.myget.org/F/{myGetFeed}/api/v2/package"
@@ -212,7 +212,7 @@ Task("NuGet")
 
         foreach (var nupkg in GetFiles($"{ buildDir }/*.nupkg"))
         {
-            NuGetPush(nupkg, new NuGetPushSettings 
+            NuGetPush(nupkg, new NuGetPushSettings
             {
                 ApiKey = nugetKey,
                 Source = "https://api.nuget.org/v3/index.json"
@@ -232,18 +232,18 @@ Task("GitHub")
         {
             throw new InvalidOperationException("Could not resolve GitHub token.");
         }
-        
+
         var github = new GitHubClient(new ProductHeaderValue("CakeBuild"))
         {
             Credentials = new Credentials(githubToken)
         };
-        var release = github.Repository.Release.Create("daveaglick", repositoryName, new NewRelease("v" + semVersion) 
+        var release = github.Repository.Release.Create("daveaglick", repositoryName, new NewRelease("v" + semVersion)
         {
             Name = semVersion,
             Body = string.Join(Environment.NewLine, releaseNotes.Notes),
             TargetCommitish = "main"
         }).Result;
-        
+
         foreach(var zipFile in GetFiles($"{ buildDir }/*.zip"))
         {
             using (var zipStream = System.IO.File.OpenRead(zipFile.FullPath))
@@ -265,21 +265,21 @@ Task("Docs")
             Recipe = "Docs",
             Theme = "Samson",
             Preview = true
-        });  
+        });
     });
 
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
 //////////////////////////////////////////////////////////////////////
-    
+
 Task("Default")
     .IsDependentOn("Test");
-    
+
 Task("Release")
     .Description("Generates a GitHub release, pushes the NuGet package, and deploys the docs site.")
     .IsDependentOn("GitHub")
     .IsDependentOn("NuGet");
-    
+
 Task("BuildServer")
     .Description("Runs a build from the build server and updates build server data.")
     .IsDependentOn("Test")

@@ -164,16 +164,29 @@ namespace Buildalyzer.Environment
             {
                 // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
                 // Try to poll for it. From https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/4649f55f900a324421bad5a714a2584926a02138/src/StructuredLogViewer/MSBuildLocator.cs
+                List<DirectoryInfo> msBuildDirectories = new List<DirectoryInfo>();
+
+                // Search in the x86 program files
                 string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
-                DirectoryInfo vsDirectory = new DirectoryInfo(Path.Combine(programFilesX86, "Microsoft Visual Studio"));
+                DirectoryInfo vsX86Directory = new DirectoryInfo(Path.Combine(programFilesX86, "Microsoft Visual Studio"));
+                if (vsX86Directory.Exists)
+                {
+                    msBuildDirectories.AddRange(vsX86Directory.GetDirectories("MSBuild", SearchOption.AllDirectories));
+                }
+
+                // Also search in x64 since VS 2022 and on is now 64-bit
+                string programFiles = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles);
+                DirectoryInfo vsDirectory = new DirectoryInfo(Path.Combine(programFiles, "Microsoft Visual Studio"));
                 if (vsDirectory.Exists)
                 {
-                    msBuildExePath = vsDirectory
-                        .GetDirectories("MSBuild", SearchOption.AllDirectories)
-                        .SelectMany(msBuildDir => msBuildDir.GetFiles("MSBuild.exe", SearchOption.AllDirectories))
-                        .OrderByDescending(msBuild => msBuild.LastWriteTimeUtc)
-                        .FirstOrDefault()?.FullName;
+                    msBuildDirectories.AddRange(vsDirectory.GetDirectories("MSBuild", SearchOption.AllDirectories));
                 }
+
+                // Now order by write time to get the latest MSBuild
+                msBuildExePath = msBuildDirectories
+                    .SelectMany(msBuildDir => msBuildDir.GetFiles("MSBuild.exe", SearchOption.AllDirectories))
+                    .OrderByDescending(msBuild => msBuild.LastWriteTimeUtc)
+                    .FirstOrDefault()?.FullName;
             }
             return !string.IsNullOrEmpty(msBuildExePath);
         }

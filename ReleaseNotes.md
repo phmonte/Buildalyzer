@@ -1,3 +1,7 @@
+# 3.2.7
+
+- Fixed MSBuild polling in Visual Studio directories when Visual Studio 2022 is installed since it now installs into the normal "Program Files" folder (as opposed to the x86 one).
+
 # 3.2.6
 
 - Specifies an encoding for source text in `Buildalyzer.Workspaces` to avoid CS8055 errors ("Cannot emit debug information for a source text without encoding") when compiling the workspace (#128).

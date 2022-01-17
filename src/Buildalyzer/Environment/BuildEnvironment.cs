@@ -70,7 +70,7 @@ namespace Buildalyzer.Environment
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
             MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
                 ? envMsBuildExePath : msBuildExePath;
-            if (MsBuildExePath == null)
+            if (string.IsNullOrWhiteSpace(MsBuildExePath) && string.IsNullOrWhiteSpace(dotnetExePath))
             {
                 throw new ArgumentNullException(nameof(msBuildExePath));
             }

@@ -185,11 +185,17 @@ namespace Buildalyzer
             // Get the executable and the initial set of arguments
             string fileName = buildEnvironment.MsBuildExePath;
             string initialArguments = string.Empty;
-            if (Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            bool isDotNet = false; // false=MSBuild.exe, true=dotnet.exe
+            if (string.IsNullOrWhiteSpace(buildEnvironment.MsBuildExePath) || Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
             {
-                // .NET Core MSBuild .dll needs to be run with dotnet
+                // in case of no MSBuild path or a path to the MSBuild dll, run dotnet
                 fileName = buildEnvironment.DotnetExePath;
-                initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
+                isDotNet = true;
+                if (!string.IsNullOrWhiteSpace(buildEnvironment.MsBuildExePath))
+                {
+                    // pass path to MSBuild .dll to dotnet if provided
+                    initialArguments = $"\"{buildEnvironment.MsBuildExePath}\"";
+                }
             }
 
             // Environment arguments
@@ -200,7 +206,13 @@ namespace Buildalyzer
             // Get the logger arguments (/l)
             string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
             bool logEverything = _buildLoggers.Count > 0;
-            string loggerArgument = $"/l:{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
+            string loggerArgStart = "/l"; // in case of MSBuild.exe use slash as parameter prefix for logger
+            if (isDotNet)
+            {
+                // in case of dotnet.exe use dash as parameter prefix for logger
+                loggerArgStart = "-l";
+            }
+            string loggerArgument = loggerArgStart + $":{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
 
             // Get the properties arguments (/property)
             Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
@@ -215,7 +227,13 @@ namespace Buildalyzer
                 // We can't skip the compiler for design-time builds in F# (it causes strange errors regarding file copying)
                 effectiveGlobalProperties.Remove(MsBuildProperties.SkipCompilerExecution);
             }
-            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : $"/property:{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}";
+            string propertyArgStart = "/property"; // in case of MSBuild.exe use slash as parameter prefix for property
+            if (isDotNet)
+            {
+                // in case of dotnet.exe use dash as parameter prefix for property
+                propertyArgStart = "-p";
+            }
+            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : propertyArgStart + $":{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}";
 
             // Get the target argument (/target)
             string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
@@ -223,7 +241,14 @@ namespace Buildalyzer
             // Get the restore argument (/restore)
             string restoreArgument = buildEnvironment.Restore ? "/restore" : string.Empty;
 
-            arguments = $"{initialArguments} /noconsolelogger {environmentArguments} {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+            arguments = string.Empty;
+            if (!isDotNet || !string.IsNullOrEmpty(initialArguments))
+            {
+                // these are the first arguments for MSBuild.exe or dotnet.exe with MSBuild.dll, they are not needed for pure dotnet.exe calls
+                arguments = $"{initialArguments} /noconsolelogger ";
+            }
+            arguments += $"{environmentArguments} {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+
             return fileName;
         }
 

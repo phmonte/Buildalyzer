@@ -99,6 +99,32 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void HandlesSelfContainedApp()
+        {
+            string projectFile = @"SelfContainedApp\SelfContainedApp.csproj";
+
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+            EnvironmentOptions options = new EnvironmentOptions
+            {
+                Preference = EnvironmentPreference.Core,
+
+                // DesignTime = false <- if this is default (= true), the test fails
+            };
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            IAnalyzerResults results = analyzer.Build(options);
+
+            // Then
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
+        }
+
+        [Test]
         public void GetsSourceFiles(
             [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
             [ValueSource(nameof(ProjectFiles))] string projectFile)

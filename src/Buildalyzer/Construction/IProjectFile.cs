@@ -6,6 +6,7 @@ namespace Buildalyzer.Construction
     {
         bool ContainsPackageReferences { get; }
         bool IsMultiTargeted { get; }
+        bool IsSelfContained { get; }
         IReadOnlyList<IPackageReference> PackageReferences { get; }
         string Path { get; }
         string Name { get; }

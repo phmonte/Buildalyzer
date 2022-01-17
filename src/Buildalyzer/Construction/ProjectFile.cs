@@ -101,6 +101,8 @@ namespace Buildalyzer.Construction
         /// </remarks>
         public bool IsMultiTargeted => _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Any();
 
+        public bool IsSelfContained => _projectElement.GetDescendants(ProjectFileNames.SelfContained).Any();
+
         /// <summary>
         /// Whether the project file contains <c>PackageReference</c> items.
         /// </summary>

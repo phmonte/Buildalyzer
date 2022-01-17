@@ -35,6 +35,14 @@ namespace Buildalyzer.Environment
         public bool DesignTime { get; }
 
         /// <summary>
+        /// Indicates that the app is self-contained.
+        /// </summary>
+        /// <remarks>
+        /// See https://docs.microsoft.com/en-us/dotnet/core/deploying/.
+        /// </remarks>
+        public bool SelfContained { get; }
+
+        /// <summary>
         /// Runs the restore target prior to any other targets using the MSBuild <c>restore</c> switch.
         /// </summary>
         public bool Restore { get; }
@@ -54,6 +62,7 @@ namespace Buildalyzer.Environment
         public BuildEnvironment(
             bool designTime,
             bool restore,
+            bool isSelfContained,
             string[] targetsToBuild,
             string msBuildExePath,
             string dotnetExePath,
@@ -101,6 +110,11 @@ namespace Buildalyzer.Environment
                 _globalProperties.Add(MsBuildProperties.AddModules, "false");
                 _globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
                 _globalProperties.Add(MsBuildProperties.GeneratePackageOnBuild, "false");  // Prevent NuGet.Build.Tasks.Pack.targets from running the pack targets (since we didn't build anything)
+
+                if (!isSelfContained)
+                {
+                    _globalProperties.Add(MsBuildProperties.UseAppHost, "false"); // Prevent creation of native host executable https://docs.microsoft.com/en-us/dotnet/core/project-sdk/msbuild-props#useapphost
+                }
             }
             _additionalGlobalProperties = CopyItems(_globalProperties, additionalGlobalProperties);
 
@@ -123,25 +137,5 @@ namespace Buildalyzer.Environment
             }
             return null;
         }
-
-        /// <summary>
-        /// Clones the build environment with a different set of build targets.
-        /// </summary>
-        /// <param name="targets">
-        /// The targets that should be used to build the project.
-        /// Specifying an empty array indicates that the <see cref="ProjectAnalyzer"/> should
-        /// return a <see cref="Microsoft.Build.Execution.ProjectInstance"/> without building the project.
-        /// </param>
-        /// <returns>A new build environment with the specified targets.</returns>
-        public BuildEnvironment WithTargetsToBuild(params string[] targets) =>
-            new BuildEnvironment(
-                DesignTime,
-                Restore,
-                targets,
-                MsBuildExePath,
-                DotnetExePath,
-                Arguments,
-                _additionalGlobalProperties,
-                _additionalEnvironmentVariables);
     }
 }

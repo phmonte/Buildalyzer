@@ -11,6 +11,7 @@
         public const string Import = nameof(Import);
         public const string PackageReference = nameof(PackageReference);
         public const string ToolsVersion = nameof(ToolsVersion);
+        public const string SelfContained = nameof(SelfContained);
         public const string LanguageTargets = nameof(LanguageTargets);
 
         // Attributes

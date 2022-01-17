@@ -112,6 +112,7 @@ namespace Buildalyzer.Environment
             return new BuildEnvironment(
                 options.DesignTime,
                 options.Restore,
+                _projectFile.IsSelfContained,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 options.DotnetExePath,
@@ -149,6 +150,7 @@ namespace Buildalyzer.Environment
             return new BuildEnvironment(
                 options.DesignTime,
                 options.Restore,
+                _projectFile.IsSelfContained,
                 options.TargetsToBuild.ToArray(),
                 msBuildExePath,
                 options.DotnetExePath,

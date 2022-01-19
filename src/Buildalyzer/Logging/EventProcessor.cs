@@ -103,8 +103,8 @@ namespace Buildalyzer.Logging
                     ?.ToDictionaryEntries()
                     .FirstOrDefault(x => string.Equals(x.Key.ToString(), "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase))
                     .Value
-                    ?.ToString();
-                if (!string.IsNullOrWhiteSpace(tfm))
+                    ?.ToString() ?? string.Empty; // use an empty string if no target framework was found, for example in case of C++ projects with VS >= 2022
+                if (propertiesAndItems != null && propertiesAndItems.Properties != null && propertiesAndItems.Items != null)
                 {
                     if (!_results.TryGetValue(tfm, out AnalyzerResult result))
                     {

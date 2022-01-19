@@ -12,7 +12,8 @@
         public const string TargetFramework = nameof(TargetFramework);
 
         // Design-time Build
-        public const string DesignTimeBuild = nameof(DesignTimeBuild);
+        public const string DesignTimeBuild = nameof(DesignTimeBuild); // New project system (https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build)
+        public const string BuildingProject = nameof(BuildingProject); // Legacy (https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build)
         public const string BuildProjectReferences = nameof(BuildProjectReferences);
         public const string SkipCompilerExecution = nameof(SkipCompilerExecution);
         public const string ProvideCommandLineArgs = nameof(ProvideCommandLineArgs);
@@ -20,11 +21,12 @@
         public const string AutoGenerateBindingRedirects = nameof(AutoGenerateBindingRedirects);
         public const string CopyBuildOutputToOutputDirectory = nameof(CopyBuildOutputToOutputDirectory);
         public const string CopyOutputSymbolsToOutputDirectory = nameof(CopyOutputSymbolsToOutputDirectory);
+        public const string CopyDocumentationFileToOutputDirectory = nameof(CopyDocumentationFileToOutputDirectory);
+        public const string ComputeNETCoreBuildOutputFiles = nameof(ComputeNETCoreBuildOutputFiles);
         public const string SkipCopyBuildProduct = nameof(SkipCopyBuildProduct);
         public const string AddModules = nameof(AddModules);
         public const string UseCommonOutputDirectory = nameof(UseCommonOutputDirectory);
         public const string GeneratePackageOnBuild = nameof(GeneratePackageOnBuild);
-        public const string UseAppHost = nameof(UseAppHost);
 
         // .NET Framework code analysis rulesets
         public const string CodeAnalysisRuleDirectories = nameof(CodeAnalysisRuleDirectories);

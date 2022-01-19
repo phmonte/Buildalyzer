@@ -17,7 +17,9 @@ namespace Buildalyzer.Environment
 
         /// <summary>
         /// Indicates that a design-time build should be performed.
-        /// The default value is <c>true</c>.
+        /// The default value is <c>true</c>. Note that when performing
+        /// a design-time build, the <see cref="TargetsToBuild"/> will
+        /// be ignored and the design-time targets will be used instead.
         /// </summary>
         /// <remarks>
         /// See https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.

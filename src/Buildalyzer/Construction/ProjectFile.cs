@@ -41,26 +41,13 @@ namespace Buildalyzer.Construction
             }
         }
 
-        /// <summary>
-        /// The full path to the project file.
-        /// </summary>
+        /// <inheritdoc />
         public string Path { get; }
 
-        /// <summary>
-        /// Project name.
-        /// </summary>
+        /// <inheritdoc />
         public string Name { get; }
 
-        /// <summary>
-        /// The target framework(s) in the project file.
-        /// </summary>
-        /// <remarks>
-        /// This does not perform evaluation of the project file, only parsing.
-        /// If TargetFramework or TargetFrameworks contains a property that
-        /// needs to be evaluated, this will contain the pre-evaluated value(s).
-        /// Try to find a TargetFrameworkIdentifier in the same PropertyGroup
-        /// and if no TargetFrameworkIdentifier was found, assume ".NETFramework".
-        /// </remarks>
+        /// <inheritdoc />
         public string[] TargetFrameworks => _targetFrameworks
             ?? (_targetFrameworks = GetTargetFrameworks(
                 _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
@@ -68,52 +55,30 @@ namespace Buildalyzer.Construction
                 _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
                     .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value))));
 
-        /// <summary>
-        /// Whether the project file uses an SDK.
-        /// </summary>
-        /// <remarks>
-        /// Checks for an <c>Sdk</c> attribute on the <c>Project</c> element. If one can't be found,
-        /// also checks for <c>Import</c> elements with an <c>Sdk</c> attribute (see https://github.com/Microsoft/msbuild/issues/1493).
-        /// </remarks>
+        /// <inheritdoc />
         public bool UsesSdk =>
             _projectElement.GetAttributeValue(ProjectFileNames.Sdk) != null
                 || _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => x.GetAttributeValue(ProjectFileNames.Sdk) != null);
 
-        /// <summary>
-        /// Whether the project file requires a .NET Framework host and build tools to build.
-        /// </summary>
-        /// <remarks>
-        /// Checks for an <c>Import</c> element with a <c>Project</c> attribute ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
-        /// Also looks for a <c>LanguageTargets</c> ending with one of the targets in <see cref="ImportsThatRequireNetFramework"/>.
-        /// Projects that use these targets are known not to build under a .NET Core host or build tools.
-        /// Also checks for a <c>ToolsVersion</c> attribute and uses the .NET Framework if one is found.
-        /// </remarks>
+        /// <inheritdoc />
         public bool RequiresNetFramework =>
             _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => ImportsThatRequireNetFramework.Any(i => x.GetAttributeValue(ProjectFileNames.Project).EndsWith(i, StringComparison.OrdinalIgnoreCase)))
             || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Any(i => x.Value.EndsWith(i, StringComparison.OrdinalIgnoreCase)))
             || ToolsVersion != null;
 
-        /// <summary>
-        /// Whether the project file is multi-targeted.
-        /// </summary>
-        /// <remarks>
-        /// Checks for an <c>TargetFrameworks</c> element.
-        /// </remarks>
+        /// <inheritdoc />
         public bool IsMultiTargeted => _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Any();
 
-        /// <summary>
-        /// Whether the project file contains <c>PackageReference</c> items.
-        /// </summary>
+        /// <inheritdoc />
+        public string OutputType => _projectElement.GetDescendants(ProjectFileNames.OutputType).FirstOrDefault()?.Value;
+
+        /// <inheritdoc />
         public bool ContainsPackageReferences => _projectElement.GetDescendants(ProjectFileNames.PackageReference).Any();
 
-        /// <summary>
-        /// The list of <c>PackageReference</c> items in the project file.
-        /// </summary>
+        /// <inheritdoc />
         public IReadOnlyList<IPackageReference> PackageReferences => _projectElement.GetDescendants(ProjectFileNames.PackageReference).Select(s => new PackageReference(s)).ToList();
 
-        /// <summary>
-        /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).
-        /// </summary>
+        /// <inheritdoc />
         public string ToolsVersion => _projectElement.GetAttributeValue(ProjectFileNames.ToolsVersion);
 
         internal static string[] GetTargetFrameworks(

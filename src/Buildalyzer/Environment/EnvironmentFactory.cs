@@ -79,6 +79,7 @@ namespace Buildalyzer.Environment
 
             // Required to force CoreCompile target when it calculates everything is already built
             // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            // Only required if we're not running a design-time build (otherwise the targets will be replaced anyway)
             if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));
@@ -127,6 +128,7 @@ namespace Buildalyzer.Environment
 
             // Required to force CoreCompile target when it calculates everything is already built
             // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
+            // Only required if we're not running a design-time build (otherwise the targets will be replaced anyway)
             if (options.TargetsToBuild.Contains("Clean", StringComparer.OrdinalIgnoreCase))
             {
                 additionalGlobalProperties.Add(MsBuildProperties.NonExistentFile, Path.Combine("__NonExistentSubDir__", "__NonExistentFile__"));

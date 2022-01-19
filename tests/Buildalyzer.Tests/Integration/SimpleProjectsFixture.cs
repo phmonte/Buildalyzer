@@ -16,6 +16,7 @@ namespace Buildalyzer.Tests.Integration
     [NonParallelizable]
     public class SimpleProjectsFixture
     {
+        // Places the log file in C:/Temp
         private const bool BinaryLog = false;
 
         private static readonly EnvironmentPreference[] Preferences =
@@ -127,7 +128,7 @@ namespace Buildalyzer.Tests.Integration
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
 #endif
-                "Class1",
+                analyzer.ProjectFile.OutputType?.Equals("exe", StringComparison.OrdinalIgnoreCase) ?? false ? "Program" : "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
@@ -188,7 +189,7 @@ namespace Buildalyzer.Tests.Integration
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
 #endif
-                "Class1",
+                analyzer.ProjectFile.OutputType?.Equals("exe", StringComparison.OrdinalIgnoreCase) ?? false ? "Program" : "Class1",
                 "AssemblyInfo"
                 }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
             }

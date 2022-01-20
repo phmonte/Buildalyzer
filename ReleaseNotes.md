@@ -1,3 +1,9 @@
+# 3.2.8
+
+- Reverted `UseAppHost` back to defaults for Buildalyzer builds in favor of setting `ComputeNETCoreBuildOutputFiles` instead so that self-contained application builds still work (#194, #185, #187).
+- Added ability to bypass MSBuild when using .NET Core/.NET (I.e. the `dotnet` command) so that other commands like `publish` can be invoked (#195, thanks @echalone).
+- Added support for analyzing build logs that don't set a `TargetFrameworkMonitor` (I.e. C++ projects) (#196, thanks @echalone).
+
 # 3.2.7
 
 - Fixed MSBuild polling in Visual Studio directories when Visual Studio 2022 is installed since it now installs into the normal "Program Files" folder (as opposed to the x86 one).

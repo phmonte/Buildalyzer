@@ -237,8 +237,10 @@ namespace Buildalyzer.Tests.Integration
             IAnalyzerResults results = analyzer.Build();
 
             // Then
-            results.Count.ShouldBe(2);
-            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0" }, true, log.ToString());
+            // Multi-targeting projects product an extra result with an empty target framework that holds some MSBuild properties (I.e. the "outer" build)
+            results.Count.ShouldBe(3);
+            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0", string.Empty }, true, log.ToString());
+            results[string.Empty].SourceFiles.ShouldBeEmpty();
             new[]
             {
                 // Linux and Mac builds appear to omit the AssemblyAttributes.cs file

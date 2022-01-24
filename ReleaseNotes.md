@@ -1,5 +1,7 @@
 # 3.2.9
 
+- Added additional logging for Roslyn workspace creation in `Buildalyzer.Workspaces`.
+
 # 3.2.8
 
 - Reverted `UseAppHost` back to defaults for Buildalyzer builds in favor of setting `ComputeNETCoreBuildOutputFiles` instead so that self-contained application builds still work (#194, #185, #187).

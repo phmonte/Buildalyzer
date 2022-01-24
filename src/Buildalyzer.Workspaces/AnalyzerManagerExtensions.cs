@@ -2,11 +2,24 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Workspaces
 {
     public static class AnalyzerManagerExtensions
     {
+        /// <summary>
+        /// Instantiates an empty AdhocWorkspace with logging event handlers.
+        /// </summary>
+        internal static AdhocWorkspace CreateWorkspace(this IAnalyzerManager manager)
+        {
+            ILogger logger = manager.LoggerFactory?.CreateLogger<AdhocWorkspace>();
+            AdhocWorkspace workspace = new AdhocWorkspace();
+            workspace.WorkspaceChanged += (sender, args) => logger?.LogDebug($"Workspace changed: {args.Kind.ToString()}{System.Environment.NewLine}");
+            workspace.WorkspaceFailed += (sender, args) => logger?.LogError($"Workspace failed: {args.Diagnostic}{System.Environment.NewLine}");
+            return workspace;
+        }
+
         public static AdhocWorkspace GetWorkspace(this IAnalyzerManager manager)
         {
             // Run builds in parallel
@@ -17,7 +30,7 @@ namespace Buildalyzer.Workspaces
                 .ToList();
 
             // Add each result to a new workspace
-            AdhocWorkspace workspace = new AdhocWorkspace();
+            AdhocWorkspace workspace = manager.CreateWorkspace();
 
             if (!string.IsNullOrEmpty(manager.SolutionFilePath))
             {

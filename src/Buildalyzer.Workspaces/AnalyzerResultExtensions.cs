@@ -30,7 +30,7 @@ namespace Buildalyzer.Workspaces
             {
                 throw new ArgumentNullException(nameof(analyzerResult));
             }
-            AdhocWorkspace workspace = new AdhocWorkspace();
+            AdhocWorkspace workspace = analyzerResult.Manager.CreateWorkspace();
             analyzerResult.AddToWorkspace(workspace, addProjectReferences);
             return workspace;
         }

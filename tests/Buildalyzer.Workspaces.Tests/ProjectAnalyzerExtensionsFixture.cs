@@ -25,6 +25,8 @@ namespace Buildalyzer.Workspaces.Tests
             Workspace workspace = analyzer.GetWorkspace();
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             workspace.CurrentSolution.Projects.First().Documents.ShouldContain(x => x.Name == "Class1.cs", log.ToString());
         }
 
@@ -40,6 +42,8 @@ namespace Buildalyzer.Workspaces.Tests
             Workspace workspace = manager.GetWorkspace();
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             workspace.CurrentSolution.FilePath.ShouldBe(solutionPath);
             workspace.CurrentSolution.Projects.ShouldContain(p => p.Name == "LegacyFrameworkProject");
             workspace.CurrentSolution.Projects.ShouldContain(p => p.Name == "SdkFrameworkProject");
@@ -57,6 +61,8 @@ namespace Buildalyzer.Workspaces.Tests
             Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             compilation.GetSymbolsWithName(x => x == "Class1").ShouldNotBeEmpty(log.ToString());
         }
 
@@ -72,6 +78,8 @@ namespace Buildalyzer.Workspaces.Tests
             CompilationOptions compilationOptions = workspace.CurrentSolution.Projects.First().CompilationOptions;
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             compilationOptions.OutputKind.ShouldBe(OutputKind.DynamicallyLinkedLibrary, log.ToString());
         }
 
@@ -87,6 +95,8 @@ namespace Buildalyzer.Workspaces.Tests
             Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
         }
 
@@ -102,6 +112,8 @@ namespace Buildalyzer.Workspaces.Tests
             Workspace workspace = analyzer.GetWorkspace(addProjectReferences);
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             workspace.CurrentSolution.Projects.Count().ShouldBe(totalProjects, log.ToString());
         }
 
@@ -117,6 +129,8 @@ namespace Buildalyzer.Workspaces.Tests
             Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             compilation.GetSymbolsWithName(x => x == "Class1").ShouldBeEmpty(log.ToString());
             compilation.GetSymbolsWithName(x => x == "Class2").ShouldNotBeEmpty(log.ToString());
         }
@@ -133,6 +147,8 @@ namespace Buildalyzer.Workspaces.Tests
             Project project = workspace.CurrentSolution.Projects.First();
 
             // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
             project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
         }
 
@@ -148,8 +164,10 @@ namespace Buildalyzer.Workspaces.Tests
             Project project = workspace.CurrentSolution.Projects.First();
 
             // Then
-            Assert.NotNull(project);
-            Assert.IsNotEmpty(project.Documents);
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
+            project.ShouldNotBeNull();
+            project.Documents.ShouldNotBeEmpty();
         }
 
         private IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log, AnalyzerManager manager = null)

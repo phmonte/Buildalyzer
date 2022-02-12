@@ -2,21 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>1.0.0</Version>
-    <Authors>Dave Glick and contributors</Authors>
-    <Company>Dave Glick and contributors</Company>
     <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. This extension library adds support for creating a Roslyn workspace from Buildalyzer.</Description>
-    <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

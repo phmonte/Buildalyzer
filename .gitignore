@@ -23,7 +23,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
-[Bb]uild/
+[Aa]rtifacts/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -277,15 +277,6 @@ paket-files/
 __pycache__/
 *.pyc
 
-# Cake - Uncomment if you are using it
-[tT]ools/
-
-# Docs
-docs/output/
-docs/config.wyam.packages.xml
-docs/config.wyam.hash
-docs/config.wyam.dll
-
 # Telerik's JustMock configuration file
 *.jmconfig
 
@@ -298,3 +289,5 @@ docs/config.wyam.dll
 *.ncrunchsolution
 
 *.ncrunchproject
+
+cache/

@@ -9,21 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2D6F1622
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Tests", "tests\Buildalyzer.Tests\Buildalyzer.Tests.csproj", "{75A76A2E-6CBB-4BBF-9B7F-ACA308A8B5C7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{8FD3A594-153D-4F6E-9D4F-12358C5C43B1}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		.gitignore = .gitignore
-		azure-pipelines.yml = azure-pipelines.yml
-		build.cake = build.cake
-		build.ps1 = build.ps1
-		daveaglick.ruleset = daveaglick.ruleset
-		Directory.Build.props = Directory.Build.props
-		LICENSE = LICENSE
-		README.md = README.md
-		ReleaseNotes.md = ReleaseNotes.md
-		stylecop.json = stylecop.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces.Tests", "tests\Buildalyzer.Workspaces.Tests\Buildalyzer.Workspaces.Tests.csproj", "{2358397E-7B5D-47E7-AC53-10C61574A1B9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Workspaces", "src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj", "{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0}"
@@ -31,6 +16,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A52BD74E-3894-4A6E-8B9A-143A004F07F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Logger", "src\Buildalyzer.Logger\Buildalyzer.Logger.csproj", "{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{02785CEC-3651-4EFF-8A16-580D3204A88B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Buildalyzer.Build", "build\Buildalyzer.Build\Buildalyzer.Build.csproj", "{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +47,10 @@ Global
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +61,7 @@ Global
 		{2358397E-7B5D-47E7-AC53-10C61574A1B9} = {2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
+		{CC851FFE-4F1F-49E4-B3E9-B207AC5E3A90} = {02785CEC-3651-4EFF-8A16-580D3204A88B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1716863C-E9E2-4074-B557-E38CEB3B5C84}

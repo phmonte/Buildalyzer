@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -50,7 +51,7 @@ namespace Buildalyzer.Workspaces.Tests
         }
 
         [Test]
-        public void SupportsCompilation()
+        public async Task SupportsCompilation()
         {
             // Given
             StringWriter log = new StringWriter();
@@ -58,7 +59,7 @@ namespace Buildalyzer.Workspaces.Tests
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
-            Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
+            Compilation compilation = await workspace.CurrentSolution.Projects.First().GetCompilationAsync();
 
             // Then
             string logged = log.ToString();
@@ -118,7 +119,7 @@ namespace Buildalyzer.Workspaces.Tests
         }
 
         [Test]
-        public void SupportsConstants()
+        public async Task SupportsConstants()
         {
             // Given
             StringWriter log = new StringWriter();
@@ -126,7 +127,7 @@ namespace Buildalyzer.Workspaces.Tests
 
             // When
             Workspace workspace = analyzer.GetWorkspace();
-            Compilation compilation = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result;
+            Compilation compilation = await workspace.CurrentSolution.Projects.First().GetCompilationAsync();
 
             // Then
             string logged = log.ToString();

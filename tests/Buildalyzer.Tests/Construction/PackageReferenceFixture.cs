@@ -10,7 +10,7 @@ namespace Buildalyzer.Tests.Construction
     public class PackageReferenceFixture
     {
         [Test]
-        public void PackageReferenceWithInclude_Should_ContainName()
+        public void PackageReferenceWithIncludeShouldContainName()
         {
             // Given
             XElement xml = XElement.Parse(@"<PackageReference Include=""IncludedDependency"" Version=""1.0.0"" />");
@@ -23,7 +23,7 @@ namespace Buildalyzer.Tests.Construction
         }
 
         [Test]
-        public void PackageReferenceWithVersion_Should_ContainVersion()
+        public void PackageReferenceWithVersionShouldContainVersion()
         {
             // Given
             XElement xml = XElement.Parse(@"<PackageReference Include=""IncludedDependency"" Version=""1.0.0"" />");
@@ -36,7 +36,7 @@ namespace Buildalyzer.Tests.Construction
         }
 
         [Test]
-        public void PackageReferenceWithUpgrade_Should_ContainName()
+        public void PackageReferenceWithUpgradeShouldContainName()
         {
             // Given
             XElement xml = XElement.Parse(@"<PackageReference Update=""UpdatedDependency"" Version=""1.0.0"" />");

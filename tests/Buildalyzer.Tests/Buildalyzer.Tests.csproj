@@ -1,13 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="16.10.0">
-      <NoWarn>NU1701</NoWarn>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Build" Version="16.10.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
@@ -26,11 +24,11 @@
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
     <DefineConstants>Is_Windows</DefineConstants>
   </PropertyGroup>
-  
+
   <!-- Need to copy the MsBuildPipeLogger logger into output so Buildalyzer.Logger can find it -->
   <!-- See https://github.com/NuGet/Home/issues/4837#issuecomment-474184722 and https://github.com/NuGet/NuGet.Client/pull/2271 -->
   <Target Name="CopyMsBuildPipeLogger" AfterTargets="Build">
     <Copy SourceFiles="$(PkgMsBuildPipeLogger_Logger)\lib\netstandard1.3\MsBuildPipeLogger.Logger.dll" DestinationFolder="$(OutDir)" />
   </Target>
-  
+
 </Project>

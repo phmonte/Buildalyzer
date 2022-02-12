@@ -1,3 +1,7 @@
+# 4.0.0
+
+- Updated Buildalyzer target to .NET 6.
+
 # 3.2.9
 
 - Added additional logging for Roslyn workspace creation in `Buildalyzer.Workspaces`.

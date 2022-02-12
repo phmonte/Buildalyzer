@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -22,6 +23,11 @@ namespace Buildalyzer.Workspaces
 
         public static AdhocWorkspace GetWorkspace(this IAnalyzerManager manager)
         {
+            if (manager is null)
+            {
+                throw new ArgumentNullException(nameof(manager));
+            }
+
             // Run builds in parallel
             List<IAnalyzerResult> results = manager.Projects.Values
                 .AsParallel()

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Buildalyzer.Environment;
@@ -14,7 +15,7 @@ namespace Buildalyzer.Tests.Environment
         [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
         [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.300\")]
         [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.401/")]
-        public void CanParseBasePath(string output, string basePath)
+        public void CanParseBasePath([NotNull] string output, string basePath)
         {
             // Given
             List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
@@ -29,7 +30,7 @@ namespace Buildalyzer.Tests.Environment
         [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
         [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.201\")]
         [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.201/")]
-        public void CanParseInstalledSdksPath(string output, string sdksPath)
+        public void CanParseInstalledSdksPath([NotNull] string output, string sdksPath)
         {
             // Given
             List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();

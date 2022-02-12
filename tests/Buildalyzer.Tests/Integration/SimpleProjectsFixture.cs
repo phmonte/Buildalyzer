@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -136,7 +137,7 @@ namespace Buildalyzer.Tests.Integration
         [Test]
         public void GetsReferences(
             [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
-            [ValueSource(nameof(ProjectFiles))] string projectFile)
+            [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
         {
             // Given
             StringWriter log = new StringWriter();

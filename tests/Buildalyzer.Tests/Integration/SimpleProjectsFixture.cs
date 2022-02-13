@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -236,7 +236,7 @@ namespace Buildalyzer.Tests.Integration
             // Then
             // Multi-targeting projects product an extra result with an empty target framework that holds some MSBuild properties (I.e. the "outer" build)
             results.Count.ShouldBe(3);
-            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0", string.Empty }, true, log.ToString());
+            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0", string.Empty }, ignoreOrder: false, log.ToString());
             results[string.Empty].SourceFiles.ShouldBeEmpty();
             new[]
             {

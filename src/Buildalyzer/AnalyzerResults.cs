@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Buildalyzer
 {
@@ -23,9 +24,9 @@ namespace Buildalyzer
 
         public IAnalyzerResult this[string targetFramework] => _results[targetFramework];
 
-        public IEnumerable<string> TargetFrameworks => _results.Keys;
+        public IEnumerable<string> TargetFrameworks => _results.Keys.OrderBy(e => e, TargetFrameworkComparer.Instance);
 
-        public IEnumerable<IAnalyzerResult> Results => _results.Values;
+        public IEnumerable<IAnalyzerResult> Results => TargetFrameworks.Select(e => _results[e]);
 
         public int Count => _results.Count;
 
@@ -33,7 +34,7 @@ namespace Buildalyzer
 
         public bool TryGetTargetFramework(string targetFramework, out IAnalyzerResult result) => _results.TryGetValue(targetFramework, out result);
 
-        public IEnumerator<IAnalyzerResult> GetEnumerator() => _results.Values.GetEnumerator();
+        public IEnumerator<IAnalyzerResult> GetEnumerator() => Results.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

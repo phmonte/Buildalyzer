@@ -13,7 +13,7 @@ namespace Buildalyzer.Workspaces.Tests
 
         public override void Write(char value)
         {
-            lock(_lock)
+            lock (_lock)
             {
                 base.Write(value);
             }
@@ -21,7 +21,7 @@ namespace Buildalyzer.Workspaces.Tests
 
         public override void Write(char[] buffer, int index, int count)
         {
-            lock(_lock)
+            lock (_lock)
             {
                 base.Write(buffer, index, count);
             }
@@ -29,7 +29,7 @@ namespace Buildalyzer.Workspaces.Tests
 
         public override void Write(string value)
         {
-            lock(_lock)
+            lock (_lock)
             {
                 base.Write(value);
             }
@@ -37,7 +37,7 @@ namespace Buildalyzer.Workspaces.Tests
 
         public override string ToString()
         {
-            lock(_lock)
+            lock (_lock)
             {
                 return base.ToString();
             }

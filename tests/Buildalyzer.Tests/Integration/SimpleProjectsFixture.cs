@@ -152,7 +152,9 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             references.ShouldNotBeNull(log.ToString());
-            references.ShouldContain(x => x.Contains("System"), log.ToString());
+            references.ShouldContain(
+                x => x.Contains("mscorlib"),
+                log.ToString() + Environment.NewLine + "References:" + String.Join(Environment.NewLine, references));
             if (projectFile.Contains("PackageReference"))
             {
                 references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());

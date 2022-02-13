@@ -187,14 +187,16 @@ namespace Buildalyzer.Workspaces.Tests
 
         private static string GetFullPath(string partialPath)
         {
-            return Path.GetFullPath(
-                Path.Combine(
-                    Path.GetDirectoryName(
-                        typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
+            return Path
+                .GetFullPath(
+                    Path.Combine(
+                        Path.GetDirectoryName(
+                            typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
 #if Is_Windows
-                    @"..\..\..\..\" + partialPath));
+                        @"..\..\..\..\" + partialPath));
 #else
-                    "../../../../" + partialPath));
+                        "../../../../" + partialPath))
+                .Replace(@"\", "/");
 #endif
         }
     }

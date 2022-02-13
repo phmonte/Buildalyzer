@@ -192,9 +192,9 @@ namespace Buildalyzer.Workspaces.Tests
                     Path.GetDirectoryName(
                         typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
 #if Is_Windows
-                        @"..\..\..\..\" + partialPath));
+                    @"..\..\..\..\" + partialPath));
 #else
-                        "../../../../" + partialPath));
+                    "../../../../" + partialPath));
 #endif
         }
     }

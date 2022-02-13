@@ -18,12 +18,12 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '3.1.x'
 
       - name: Build and Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"
-        
-        
+
+
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()

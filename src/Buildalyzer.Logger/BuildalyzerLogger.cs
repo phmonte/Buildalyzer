@@ -42,6 +42,11 @@ namespace Buildalyzer.Logger
 
         protected override void InitializeEvents(IEventSource eventSource)
         {
+            if (eventSource is null)
+            {
+                throw new ArgumentNullException(nameof(eventSource));
+            }
+
             if (_logEverything)
             {
                 base.InitializeEvents(eventSource);

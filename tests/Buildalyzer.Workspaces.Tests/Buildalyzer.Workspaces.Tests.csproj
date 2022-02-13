@@ -18,6 +18,10 @@
     <ProjectReference Include="..\..\src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
+  
+  <PropertyGroup Condition=“ ‘$(OS)’ == ‘Windows_NT’ “>
+    <DefineConstants>Is_Windows</DefineConstants>
+  </PropertyGroup>
 
   <!-- Need to copy the MsBuildPipeLogger logger into output so Buildalyzer.Logger can find it -->
   <!-- See https://github.com/NuGet/Home/issues/4837#issuecomment-474184722 and https://github.com/NuGet/NuGet.Client/pull/2271 -->

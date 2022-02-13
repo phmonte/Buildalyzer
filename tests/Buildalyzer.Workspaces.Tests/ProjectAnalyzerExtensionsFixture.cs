@@ -152,7 +152,7 @@ namespace Buildalyzer.Workspaces.Tests
             logged.ShouldNotContain("Workspace failed", logged);
             project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
         }
-        
+
 #if Is_Windows
         [Test]
         public void HandlesWpfCustomControlLibrary()
@@ -192,11 +192,10 @@ namespace Buildalyzer.Workspaces.Tests
                     Path.GetDirectoryName(
                         typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
 #if Is_Windows
-                        @"..\..\..\..\"
+                        @"..\..\..\..\" + partialPath));
 #else
-                        "../../../../"
+                        "../../../../" + partialPath));
 #endif
-                            + partialPath));
         }
     }
 }

@@ -1,9 +1,6 @@
-#if NETCOREAPP3_1
 extern alias StructuredLogger;
-#endif
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -69,7 +66,6 @@ namespace Buildalyzer.Logging
         // See https://twitter.com/KirillOsenkov/status/1427686459713019904
         private void StatusEventRaised(object sender, BuildStatusEventArgs e)
         {
-#if NETCOREAPP3_1
             if (e is StructuredLogger::Microsoft.Build.Framework.ProjectEvaluationFinishedEventArgs slEv)
             {
                 _evalulationResults[slEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
@@ -78,16 +74,6 @@ namespace Buildalyzer.Logging
                     Items = slEv.Items
                 };
             }
-#else
-            if (e is ProjectEvaluationFinishedEventArgs msBuildEv)
-            {
-                _evalulationResults[msBuildEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
-                {
-                    Properties = msBuildEv.Properties,
-                    Items = msBuildEv.Items
-                };
-            }
-#endif
         }
 
         private void ProjectStarted(object sender, ProjectStartedEventArgs e)

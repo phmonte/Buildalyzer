@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,20 +11,14 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="Shouldly" Version="3.0.2" />
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.3" GeneratePathProperty="true" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'net5.0' ">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj" />
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
-  
+
   <PropertyGroup Condition=" $([MSBuild]::IsOsPlatform('Windows')) ">
     <DefineConstants>Is_Windows</DefineConstants>
   </PropertyGroup>

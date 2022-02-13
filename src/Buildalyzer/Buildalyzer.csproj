@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. Should work with any project type on any .NET runtime.</Description>
   </PropertyGroup>
   <ItemGroup>
@@ -9,27 +9,11 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
     <PackageReference Include="MsBuildPipeLogger.Server" Version="1.1.3" />
     <PackageReference Include="System.Reflection.TypeExtensions" Version="4.7.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
     <PackageReference Include="Microsoft.Build" Version="16.9.0" />
     <PackageReference Include="Microsoft.Build.Framework" Version="16.9.0" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.9.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.507" Aliases="StructuredLogger" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
-    <PackageReference Include="Microsoft.Build" Version="16.10.0" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="16.10.0" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="16.10.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.10.0" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.630" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-    <PackageReference Include="Microsoft.Build" Version="17.0.0" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.0.0" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.0.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.0.0" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.630" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

@@ -197,19 +197,10 @@ namespace Buildalyzer.Tests.Integration
 
         private static string GetRepositoryPath(string repository)
         {
-#if NETCOREAPP3_1
-            const string frameworkPart = "netcoreapp3.1\\";
-#elif NET5_0
-            const string frameworkPart = "net5.0\\";
-#elif NET6_0
-            const string frameworkPart = "net6.0\\";
-#else
-            const string frameworkPart = string.Empty;
-#endif
             string path = Path.GetFullPath(
                 Path.Combine(
                     Path.GetDirectoryName(typeof(OpenSourceProjectsFixture).Assembly.Location),
-                    @"..\..\..\..\repos\" + frameworkPart + Path.GetFileNameWithoutExtension(repository)));
+                    @"..\..\..\..\repos\" + Path.GetFileNameWithoutExtension(repository)));
 
             return path.Replace('\\', Path.DirectorySeparatorChar);
         }

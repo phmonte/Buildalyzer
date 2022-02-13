@@ -1,6 +1,6 @@
 # 4.0.0
 
-- Updated Buildalyzer target to .NET 6.
+- Updated Buildalyzer to target .NET Core 3.1 (#197, #189, thanks @AdaskoTheBeAsT and @slang25).
 
 # 3.2.9
 

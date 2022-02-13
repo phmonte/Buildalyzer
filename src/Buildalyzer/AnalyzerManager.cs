@@ -1,9 +1,5 @@
-﻿#if NETCOREAPP3_1
-extern alias StructuredLogger;
-using StructuredLogger::Microsoft.Build.Logging.StructuredLogger;
-#else
-using Microsoft.Build.Logging.StructuredLogger;
-#endif
+﻿extern alias StructuredLogger;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,6 +8,7 @@ using System.Linq;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Extensions.Logging;
+using StructuredLogger::Microsoft.Build.Logging.StructuredLogger;
 
 namespace Buildalyzer
 {

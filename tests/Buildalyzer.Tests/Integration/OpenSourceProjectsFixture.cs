@@ -30,11 +30,6 @@ namespace Buildalyzer.Tests.Integration
 
         private static readonly TestRepository[] Repositories =
         {
-            new TestRepository(
-                "https://github.com/autofac/Autofac.git",
-                @"\bench\Autofac.Benchmarks\Autofac.Benchmarks.csproj"),
-            new TestRepository("https://github.com/AutoMapper/AutoMapper.git"),
-            new TestRepository(EnvironmentPreference.Framework, "https://github.com/serilog/serilog.git"), // SourceLink messed up from AppVeyor on SDK: "SourceLink.Create.CommandLine.dll. Assembly with same name is already loaded Confirm that the <UsingTask> declaration is correct"
             new TestRepository("https://github.com/cake-build/cake"),
             new TestRepository("https://github.com/statiqdev/Statiq.Framework.git")
         };

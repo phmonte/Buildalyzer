@@ -21,4 +21,13 @@ jobs:
           dotnet-version: '6.0.x'
 
       - name: Build and Test
-        run: dotnet test
+        run: dotnet test --logger "trx;LogFileName=test-results.trx"
+        
+        
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: dotnet tests
+          path: test-results.trx
+          reporter: dotnet-trx

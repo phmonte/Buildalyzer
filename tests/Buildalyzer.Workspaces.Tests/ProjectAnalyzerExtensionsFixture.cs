@@ -19,7 +19,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void LoadsWorkspace()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
@@ -36,7 +36,7 @@ namespace Buildalyzer.Workspaces.Tests
         {
             // Given
             string solutionPath = GetFullPath(@"projects\TestProjects.sln");
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions { LogWriter = log });
 
             // When
@@ -54,7 +54,7 @@ namespace Buildalyzer.Workspaces.Tests
         public async Task SupportsCompilation()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
@@ -71,7 +71,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void CreatesCompilationOptions()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
 
             // When
@@ -89,7 +89,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void AddsProjectReferences(bool addProjectReferences, int totalProjects)
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
 
             // When
@@ -106,7 +106,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void AddsTransitiveProjectReferences(bool addProjectReferences, int totalProjects)
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\TransitiveProjectReference\TransitiveProjectReference.csproj", log);
 
             // When
@@ -122,7 +122,7 @@ namespace Buildalyzer.Workspaces.Tests
         public async Task SupportsConstants()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
 
             // When
@@ -140,7 +140,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void SupportsAnalyzers()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetCore2ProjectWithAnalyzer\SdkNetCore2ProjectWithAnalyzer.csproj", log);
 
             // When
@@ -158,7 +158,7 @@ namespace Buildalyzer.Workspaces.Tests
         public void HandlesWpfCustomControlLibrary()
         {
             // Given
-            StringWriter log = new StringWriter();
+            SafeStringWriter log = new StringWriter();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\WpfCustomControlLibrary1\WpfCustomControlLibrary1.csproj", log);
 
             // When

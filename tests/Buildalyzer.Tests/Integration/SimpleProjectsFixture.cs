@@ -125,10 +125,7 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-#if Is_Windows
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
-#endif
                 analyzer.ProjectFile.OutputType?.Equals("exe", StringComparison.OrdinalIgnoreCase) ?? false ? "Program" : "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
@@ -188,10 +185,7 @@ namespace Buildalyzer.Tests.Integration
                 sourceFiles.ShouldNotBeNull(log.ToString());
                 new[]
                 {
-#if Is_Windows
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
-#endif
                 analyzer.ProjectFile.OutputType?.Equals("exe", StringComparison.OrdinalIgnoreCase) ?? false ? "Program" : "Class1",
                 "AssemblyInfo"
                 }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
@@ -205,8 +199,8 @@ namespace Buildalyzer.Tests.Integration
             }
         }
 
-#if Is_Windows
         [Test]
+        [Platform("win")]
         public void WpfControlLibraryGetsSourceFiles()
         {
             // Given
@@ -246,14 +240,12 @@ namespace Buildalyzer.Tests.Integration
             results[string.Empty].SourceFiles.ShouldBeEmpty();
             new[]
             {
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
                 "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(results["net462"].SourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
             new[]
             {
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
                 "Class2",
                 "AssemblyInfo"
@@ -285,13 +277,11 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
                 "Class1",
                 "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
-#endif
 
         [Test]
         public void MultiTargetingBuildCoreTargetFrameworkGetsSourceFiles()
@@ -308,11 +298,8 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-#if Is_Windows
-                // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
                 "AssemblyAttributes",
                 "AssemblyInfo",
-#endif
                 "Class2"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
@@ -385,8 +372,8 @@ namespace Buildalyzer.Tests.Integration
 #endif
         }
 
-#if Is_Windows
         [Test]
+        [Platform("win")]
         public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
         {
             // Given
@@ -431,7 +418,6 @@ namespace Buildalyzer.Tests.Integration
             references.ShouldContain(x => x.EndsWith("LegacyFrameworkProject.csproj"), log.ToString());
             references.ShouldContain(x => x.EndsWith("LegacyFrameworkProjectWithPackageReference.csproj"), log.ToString());
         }
-#endif
 
         [Test]
         public void GetsProjectsInSolution()
@@ -501,7 +487,6 @@ namespace Buildalyzer.Tests.Integration
             results.First().ProjectGuid.ToString().ShouldBe("016713d9-b665-4272-9980-148801a9b88f");
         }
 
-#if Is_Windows
         [Test]
         public void GetsProjectGuidFromProject([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
@@ -524,7 +509,6 @@ namespace Buildalyzer.Tests.Integration
             // so this may need to be updated periodically
             results.First().ProjectGuid.ToString().ShouldBe("1ff50b40-c27b-5cea-b265-29c5436a8a7b");
         }
-#endif
 
         [Test]
         public void BuildsProjectWithoutLogger([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
@@ -635,10 +619,7 @@ namespace Buildalyzer.Tests.Integration
             sourceFiles.ShouldNotBeNull(log.ToString());
             new[]
             {
-#if Is_Windows
-            // Linux and Mac builds appear to omit the AssemblyAttributes.cs file
             "AssemblyAttributes",
-#endif
             "Class1",
             "AssemblyInfo"
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());

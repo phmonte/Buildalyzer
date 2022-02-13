@@ -193,7 +193,7 @@ namespace Buildalyzer.Workspaces.Tests
                         typeof(ProjectAnalyzerExtensionsFixture).Assembly.Location),
 #if Is_Windows
                         @"..\..\..\..\"
-#elif
+#else
                         "../../../../"
 #endif
                             + partialPath));

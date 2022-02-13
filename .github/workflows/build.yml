@@ -18,7 +18,9 @@ jobs:
       - name: Install .NET Core SDK
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: |
+            3.1.x
+            6.0.x
 
       - name: Build and Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"

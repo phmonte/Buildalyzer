@@ -30,6 +30,6 @@ jobs:
         uses: dorny/test-reporter@v1
         if: success() || failure()
         with:
-          name: dotnet tests
+          name: Test Report
           path: "**/test-results.trx"
           reporter: dotnet-trx

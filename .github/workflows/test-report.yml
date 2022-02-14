@@ -7,22 +7,14 @@ on:
 jobs:
   report:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
-      - uses: dorny/test-reporter@v1
+      - name: Process Test Results
+        uses: dorny/test-reporter@v1
         with:
-          artifact: test-results-windows-latest
-          name: 'Test Results (windows)'
-          path: '**/*.trx'
-          reporter: dotnet-trx
-      - uses: dorny/test-reporter@v1
-        with:
-          artifact: test-results-ubuntu-latest
-          name: 'Test Results (ubuntu)'
-          path: '**/*.trx'
-          reporter: dotnet-trx
-      - uses: dorny/test-reporter@v1
-        with:
-          artifact: test-results-macos-latest
-          name: 'Test Results (macos)'
+          artifact: test-results-${{ matrix.os }}
+          name: 'Test Results (${{ matrix.os }})'
           path: '**/*.trx'
           reporter: dotnet-trx

@@ -133,7 +133,6 @@ namespace Buildalyzer.Tests.Integration
             options.EnvironmentVariables.Add("CI_LINUX", "False");
             options.EnvironmentVariables.Add("CI_WINDOWS", "False");
 
-            // When
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "obj");
             DeleteProjectDirectory(analyzer.ProjectFile.Path, "bin");
             analyzer.IgnoreFaultyImports = false;
@@ -145,11 +144,11 @@ namespace Buildalyzer.Tests.Integration
             }
 #pragma warning restore 0162
 
-#if Is_Windows
-            IAnalyzerResults results = analyzer.Build(options);
-#else
+            /*
             // On non-Windows platforms we have to remove the .NET Framework target frameworks and only build .NET Core target frameworks
             // See https://github.com/dotnet/sdk/issues/826
+            // This was needed at one point due to some open source projects using these targets, we don't need it anymore
+            // but keeping around in case other open source projects are added to the set that require it again
             string[] excludedTargetFrameworks = new[] { "net2", "net3", "net4", "portable" };
             string[] targetFrameworks = analyzer.ProjectFile.TargetFrameworks.Where(x => !excludedTargetFrameworks.Any(y => x.StartsWith(y))).ToArray();
             if (targetFrameworks.Length == 0)
@@ -157,7 +156,10 @@ namespace Buildalyzer.Tests.Integration
                 Assert.Ignore();
             }
             IAnalyzerResults results = analyzer.Build(targetFrameworks, options);
-#endif
+            */
+
+            // When
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());

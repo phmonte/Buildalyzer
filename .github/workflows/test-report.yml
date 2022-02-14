@@ -1,0 +1,28 @@
+﻿name: 'Test Report'
+on:
+  workflow_run:
+    workflows: [ 'Build' ]
+    types:
+      - completed
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test-results-windows-latest
+          name: 'Test Results (windows)'
+          path: '**/*.trx'
+          reporter: dotnet-trx
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test-results-ubuntu-latest
+          name: 'Test Results (ubuntu)'
+          path: '**/*.trx'
+          reporter: dotnet-trx
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test-results-macos-latest
+          name: 'Test Results (macos)'
+          path: '**/*.trx'
+          reporter: dotnet-trx

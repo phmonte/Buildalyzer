@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+env:
+  NUGET_CERT_REVOCATION_MODE: offline
 jobs:
   build:
     name: Build
@@ -25,11 +27,9 @@ jobs:
       - name: Build and Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"
 
-
-      - name: Test Report
-        uses: dorny/test-reporter@v1
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
         if: success() || failure()
         with:
-          name: Test Report
-          path: "**/test-results.trx"
-          reporter: dotnet-trx
+          name: test-results-${{ matrix.os }}
+          path: '**/test-results.trx'

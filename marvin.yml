@@ -5,4 +5,4 @@ ProjectSets:
     GitHubOwner: "daveaglick"
     GitHubName: "Buildalyzer"
 GitHubToken: => GITHUB_TOKEN
-NuGetApiKey: => DAVEAGLICK_NUGET_API_KEY
+NuGetApiKey: => NUGET_API_KEY

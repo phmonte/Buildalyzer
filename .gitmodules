@@ -1,3 +1,3 @@
-[submodule "build"]
-	path = build
+[submodule "marvin"]
+	path = marvin
 	url = https://github.com/daveaglick/Marvin.git

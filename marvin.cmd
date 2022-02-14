@@ -1,5 +1,5 @@
 @echo off
-cd "build"
+cd "marvin"
 dotnet run -- %*
 set exitcode=%errorlevel%
 cd %~dp0

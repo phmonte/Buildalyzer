@@ -4,5 +4,5 @@ ProjectSets:
     TestProjects: "tests/*/*.csproj"
     GitHubOwner: "daveaglick"
     GitHubName: "Buildalyzer"
-GitHubToken: => GITHUB_TOKEN
-NuGetApiKey: => NUGET_API_KEY
+GitHubToken: => GetString("GITHUB_TOKEN")
+NuGetApiKey: => GetString("DAVEAGLICK_NUGET_API_KEY")

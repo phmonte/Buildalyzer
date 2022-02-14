@@ -1,6 +1,7 @@
 # 4.0.0
 
 - Updated Buildalyzer to target .NET Core 3.1 (#197, #189, thanks @AdaskoTheBeAsT and @slang25).
+- Made `AnalyzerResults.TargetFrameworks` and related properties deterministically ordered (#198, thanks @0xced).
 
 # 3.2.9
 

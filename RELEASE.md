@@ -1,3 +1,7 @@
+# 4.1.1
+
+- Added SourceLink support.
+
 # 4.1.0
 
 - Updated `Buildalyzer.Logger` to target .NET Standard 2.0.

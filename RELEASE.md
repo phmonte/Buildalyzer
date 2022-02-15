@@ -1,3 +1,8 @@
+# 4.1.0
+
+- Updated `Buildalyzer.Logger` to target .NET Standard 2.0.
+- Updated `MsBuildPipeLogger` references to version 1.1.4.
+
 # 4.0.0
 
 - Updated Buildalyzer to target .NET Core 3.1 (#197, #189, thanks @AdaskoTheBeAsT and @slang25).

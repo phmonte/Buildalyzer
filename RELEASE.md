@@ -1,3 +1,8 @@
+# 4.1.2
+
+- Updated `MsBuildPipeLogger` to 1.1.6.
+- Updated `Microsoft.CodeAnalysis` to 4.1.0.
+
 # 4.1.1
 
 - Added SourceLink support.

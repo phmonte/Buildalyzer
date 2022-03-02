@@ -6,18 +6,14 @@ A utility to perform design-time builds of .NET projects without having to think
 * [Buildalyzer](https://www.nuget.org/packages/Buildalyzer/)
 * [Buildalyzer.Workspaces](https://www.nuget.org/packages/Buildalyzer.Workspaces/)
 
-**MyGet**
-* [Buildalyzer](https://www.myget.org/feed/buildalyzer/package/nuget/Buildalyzer)
-* [Buildalyzer.Workspaces](https://www.myget.org/feed/buildalyzer/package/nuget/Buildalyzer.Workspaces)
-
 **GitHub**
 * [Buildalyzer](https://github.com/daveaglick/Buildalyzer)
 
 **Donations**
 
-If you found this library useful, consider kicking me a few bucks. I promise to use it on something totally frivolous and unrelated.
+If you found this library useful, consider [sponsoring more of it on GitHub](https://github.com/sponsors/daveaglick). I promise to use it on something totally frivolous and unrelated.
 
-<a href="https://www.buymeacoffee.com/daveaglick"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+[![Sponsor](https://img.shields.io/github/sponsors/daveaglick?style=social&logo=github-sponsors)](https://github.com/sponsors/daveaglick)
 
 ---
 

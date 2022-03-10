@@ -99,8 +99,9 @@ namespace Buildalyzer
 
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
-                ? items.Select(x => AnalyzerManager.NormalizePath(
-                    Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec))).Distinct()
+                ? items.Distinct(new ProjectItemItemSpecEqualityComparer())
+                       .Select(x => AnalyzerManager.NormalizePath(
+                            Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec)))
                 : Array.Empty<string>();
 
         /// <inheritdoc/>
@@ -370,8 +371,8 @@ namespace Buildalyzer
 
         private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>
         {
-            public bool Equals(IProjectItem x, IProjectItem y) => x.ItemSpec.Equals(y.ItemSpec);
-            public int GetHashCode(IProjectItem obj) => obj.ItemSpec.GetHashCode();
+            public bool Equals(IProjectItem x, IProjectItem y) => x.ItemSpec.Equals(y.ItemSpec, StringComparison.CurrentCultureIgnoreCase);
+            public int GetHashCode(IProjectItem obj) => obj.ItemSpec.ToLower().GetHashCode();
         }
     }
 }

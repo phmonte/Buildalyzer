@@ -625,6 +625,33 @@ namespace Buildalyzer.Tests.Integration
             }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
         }
 
+        [Test]
+        public static void DuplicateProjectReferences()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            AnalyzerManager manager = new AnalyzerManager(
+                GetProjectPath(@"DuplicateProjectReferences\MainProject\MainProject.sln"),
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                });
+            List<IProjectAnalyzer> projects = manager.Projects.Values.ToList();
+
+            // When
+            List<IAnalyzerResults> analyzerResults = projects
+                .AsParallel()
+                .Select(x => x.Build())
+                .ToList();
+
+            // Then
+            analyzerResults.ForEach(v =>
+            {
+                IAnalyzerResult result = v.Results.FirstOrDefault();
+                result.ProjectReferences.Count().ShouldBeLessThanOrEqualTo(1);
+            });
+        }
+
         private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
             IProjectAnalyzer analyzer = new AnalyzerManager(

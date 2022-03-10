@@ -100,7 +100,7 @@ namespace Buildalyzer
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
                 ? items.Select(x => AnalyzerManager.NormalizePath(
-                    Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec)))
+                    Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec))).Distinct()
                 : Array.Empty<string>();
 
         /// <inheritdoc/>

@@ -254,7 +254,8 @@ namespace Buildalyzer.Workspaces
 
         private static IEnumerable<ProjectReference> GetExistingProjectReferences(IAnalyzerResult analyzerResult, Workspace workspace) =>
             analyzerResult.ProjectReferences
-                .Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath.Equals(x, StringComparison.CurrentCultureIgnoreCase)))
+                .Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath.Equals(x, StringComparison.OrdinalIgnoreCase)))
+
                 .Where(x => x != null)
                 .Select(x => new ProjectReference(x.Id))
             ?? Array.Empty<ProjectReference>();

@@ -371,8 +371,10 @@ namespace Buildalyzer
 
         private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>
         {
-            public bool Equals(IProjectItem x, IProjectItem y) => x.ItemSpec.Equals(y.ItemSpec, StringComparison.CurrentCultureIgnoreCase);
-            public int GetHashCode(IProjectItem obj) => obj.ItemSpec.ToLower().GetHashCode();
+            public bool Equals(IProjectItem x, IProjectItem y) => x.ItemSpec.Equals(y.ItemSpec, StringComparison.OrdinalIgnoreCase);
+
+            public int GetHashCode(IProjectItem obj) => obj.ItemSpec.ToLowerInvariant().GetHashCode();
+
         }
     }
 }

@@ -1,3 +1,7 @@
+# 4.1.3
+
+- Ensured all project references are distinct (#203, #204, thanks @Mingxue008, @Therzok, and @slang25).
+
 # 4.1.2
 
 - Updated `MsBuildPipeLogger` to 1.1.6.

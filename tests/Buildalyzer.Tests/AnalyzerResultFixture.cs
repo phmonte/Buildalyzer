@@ -91,5 +91,83 @@ namespace Buildalyzer.Tests
             // Then
             result.Count.ShouldBe(2);
         }
+
+        [TestCase("foo.vb", new[] { "foo.vb" })]
+        [TestCase("foo.vb bar.vb", new[] { "foo.vb", "bar.vb" })]
+        [TestCase("\"foo.vb\"", new[] { "foo.vb" })]
+        [TestCase("\"fizz buzz.vb\"", new[] { "fizz buzz.vb" })]
+        [TestCase("foo.vb \"fizz buzz.vb\"", new[] { "foo.vb", "fizz buzz.vb" })]
+        [TestCase("\"fizz - buzz.vb\"", new[] { "fizz - buzz.vb" })] // #89
+        [TestCase("\"f oo.vb\"", new[] { "f oo.vb" })]
+        [TestCase("\" foo.vb\"", new[] { " foo.vb" })]
+        [TestCase("\"foo.vb \"", new[] { "foo.vb " })]
+        [TestCase("\"foo.vb\\\"\"", new[] { "foo.vb\"" })]
+        [TestCase("\"f oo.vb\" bar.vb", new[] { "f oo.vb", "bar.vb" })]
+        [TestCase("\" foo.vb\" bar.vb", new[] { " foo.vb", "bar.vb" })]
+        [TestCase("\"foo.vb \" bar.vb", new[] { "foo.vb ", "bar.vb" })]
+        [TestCase("\"foo.vb\\\"\" bar.vb", new[] { "foo.vb\"", "bar.vb" })]
+        [TestCase("\"fo\\\"o.vb\" bar.vb", new[] { "fo\"o.vb", "bar.vb" })]
+        [TestCase("bar.vb \"f oo.vb\"", new[] { "bar.vb", "f oo.vb" })]
+        [TestCase("bar.vb \" foo.vb\"", new[] { "bar.vb", " foo.vb" })]
+        [TestCase("bar.vb \"foo.vb\\\"\"", new[] { "bar.vb", "foo.vb\"" })]
+        [TestCase("\"foo.vb\\\" bar.vb\"", new[] { "foo.vb\" bar.vb" })]
+        public void ParsesVbcCommandLineSourceFiles(string commandLine, string[] sourceFiles)
+        {
+            // Given
+            commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
+                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + commandLine;
+
+            // When
+            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+
+            // Then
+            result.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
+        }
+
+        [TestCase("foo.vb bar.vb vbc.dll", new[] { "foo.vb", "bar.vb" })]
+        [TestCase("foo.vb vbc.exe bar.vb", new[] { "foo.vb", "bar.vb" })]
+        [TestCase("foo.vb bar.vb", new[] { "foo.vb", "bar.vb" })]
+        public void RemovesVbcAssembliesFromSourceFiles(string commandLine, string[] sourceFiles)
+        {
+            // Given
+            commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
+                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + commandLine;
+            string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
+            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+
+            // When
+            result.ProcessVbcCommandLine(commandLine);
+
+            // Then
+            result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
+        }
+
+        [Test]
+        public void ParsesVbcCommandLineWithAliasReference()
+        {
+            // Given
+            string commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe")
+                + @" /reference:Data1=""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll""";
+
+            // When
+            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+
+            // Then
+            result.Count.ShouldBe(2);
+            result.Where(x => x.Item1 == "reference")
+                .Select(x => x.Item2)
+                .Single()
+                .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
+        }
+
+        [TestCase("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\Bin\\Roslyn\\vbc.exe /noconfig")]
+        [TestCase("/one two/three/vbc.dll /noconfig")]
+        public void TreatsVbcCommandAsSingleArg(string commandLine)
+        {
+            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+            result.Count.ShouldBe(2);
+        }
     }
 }

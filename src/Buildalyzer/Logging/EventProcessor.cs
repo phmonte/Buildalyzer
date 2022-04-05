@@ -169,6 +169,12 @@ namespace Buildalyzer.Logging
                 {
                     result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
                 }
+
+                if (e is TaskCommandLineEventArgs cmdVbc &&
+                    string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.ProcessVbcCommandLine(cmdVbc.CommandLine);
+                }
             }
         }
 

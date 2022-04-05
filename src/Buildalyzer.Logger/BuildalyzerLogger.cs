@@ -83,9 +83,11 @@ namespace Buildalyzer.Logger
 
         private void MessageRaised(object sender, BuildMessageEventArgs e)
         {
-            // Only send if in the Csc or the FSc task
-            if ((e is TaskCommandLineEventArgs cmd
-                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase)) || string.Equals(e.SenderName, "Fsc", StringComparison.OrdinalIgnoreCase))
+            // Only send if in the Csc Vbc, or the Fsc task
+            if ((e is TaskCommandLineEventArgs cmd &&
+                string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase)) ||
+                string.Equals(e.SenderName, "Fsc", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(e.SenderName, "Vbc", StringComparison.OrdinalIgnoreCase))
             {
                 Pipe.Write(e);
             }

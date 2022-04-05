@@ -15,8 +15,18 @@ namespace Buildalyzer
         private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, IProjectItem[]> _items = new Dictionary<string, IProjectItem[]>(StringComparer.OrdinalIgnoreCase);
         private readonly Guid _projectGuid;
+        private readonly List<string> _assemblyObjects = new List<string>
+        {
+            "vbc.exe",
+            "vbc.dll",
+            "csc.exe",
+            "csc.dll",
+            "fsc.exe",
+            "fsc.dll"
+        };
         private List<(string, string)> _cscCommandLineArguments;
         private List<(string, string)> _fscCommandLineArguments;
+        private List<(string, string)> _vbcCommandLineArguments;
 
         internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
         {
@@ -72,6 +82,9 @@ namespace Buildalyzer
                     && !x.Item2.Contains("fsc.dll")
                     && !x.Item2.Contains("fsc.exe"))
                 .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
+                .ToArray() ?? _vbcCommandLineArguments
+                ?.Where(x => x.Item1 == null && !_assemblyObjects.Contains(Path.GetFileName(x.Item2), StringComparer.OrdinalIgnoreCase))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
                 .ToArray() ?? Array.Empty<string>();
 
         public string[] References =>
@@ -82,7 +95,12 @@ namespace Buildalyzer
             ?? _fscCommandLineArguments
                 ?.Where(x => x.Item1 is object && x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
                 .Select(x => x.Item2)
-                .ToArray() ?? Array.Empty<string>();
+                .ToArray()
+            ?? _vbcCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Item2)
+                .ToArray()
+            ?? Array.Empty<string>();
 
         public string[] AnalyzerReferences =>
             _cscCommandLineArguments
@@ -95,7 +113,13 @@ namespace Buildalyzer
                 ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
                 .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
                 .Select(x => x.Trim())
-                .ToArray() ?? Array.Empty<string>();
+                .ToArray()
+            ?? _vbcCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray()
+            ?? Array.Empty<string>();
 
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
@@ -137,10 +161,15 @@ namespace Buildalyzer
 
         internal static List<(string, string)> ProcessCscCommandLine(string commandLine)
         {
+            return ProcessCommandLine(commandLine, "csc.");
+        }
+
+        internal static List<(string, string)> ProcessCommandLine(string commandLine, string initialCommandEnd)
+        {
             List<(string, string)> args = new List<(string, string)>();
 
             bool initialCommand = true;
-            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommand).GetEnumerator())
+            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommand, initialCommandEnd).GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
@@ -181,12 +210,17 @@ namespace Buildalyzer
             return args;
         }
 
+        internal void ProcessVbcCommandLine(string commandLine)
+        {
+            _vbcCommandLineArguments = ProcessCommandLine(commandLine, "vbc.");
+        }
+
         public bool HasFscArguments()
         {
             return _fscCommandLineArguments?.Count > 0;
         }
 
-        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, bool initialCommand)
+        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, bool initialCommand, string initialCommandEnd)
         {
             StringBuilder part = new StringBuilder();
             bool isInQuote = false;
@@ -241,7 +275,7 @@ namespace Buildalyzer
                             break;
                     }
 
-                    if (initialCommand && part.ToString().EndsWith("csc.", StringComparison.InvariantCultureIgnoreCase))
+                    if (initialCommand && part.ToString().EndsWith(initialCommandEnd, StringComparison.InvariantCultureIgnoreCase))
                     {
                         initialCommand = false;
                     }

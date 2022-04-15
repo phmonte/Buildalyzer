@@ -553,6 +553,33 @@ namespace Buildalyzer.Tests.Integration
         }
 
         [Test]
+        public void BuildsVisualBasicProject()
+        {
+            // Given
+            const string projectFile = @"VisualBasicProject\VisualBasicNetConsoleApp.vbproj";
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
+
+            // When
+            DeleteProjectDirectory(projectFile, "obj");
+            DeleteProjectDirectory(projectFile, "bin");
+            IAnalyzerResults results = analyzer.Build();
+
+            // Then
+            results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.OverallSuccess.ShouldBeTrue(log.ToString());
+            results.ShouldAllBe(x => x.Succeeded, log.ToString());
+
+            IAnalyzerResult result = results.First();
+            result.PackageReferences.Count.ShouldBeGreaterThan(0);
+            result.PackageReferences.ShouldContain(x => x.Key == "BouncyCastle.NetCore");
+            result.SourceFiles.Length.ShouldBeGreaterThan(0);
+            result.SourceFiles.ShouldContain(x => x.Contains("Program.vb"));
+            result.References.Length.ShouldBeGreaterThan(0);
+            result.References.ShouldContain(x => x.Contains("BouncyCastle.Crypto.dll"));
+        }
+
+        [Test]
         public void BuildsLotsOfProjects()
         {
             // Given

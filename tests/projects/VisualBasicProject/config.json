@@ -1,0 +1,8 @@
+{
+  "InvokeUrl": "https://localhost",
+  "MaxBufferCapacity": 500000,
+  "MaxBufferCache": 1000000,
+  "FlushInterval": 120000,
+  "LogTimerInterval": 120000,
+  "Description":  "Sample config file" 
+}

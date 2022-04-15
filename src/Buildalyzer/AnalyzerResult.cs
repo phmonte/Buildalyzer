@@ -212,7 +212,21 @@ namespace Buildalyzer
 
         internal void ProcessVbcCommandLine(string commandLine)
         {
-            _vbcCommandLineArguments = ProcessCommandLine(commandLine, "vbc.");
+            List<(string, string)> args = ProcessCommandLine(commandLine, "vbc.");
+
+            // vbc comma delimits the references, enumerate and replace
+            int referencesIdx = args.FindIndex(x => x.Item1 == "reference");
+            if (referencesIdx >= 0)
+            {
+                (string, string) references = args[referencesIdx];
+                args.RemoveAt(referencesIdx);
+                foreach (string r in references.Item2.Split(','))
+                {
+                    args.Add((references.Item1, r));
+                }
+            }
+
+            _vbcCommandLineArguments = args;
         }
 
         public bool HasFscArguments()

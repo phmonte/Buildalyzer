@@ -169,5 +169,22 @@ namespace Buildalyzer.Tests
             List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
             result.Count.ShouldBe(2);
         }
+
+        [Test]
+        public void ParseVbcCommandLineWithMultipleReferences()
+        {
+            // Given
+            string commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe")
+                                 + @" /reference:""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll"", ""C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\Facades\System.Collections.dll""";
+
+            string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
+            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+
+            // When
+            result.ProcessVbcCommandLine(commandLine);
+
+            // Then
+            result.References.Count().ShouldBe(2);
+        }
     }
 }

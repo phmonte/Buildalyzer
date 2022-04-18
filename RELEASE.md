@@ -1,3 +1,7 @@
+# 4.1.4
+
+- Added support for Visual Basic projects (#207, thanks @cslong).
+
 # 4.1.3
 
 - Ensured all project references are distinct (#203, #204, thanks @Mingxue008, @Therzok, and @slang25).

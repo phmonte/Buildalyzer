@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30104.148
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyFrameworkProject", "LegacyFrameworkProject\LegacyFrameworkProject.csproj", "{36ED2B9D-2FC2-4725-9BC2-53CABF113477}"
 EndProject
@@ -44,11 +44,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet5Project", "SdkNet5Pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6Project", "SdkNet6Project\SdkNet6Project.csproj", "{54D4DF7E-CD98-4F46-961A-A006C5C1D03C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkNet6ImplicitUsings", "SdkNet6ImplicitUsings\SdkNet6ImplicitUsings.csproj", "{C23BF110-6A62-49A3-AB6C-7F989A35EDB2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6ImplicitUsings", "SdkNet6ImplicitUsings\SdkNet6ImplicitUsings.csproj", "{C23BF110-6A62-49A3-AB6C-7F989A35EDB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkNet6Exe", "SdkNet6Exe\SdkNet6Exe.csproj", "{0D53D7EE-69AC-4F2D-8873-7452AD50E049}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6Exe", "SdkNet6Exe\SdkNet6Exe.csproj", "{0D53D7EE-69AC-4F2D-8873-7452AD50E049}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkNet6SelfContained", "SdkNet6SelfContained\SdkNet6SelfContained.csproj", "{8475DB07-19EC-4BFC-8664-975C4A996BC0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6SelfContained", "SdkNet6SelfContained\SdkNet6SelfContained.csproj", "{8475DB07-19EC-4BFC-8664-975C4A996BC0}"
+EndProject
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicNetConsoleApp", "VisualBasicProject\VisualBasicNetConsoleApp.vbproj", "{592A499F-F101-4ED6-82BE-052A5256B1A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -148,6 +150,10 @@ Global
 		{8475DB07-19EC-4BFC-8664-975C4A996BC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8475DB07-19EC-4BFC-8664-975C4A996BC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8475DB07-19EC-4BFC-8664-975C4A996BC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{592A499F-F101-4ED6-82BE-052A5256B1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{592A499F-F101-4ED6-82BE-052A5256B1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{592A499F-F101-4ED6-82BE-052A5256B1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{592A499F-F101-4ED6-82BE-052A5256B1A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

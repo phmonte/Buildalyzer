@@ -121,6 +121,19 @@ namespace Buildalyzer
                 .ToArray()
             ?? Array.Empty<string>();
 
+        public string[] AdditionalFiles =>
+            _cscCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray()
+            ?? _vbcCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray()
+            ?? Array.Empty<string>();
+
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
                 ? items.Distinct(new ProjectItemItemSpecEqualityComparer())

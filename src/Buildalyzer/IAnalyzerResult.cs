@@ -51,6 +51,8 @@ namespace Buildalyzer
 
         string[] PreprocessorSymbols { get; }
 
+        string[] AdditionalFiles { get; }
+
         /// <summary>
         /// Gets the value of the specified property and returns <c>null</c>
         /// if the property could not be found.

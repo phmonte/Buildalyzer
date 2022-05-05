@@ -679,6 +679,20 @@ namespace Buildalyzer.Tests.Integration
             });
         }
 
+        [Test]
+        public void GetsAdditionalCscFiles()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"RazorClassLibraryTest\RazorClassLibraryTest.csproj", log);
+
+            // When
+            IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+
+            // Then
+            additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" }, log.ToString());
+        }
+
         private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
             IProjectAnalyzer analyzer = new AnalyzerManager(

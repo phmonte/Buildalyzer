@@ -1,6 +1,7 @@
 # 4.1.4
 
 - Added support for Visual Basic projects (#207, thanks @cslong).
+- Added support for the `additionalfile` compiler argument as `IAnalyzerResult.AdditionalFiles` (#200). 
 
 # 4.1.3
 

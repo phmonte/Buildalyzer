@@ -6,6 +6,8 @@
     <FileVersion>$(Version.Split('-')[0])</FileVersion>
     <Authors>Dave Glick and contributors</Authors>
     <Company>Dave Glick and contributors</Company>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -20,6 +22,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\LICENSE.md" Pack="true" PackagePath=""/>
+    <None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" PackagePath="\"/>
+    <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All"/>

@@ -290,9 +290,9 @@ __pycache__/
 
 *.ncrunchproject
 
-cache/
 tests/repos/net5.0
 tests/repos/net6.0
 tests/repos/netcoreapp3.1
 
+cache/
 marvin/

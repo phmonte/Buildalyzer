@@ -1,3 +1,7 @@
+# 4.1.5
+
+- Added a `BuildEnvironment.NoAutoResponse` option to control whether the `/noAutoResponse` argument is set, with a default of `true` to avoid processing `.rsp` files that could conflict with Buildalyzer (#211).
+
 # 4.1.4
 
 - Added support for Visual Basic projects (#207, thanks @cslong).

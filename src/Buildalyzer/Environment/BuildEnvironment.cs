@@ -45,6 +45,15 @@ namespace Buildalyzer.Environment
 
         public string DotnetExePath { get; }
 
+        /// <summary>
+        /// Indicates if the <c>-noAutoResponse</c> argument should be set (the default is <c>true</c>).
+        /// This is required if a <c>.rsp</c> file might conflict with the command-line arguments and binary
+        /// logger that Buildalyzer uses. Setting this to false will omit the <c>-noAutoResponse</c> argument
+        /// but might also result in failed builds or incomplete information being sent to Buildalyzer.
+        /// See https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-response-files.
+        /// </summary>
+        public bool NoAutoResponse { get; set; } = true;
+
         public IEnumerable<string> Arguments { get; }
 
         public IReadOnlyDictionary<string, string> GlobalProperties => _globalProperties;

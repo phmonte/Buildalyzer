@@ -39,5 +39,6 @@
         // Others
         public const string GenerateResourceMSBuildArchitecture = nameof(GenerateResourceMSBuildArchitecture);
         public const string NonExistentFile = nameof(NonExistentFile);
+        public const string NoAutoResponse = nameof(NoAutoResponse); // See https://github.com/daveaglick/Buildalyzer/issues/211
     }
 }

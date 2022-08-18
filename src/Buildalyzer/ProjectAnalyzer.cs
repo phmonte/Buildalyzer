@@ -180,13 +180,19 @@ namespace Buildalyzer
             return results;
         }
 
-        private string GetCommand(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, string pipeLoggerClientHandle, out string arguments)
+        private string GetCommand(
+            BuildEnvironment buildEnvironment,
+            string targetFramework,
+            string[] targetsToBuild,
+            string pipeLoggerClientHandle,
+            out string arguments)
         {
             // Get the executable and the initial set of arguments
             string fileName = buildEnvironment.MsBuildExePath;
             string initialArguments = string.Empty;
             bool isDotNet = false; // false=MSBuild.exe, true=dotnet.exe
-            if (string.IsNullOrWhiteSpace(buildEnvironment.MsBuildExePath) || Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(buildEnvironment.MsBuildExePath)
+                || Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
             {
                 // in case of no MSBuild path or a path to the MSBuild dll, run dotnet
                 fileName = buildEnvironment.DotnetExePath;
@@ -198,21 +204,26 @@ namespace Buildalyzer
                 }
             }
 
-            // Environment arguments
-            string environmentArguments = buildEnvironment.Arguments.Any()
-                ? string.Join(" ", buildEnvironment.Arguments)
-                : string.Empty;
+            // Get the rest of the arguments
+            List<string> argumentsList = new List<string>();
 
-            // Get the logger arguments (/l)
-            string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
-            bool logEverything = _buildLoggers.Count > 0;
-            string loggerArgStart = "/l"; // in case of MSBuild.exe use slash as parameter prefix for logger
-            if (isDotNet)
+            // Environment arguments
+            if (buildEnvironment.Arguments.Any())
             {
-                // in case of dotnet.exe use dash as parameter prefix for logger
-                loggerArgStart = "-l";
+                argumentsList.Add(string.Join(" ", buildEnvironment.Arguments));
             }
-            string loggerArgument = loggerArgStart + $":{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}";
+
+            // Get the restore argument (/restore)
+            if (buildEnvironment.Restore)
+            {
+                argumentsList.Add("/restore");
+            }
+
+            // Get the target argument (/target)
+            if (targetsToBuild != null && targetsToBuild.Length != 0)
+            {
+                argumentsList.Add($"/target:{string.Join(";", targetsToBuild)}");
+            }
 
             // Get the properties arguments (/property)
             Dictionary<string, string> effectiveGlobalProperties = GetEffectiveGlobalProperties(buildEnvironment);
@@ -233,21 +244,43 @@ namespace Buildalyzer
                 // in case of dotnet.exe use dash as parameter prefix for property
                 propertyArgStart = "-p";
             }
-            string propertyArgument = effectiveGlobalProperties.Count == 0 ? string.Empty : propertyArgStart + $":{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}";
+            if (effectiveGlobalProperties.Count > 0)
+            {
+                argumentsList.Add(
+                    propertyArgStart
+                        + $":{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}");
+            }
 
-            // Get the target argument (/target)
-            string targetArgument = targetsToBuild == null || targetsToBuild.Length == 0 ? string.Empty : $"/target:{string.Join(";", targetsToBuild)}";
+            // Get the logger arguments (/l)
+            string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+            bool logEverything = _buildLoggers.Count > 0;
+            string loggerArgStart = "/l"; // in case of MSBuild.exe use slash as parameter prefix for logger
+            if (isDotNet)
+            {
+                // in case of dotnet.exe use dash as parameter prefix for logger
+                loggerArgStart = "-l";
+            }
+            argumentsList.Add(loggerArgStart + $":{nameof(BuildalyzerLogger)},{FormatArgument(loggerPath)};{pipeLoggerClientHandle};{logEverything}");
 
-            // Get the restore argument (/restore)
-            string restoreArgument = buildEnvironment.Restore ? "/restore" : string.Empty;
+            // Get the noAutoResponse argument (/noAutoResponse)
+            // See https://github.com/daveaglick/Buildalyzer/issues/211
+            // and https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-response-files
+            if (buildEnvironment.NoAutoResponse)
+            {
+                argumentsList.Add("/noAutoResponse");
+            }
 
+            // Path argument
+            argumentsList.Add(FormatArgument(ProjectFile.Path));
+
+            // Combine the arguments
             arguments = string.Empty;
             if (!isDotNet || !string.IsNullOrEmpty(initialArguments))
             {
                 // these are the first arguments for MSBuild.exe or dotnet.exe with MSBuild.dll, they are not needed for pure dotnet.exe calls
                 arguments = $"{initialArguments} /noconsolelogger ";
             }
-            arguments += $"{environmentArguments} {restoreArgument} {targetArgument} {propertyArgument} {loggerArgument} {FormatArgument(ProjectFile.Path)}";
+            arguments += string.Join(" ", argumentsList);
 
             return fileName;
         }

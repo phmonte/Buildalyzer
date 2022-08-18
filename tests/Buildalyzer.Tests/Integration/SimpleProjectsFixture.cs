@@ -51,7 +51,8 @@ namespace Buildalyzer.Tests.Integration
             @"SdkNetStandardProject\SdkNetStandardProject.csproj",
             @"SdkNetStandardProjectImport\SdkNetStandardProjectImport.csproj",
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
-            @"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj"
+            @"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj",
+            @"ResponseFile\ResponseFile.csproj"
         };
 
         [Test]

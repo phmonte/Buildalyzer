@@ -209,8 +209,7 @@ namespace Buildalyzer
             cmd.Arguments = new List<string>();
             cmd.ProcessedArguments = new List<(string, string)>();
 
-            bool initialCommand = true;
-            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommand, initialCommandEnd).GetEnumerator())
+            using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommandEnd).GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
@@ -220,7 +219,6 @@ namespace Buildalyzer
                 // Initial command (csc)
                 cmd.ProcessedArguments.Add((null, enumerator.Current));
                 cmd.FileName = enumerator.Current;
-                initialCommand = false;
 
                 // Iterate the rest of parts
                 while (enumerator.MoveNext())
@@ -282,10 +280,11 @@ namespace Buildalyzer
             return _fscCommandLineArguments?.Count > 0;
         }
 
-        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, bool initialCommand, string initialCommandEnd)
+        private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, string initialCommandEnd)
         {
             StringBuilder part = new StringBuilder();
             bool isInQuote = false;
+            bool initialCommand = true;
 
             using (StringReader reader = new StringReader(commandLine))
             {

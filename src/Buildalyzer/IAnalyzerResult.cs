@@ -54,6 +54,22 @@ namespace Buildalyzer
         string[] AdditionalFiles { get; }
 
         /// <summary>
+        /// Gets the compiler command produced by the CoreCompile task.
+        /// This is <see cref="CompilerFilePath"/> + <see cref="CompilerArguments"/>.
+        /// </summary>
+        string Command { get; }
+
+        /// <summary>
+        /// Gets the path of the compiler command produced by the CoreCompile task.
+        /// </summary>
+        string CompilerFilePath { get; }
+
+        /// <summary>
+        /// Gets the arguments passed to the compiler produced by the CoreCompile task.
+        /// </summary>
+        string[] CompilerArguments { get; }
+
+        /// <summary>
         /// Gets the value of the specified property and returns <c>null</c>
         /// if the property could not be found.
         /// </summary>

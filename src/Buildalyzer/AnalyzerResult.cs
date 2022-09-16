@@ -27,6 +27,9 @@ namespace Buildalyzer
         private List<(string, string)> _cscCommandLineArguments;
         private List<(string, string)> _fscCommandLineArguments;
         private List<(string, string)> _vbcCommandLineArguments;
+        private string _command;
+        private string[] _compilerArguments;
+        private string _compilerFilePath;
 
         internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
         {
@@ -59,6 +62,15 @@ namespace Buildalyzer
 
         /// <inheritdoc/>
         public Guid ProjectGuid => _projectGuid;
+
+        /// <inheritdoc/>
+        public string Command => _command;
+
+        /// <inheritdoc/>
+        public string CompilerFilePath => _compilerFilePath;
+
+        /// <inheritdoc/>
+        public string[] CompilerArguments => _compilerArguments;
 
         /// <inheritdoc/>
         public string GetProperty(string name) =>
@@ -169,34 +181,52 @@ namespace Buildalyzer
             {
                 return;
             }
-            _cscCommandLineArguments = ProcessCscCommandLine(commandLine);
+            ProcessedCommandLine cmd = ProcessCscCommandLine(commandLine);
+            _command = cmd.Command;
+            _compilerFilePath = cmd.FileName;
+            _compilerArguments = cmd.Arguments.ToArray();
+            _cscCommandLineArguments = cmd.ProcessedArguments;
         }
 
-        internal static List<(string, string)> ProcessCscCommandLine(string commandLine)
+        internal static ProcessedCommandLine ProcessCscCommandLine(string commandLine)
         {
             return ProcessCommandLine(commandLine, "csc.");
         }
 
-        internal static List<(string, string)> ProcessCommandLine(string commandLine, string initialCommandEnd)
+        internal struct ProcessedCommandLine
         {
-            List<(string, string)> args = new List<(string, string)>();
+            public string Command;
+            public string FileName;
+            public List<string> Arguments;
+            public List<(string, string)> ProcessedArguments;
+        }
+
+        internal static ProcessedCommandLine ProcessCommandLine(string commandLine, string initialCommandEnd)
+        {
+            ProcessedCommandLine cmd;
+            cmd.Command = commandLine;
+            cmd.FileName = string.Empty;
+            cmd.Arguments = new List<string>();
+            cmd.ProcessedArguments = new List<(string, string)>();
 
             bool initialCommand = true;
             using (IEnumerator<string> enumerator = EnumerateCommandLineParts(commandLine, initialCommand, initialCommandEnd).GetEnumerator())
             {
                 if (!enumerator.MoveNext())
                 {
-                    return args;
+                    return cmd;
                 }
 
                 // Initial command (csc)
-                args.Add((null, enumerator.Current));
+                cmd.ProcessedArguments.Add((null, enumerator.Current));
+                cmd.FileName = enumerator.Current;
                 initialCommand = false;
 
                 // Iterate the rest of parts
                 while (enumerator.MoveNext())
                 {
                     string part = enumerator.Current;
+                    cmd.Arguments.Add(part);
 
                     if (part[0] == '/')
                     {
@@ -204,42 +234,47 @@ namespace Buildalyzer
                         if (valueStart >= 0 && valueStart < part.Length - 1)
                         {
                             // Argument with a value
-                            args.Add((part.Substring(1, valueStart - 1), part.Substring(valueStart + 1)));
+                            cmd.ProcessedArguments.Add((part.Substring(1, valueStart - 1), part.Substring(valueStart + 1)));
                         }
                         else
                         {
                             // Switch
-                            args.Add((valueStart >= 0 ? part.Substring(1, valueStart - 1) : part.Substring(1), null));
+                            cmd.ProcessedArguments.Add((valueStart >= 0 ? part.Substring(1, valueStart - 1) : part.Substring(1), null));
                         }
                     }
                     else
                     {
                         // Argument, not a switch
-                        args.Add((null, part));
+                        cmd.ProcessedArguments.Add((null, part));
                     }
                 }
             }
 
-            return args;
+            return cmd;
         }
 
         internal void ProcessVbcCommandLine(string commandLine)
         {
-            List<(string, string)> args = ProcessCommandLine(commandLine, "vbc.");
+            ProcessedCommandLine cmd = ProcessCommandLine(commandLine, "vbc.");
 
             // vbc comma delimits the references, enumerate and replace
-            int referencesIdx = args.FindIndex(x => x.Item1 == "reference");
+            int referencesIdx = cmd.ProcessedArguments.FindIndex(x => x.Item1 == "reference");
             if (referencesIdx >= 0)
             {
-                (string, string) references = args[referencesIdx];
-                args.RemoveAt(referencesIdx);
+                (string, string) references = cmd.ProcessedArguments[referencesIdx];
+                cmd.Arguments.RemoveAt(referencesIdx);
+                cmd.ProcessedArguments.RemoveAt(referencesIdx);
                 foreach (string r in references.Item2.Split(','))
                 {
-                    args.Add((references.Item1, r));
+                    cmd.Arguments.Add("/reference:\"" + r + "\"");
+                    cmd.ProcessedArguments.Add((references.Item1, r));
                 }
             }
 
-            _vbcCommandLineArguments = args;
+            _command = cmd.Command;
+            _compilerFilePath = cmd.FileName;
+            _compilerArguments = cmd.Arguments.ToArray();
+            _vbcCommandLineArguments = cmd.ProcessedArguments;
         }
 
         public bool HasFscArguments()
@@ -317,24 +352,24 @@ namespace Buildalyzer
 
         internal void ProcessFscCommandLine(string commandLine)
         {
-            List<(string, string)> args = new List<(string, string)>();
+            _command = commandLine;
+
+            List<(string, string)> processedArguments = new List<(string, string)>();
+            List<string> arguments = new List<string>();
 
             bool initialCommand = true;
             using (IEnumerator<string> enumerator = EnumerateCommandLinePartsFsc(commandLine, initialCommand).GetEnumerator())
             {
-                if (!enumerator.MoveNext())
-                {
-                    _fscCommandLineArguments = args;
-                }
-
                 // Initial command (fsc)
-                args.Add((null, enumerator.Current));
+                processedArguments.Add((null, enumerator.Current));
+                _compilerFilePath = enumerator.Current;
                 initialCommand = false;
 
                 // Iterate the rest of parts
                 while (enumerator.MoveNext())
                 {
                     string part = enumerator.Current;
+                    arguments.Add(part);
 
                     if (part[0] == '-')
                     {
@@ -342,23 +377,24 @@ namespace Buildalyzer
                         if (valueStart >= 0 && valueStart < part.Length - 1)
                         {
                             // Argument with a value
-                            args.Add((part.Substring(1, valueStart - 1), part.Substring(valueStart + 1)));
+                            processedArguments.Add((part.Substring(1, valueStart - 1), part.Substring(valueStart + 1)));
                         }
                         else
                         {
                             // Switch
-                            args.Add((valueStart >= 0 ? part.Substring(1, valueStart - 1) : part.Substring(1), null));
+                            processedArguments.Add((valueStart >= 0 ? part.Substring(1, valueStart - 1) : part.Substring(1), null));
                         }
                     }
                     else
                     {
                         // Argument, not a switch
-                        args.Add((null, part));
+                        processedArguments.Add((null, part));
                     }
                 }
             }
 
-            _fscCommandLineArguments = args;
+            _fscCommandLineArguments = processedArguments;
+            _compilerArguments = arguments.ToArray();
         }
 
         private static IEnumerable<string> EnumerateCommandLinePartsFsc(string commandLine, bool initialCommand)

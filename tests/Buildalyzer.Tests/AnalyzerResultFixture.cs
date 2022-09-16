@@ -11,6 +11,8 @@ namespace Buildalyzer.Tests
     [TestFixture]
     public class AnalyzerResultFixture
     {
+        private const string CscOptions = "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 ";
+
         [TestCase("foo.cs", new[] { "foo.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
         [TestCase("\"foo.cs\"", new[] { "foo.cs" })]
@@ -34,25 +36,28 @@ namespace Buildalyzer.Tests
         {
             // Given
             commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
-                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + CscOptions
                 + commandLine;
 
             // When
-            List<(string, string)> result = AnalyzerResult.ProcessCscCommandLine(commandLine);
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCscCommandLine(commandLine);
 
             // Then
-            result.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
+            result.Command.ShouldBe(commandLine);
+            result.FileName.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "csc.exe"));
+            result.Arguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(sourceFiles));
+            result.ProcessedArguments.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
         }
 
         [TestCase("foo.cs bar.cs csc.dll", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs csc.exe bar.cs", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
-        public void RemovesCscAssembliesFromSourceFiles(string commandLine, string[] sourceFiles)
+        public void RemovesCscAssembliesFromSourceFiles(string input, string[] sourceFiles)
         {
             // Given
-            commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
-                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
-                + commandLine;
+            string commandLine = Path.Combine("/", "Fizz", "Buzz", "csc.exe") + " "
+                + CscOptions
+                + input;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.csproj");
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
 
@@ -60,6 +65,9 @@ namespace Buildalyzer.Tests
             result.ProcessCscCommandLine(commandLine, false);
 
             // Then
+            result.Command.ShouldBe(commandLine);
+            result.CompilerFilePath.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "csc.exe"));
+            result.CompilerArguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(input.Split(' ', StringSplitOptions.RemoveEmptyEntries)));
             result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
         }
 
@@ -71,11 +79,14 @@ namespace Buildalyzer.Tests
                 + @" /reference:Data1=""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll""";
 
             // When
-            List<(string, string)> result = AnalyzerResult.ProcessCscCommandLine(commandLine);
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCscCommandLine(commandLine);
 
             // Then
-            result.Count.ShouldBe(2);
-            result.Where(x => x.Item1 == "reference")
+            result.Command.ShouldBe(commandLine);
+            result.FileName.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "csc.exe"));
+            result.Arguments.ShouldBe(new[] { @"/reference:Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll" });
+            result.ProcessedArguments.Count.ShouldBe(2);
+            result.ProcessedArguments.Where(x => x.Item1 == "reference")
                 .Select(x => x.Item2)
                 .Single()
                 .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
@@ -86,10 +97,13 @@ namespace Buildalyzer.Tests
         public void TreatsCscCommandAsSingleArg(string commandLine)
         {
             // Given, When
-            List<(string, string)> result = AnalyzerResult.ProcessCscCommandLine(commandLine);
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCscCommandLine(commandLine);
 
             // Then
-            result.Count.ShouldBe(2);
+            result.Command.ShouldBe(commandLine);
+            result.FileName.ShouldBe(commandLine.Replace(" /noconfig", string.Empty));
+            result.Arguments.ShouldBe(new[] { "/noconfig" });
+            result.ProcessedArguments.Count.ShouldBe(2);
         }
 
         [TestCase("foo.vb", new[] { "foo.vb" })]
@@ -111,18 +125,21 @@ namespace Buildalyzer.Tests
         [TestCase("bar.vb \" foo.vb\"", new[] { "bar.vb", " foo.vb" })]
         [TestCase("bar.vb \"foo.vb\\\"\"", new[] { "bar.vb", "foo.vb\"" })]
         [TestCase("\"foo.vb\\\" bar.vb\"", new[] { "foo.vb\" bar.vb" })]
-        public void ParsesVbcCommandLineSourceFiles(string commandLine, string[] sourceFiles)
+        public void ParsesVbcCommandLineSourceFiles(string input, string[] sourceFiles)
         {
             // Given
-            commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
-                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
-                + commandLine;
+            string commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
+                + CscOptions
+                + input;
 
             // When
-            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
 
             // Then
-            result.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
+            result.Command.ShouldBe(commandLine);
+            result.FileName.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "vbc.exe"));
+            result.Arguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(sourceFiles));
+            result.ProcessedArguments.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
         }
 
         [TestCase("foo.vb bar.vb vbc.dll", new[] { "foo.vb", "bar.vb" })]
@@ -132,7 +149,7 @@ namespace Buildalyzer.Tests
         {
             // Given
             commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
-                + "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 "
+                + CscOptions
                 + commandLine;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
@@ -152,11 +169,14 @@ namespace Buildalyzer.Tests
                 + @" /reference:Data1=""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll""";
 
             // When
-            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
 
             // Then
-            result.Count.ShouldBe(2);
-            result.Where(x => x.Item1 == "reference")
+            result.Command.ShouldBe(commandLine);
+            result.FileName.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "vbc.exe"));
+            result.Arguments.ShouldBe(new[] { @"/reference:Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll" });
+            result.ProcessedArguments.Count.ShouldBe(2);
+            result.ProcessedArguments.Where(x => x.Item1 == "reference")
                 .Select(x => x.Item2)
                 .Single()
                 .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
@@ -166,8 +186,8 @@ namespace Buildalyzer.Tests
         [TestCase("/one two/three/vbc.dll /noconfig")]
         public void TreatsVbcCommandAsSingleArg(string commandLine)
         {
-            List<(string, string)> result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
-            result.Count.ShouldBe(2);
+            AnalyzerResult.ProcessedCommandLine result = AnalyzerResult.ProcessCommandLine(commandLine, "vbc.");
+            result.ProcessedArguments.Count.ShouldBe(2);
         }
 
         [Test]

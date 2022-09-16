@@ -12,6 +12,7 @@ namespace Buildalyzer.Tests
     public class AnalyzerResultFixture
     {
         private const string CscOptions = "/noconfig /unsafe- /checked- /nowarn:1701,1702,1701,1702,1701,1702 /nostdlib+ /errorreport:prompt /warn:4 /define:TRACE;DEBUG;NETCOREAPP;NETCOREAPP2_1 ";
+        private const string VbcOptions = "/noconfig /imports:Microsoft.VisualBasic,System,System.Collections,System.Collections.Generic,System.Diagnostics,System.Linq,System.Xml.Linq,System.Threading.Tasks /optioncompare:Binary /optionexplicit+ /optionstrict:custom /nowarn:41999,42016,42017,42018,42019,42020,42021,42022,42032,42036 /nosdkpath /optioninfer+ /nostdlib /errorreport:prompt /rootnamespace:ConsoleApp21 /highentropyva+ /define:CONFIG=Debug,DEBUG=-1 /warnaserror+:NU1605 ";
 
         [TestCase("foo.cs", new[] { "foo.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
@@ -129,7 +130,7 @@ namespace Buildalyzer.Tests
         {
             // Given
             string commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
-                + CscOptions
+                + VbcOptions
                 + input;
 
             // When
@@ -138,7 +139,7 @@ namespace Buildalyzer.Tests
             // Then
             result.Command.ShouldBe(commandLine);
             result.FileName.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "vbc.exe"));
-            result.Arguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(sourceFiles));
+            result.Arguments.ShouldBe(VbcOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(sourceFiles));
             result.ProcessedArguments.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
         }
 
@@ -149,7 +150,7 @@ namespace Buildalyzer.Tests
         {
             // Given
             commandLine = Path.Combine("/", "Fizz", "Buzz", "vbc.exe") + " "
-                + CscOptions
+                + VbcOptions
                 + commandLine;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);

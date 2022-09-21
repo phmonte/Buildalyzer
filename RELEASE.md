@@ -1,6 +1,7 @@
 # 4.1.5
 
 - Added a `BuildEnvironment.NoAutoResponse` option to control whether the `/noAutoResponse` argument is set, with a default of `true` to avoid processing `.rsp` files that could conflict with Buildalyzer (#211).
+- Add API to retrieve compiler command-line and arguments (#212, #213, thanks @siegfriedpammer).
 
 # 4.1.4
 

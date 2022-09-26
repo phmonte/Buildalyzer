@@ -60,7 +60,7 @@ namespace Buildalyzer.Tests.Integration
             // In general, Buildalyzer is not good at analyzing any project that makes extensive use
             // of custom build tooling and tasks/targets because the behavior and log output is not consistent
             // See https://github.com/daveaglick/Buildalyzer/issues/210
-            // @"FunctionApp\FunctionApp.csproj",
+            @"FunctionApp\FunctionApp.csproj",
         };
 
         [Test]

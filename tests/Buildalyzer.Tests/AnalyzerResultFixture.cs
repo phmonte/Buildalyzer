@@ -63,13 +63,38 @@ namespace Buildalyzer.Tests
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
 
             // When
-            result.ProcessCscCommandLine(commandLine, false);
+            result.ProcessCscCommandLine(commandLine, true);
 
             // Then
             result.Command.ShouldBe(commandLine);
             result.CompilerFilePath.ShouldBe(Path.Combine("/", "Fizz", "Buzz", "csc.exe"));
             result.CompilerArguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(input.Split(' ', StringSplitOptions.RemoveEmptyEntries)));
             result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
+        }
+
+        [TestCase("foo.cs", "bar.cs", new[] { "foo.cs", "bar.cs" })]
+        [TestCase("foo.cs otherFile.cs", "bar.cs", new[] { "foo.cs", "otherFile.cs", "bar.cs" })]
+        [TestCase("foo.cs", "bar.cs otherFile.cs", new[] { "foo.cs", "bar.cs", "otherFile.cs" })]
+        public void AggregatesSourceFilesOverMultipleProcessCscCommandLineCalls(string firstInput, string secondInput, string[] sourceFiles)
+        {
+            // Given
+            string expectedPath = Path.Combine("/", "Zounds", "Narf", "csc.exe");
+            string firstCommandLine = $"{Path.Combine("/", "Fizz", "Buzz", "csc.exe")} {CscOptions}{firstInput}";
+            string secondCommandLine = $"{expectedPath} {CscOptions}{secondInput}";
+
+            string projectFolderPath = Path.Combine("/", "Code", "Project");
+            string projectFilePath = Path.Combine(projectFolderPath, "project.csproj");
+            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+
+            // When
+            result.ProcessCscCommandLine(firstCommandLine, true);
+            result.ProcessCscCommandLine(secondCommandLine, true);
+
+            // Then
+            result.Command.ShouldBe(secondCommandLine);
+            result.CompilerFilePath.ShouldBe(expectedPath);
+            result.CompilerArguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(secondInput.Split(' ', StringSplitOptions.RemoveEmptyEntries)));
+            result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(projectFolderPath, x))));
         }
 
         [Test]

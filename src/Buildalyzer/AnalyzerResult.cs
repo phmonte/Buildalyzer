@@ -176,16 +176,24 @@ namespace Buildalyzer
 
         internal void ProcessCscCommandLine(string commandLine, bool coreCompile)
         {
-            // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
-            if (string.IsNullOrWhiteSpace(commandLine) || (_cscCommandLineArguments != null && !coreCompile))
+            if (string.IsNullOrWhiteSpace(commandLine))
             {
                 return;
             }
+
             ProcessedCommandLine cmd = ProcessCscCommandLine(commandLine);
-            _command = cmd.Command;
-            _compilerFilePath = cmd.FileName;
-            _compilerArguments = cmd.Arguments.ToArray();
-            _cscCommandLineArguments = cmd.ProcessedArguments;
+
+            // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
+            if (coreCompile)
+            {
+                _command = cmd.Command;
+                _compilerFilePath = cmd.FileName;
+                _compilerArguments = cmd.Arguments.ToArray();
+            }
+
+            // Azure function app projects have multiple Csc calls all of which are marked as coreCompile, so aggregate the ProcessedArguments.
+            _cscCommandLineArguments ??= new List<(string, string)>();
+            _cscCommandLineArguments.AddRange(cmd.ProcessedArguments);
         }
 
         internal static ProcessedCommandLine ProcessCscCommandLine(string commandLine)

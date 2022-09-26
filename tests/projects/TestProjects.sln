@@ -52,9 +52,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet6SelfContained", "Sdk
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "VisualBasicNetConsoleApp", "VisualBasicProject\VisualBasicNetConsoleApp.vbproj", "{592A499F-F101-4ED6-82BE-052A5256B1A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorClassLibraryTest", "RazorClassLibraryTest\RazorClassLibraryTest.csproj", "{96E0901D-99F0-4D28-973E-98F288DF69B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorClassLibraryTest", "RazorClassLibraryTest\RazorClassLibraryTest.csproj", "{96E0901D-99F0-4D28-973E-98F288DF69B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResponseFile", "ResponseFile\ResponseFile.csproj", "{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResponseFile", "ResponseFile\ResponseFile.csproj", "{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionApp", "FunctionApp\FunctionApp.csproj", "{BA707225-8976-4D6D-AB13-DA50A4562D22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -166,6 +168,10 @@ Global
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA707225-8976-4D6D-AB13-DA50A4562D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA707225-8976-4D6D-AB13-DA50A4562D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA707225-8976-4D6D-AB13-DA50A4562D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA707225-8976-4D6D-AB13-DA50A4562D22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

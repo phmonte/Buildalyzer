@@ -184,7 +184,7 @@ namespace Buildalyzer
             ProcessedCommandLine cmd = ProcessCscCommandLine(commandLine);
 
             // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
-            if (coreCompile)
+            if (coreCompile || _cscCommandLineArguments == null)
             {
                 _command = cmd.Command;
                 _compilerFilePath = cmd.FileName;

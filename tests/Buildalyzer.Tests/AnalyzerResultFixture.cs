@@ -63,7 +63,7 @@ namespace Buildalyzer.Tests
             AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
 
             // When
-            result.ProcessCscCommandLine(commandLine, true);
+            result.ProcessCscCommandLine(commandLine, false);
 
             // Then
             result.Command.ShouldBe(commandLine);

@@ -557,6 +557,7 @@ namespace Buildalyzer.Tests.Integration
 
             // Then
             results.Count.ShouldBeGreaterThan(0, log.ToString());
+            results.First().SourceFiles.ShouldNotBeNull();
             results.OverallSuccess.ShouldBeTrue(log.ToString());
             results.ShouldAllBe(x => x.Succeeded, log.ToString());
         }

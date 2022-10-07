@@ -90,7 +90,7 @@ namespace Buildalyzer
                     && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
                 .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
                 .ToArray() ?? _fscCommandLineArguments
-                ?.Where(x => x.Item1 == null
+                ?.Where(x => x.Item1 == null && x.Item2 != null
                     && !x.Item2.Contains("fsc.dll")
                     && !x.Item2.Contains("fsc.exe"))
                 .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))

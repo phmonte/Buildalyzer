@@ -25,7 +25,7 @@ jobs:
         with:
           dotnet-version: |
             3.1.x
-            6.0.x
+            7.0.x
       - name: Build and Test
         run: dotnet test --logger "trx;LogFileName=test-results.trx"
       - name: Upload Test Results

@@ -50,6 +50,7 @@ namespace Buildalyzer.Tests
             result.ProcessedArguments.Where(x => x.Item1 == null).Select(x => x.Item2).Skip(1).ShouldBe(sourceFiles);
         }
 
+        /*
         [TestCase("foo.cs bar.cs csc.dll", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs csc.exe bar.cs", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
@@ -71,6 +72,7 @@ namespace Buildalyzer.Tests
             result.CompilerArguments.ShouldBe(CscOptions.Split(' ', StringSplitOptions.RemoveEmptyEntries).Concat(input.Split(' ', StringSplitOptions.RemoveEmptyEntries)));
             result.SourceFiles.ShouldBe(sourceFiles.Select(x => Path.GetFullPath(Path.Combine(Path.GetDirectoryName(projectFilePath), x))));
         }
+        */
 
         [Test]
         public void ParsesCscCommandLineWithAliasReference()
@@ -93,6 +95,7 @@ namespace Buildalyzer.Tests
                 .ShouldBe(@"Data1=C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll");
         }
 
+        /*
         [TestCase("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\Bin\\Roslyn\\csc.exe /noconfig")]
         [TestCase("/one two/three/csc.dll /noconfig")]
         public void TreatsCscCommandAsSingleArg(string commandLine)
@@ -106,6 +109,7 @@ namespace Buildalyzer.Tests
             result.Arguments.ShouldBe(new[] { "/noconfig" });
             result.ProcessedArguments.Count.ShouldBe(2);
         }
+        */
 
         [TestCase("foo.vb", new[] { "foo.vb" })]
         [TestCase("foo.vb bar.vb", new[] { "foo.vb", "bar.vb" })]

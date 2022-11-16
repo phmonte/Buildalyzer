@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. This extension library adds support for creating a Roslyn workspace from Buildalyzer.</Description>
+    <PackageId>SL_Buildalyzer.Workspaces</PackageId>
+    <PackageVersion>1.0.3</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

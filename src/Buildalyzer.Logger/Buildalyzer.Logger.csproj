@@ -3,6 +3,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <Description>The MSBuild logger for Buildalyzer. Not intended to be used directly.</Description>
+    <PackageId>SL_Buildalyzer.Logger</PackageId>
+    <PackageVersion>1.0.3</PackageVersion>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>

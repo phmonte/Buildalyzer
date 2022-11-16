@@ -4,12 +4,12 @@
     <Version Condition="'$(BuildalyzerVersion)' != ''">$(BuildalyzerVersion)</Version>
     <AssemblyVersion>$(Version.Split('-')[0])</AssemblyVersion>
     <FileVersion>$(Version.Split('-')[0])</FileVersion>
-    <Authors>Dave Glick and contributors</Authors>
-    <Company>Dave Glick and contributors</Company>
+    <Authors>Dave Glick and contributors (fork by ShiftLeft)</Authors>
+    <Company>Dave Glick and contributors (fork by ShiftLeft)</Company>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ShiftLeftSecurity/Buildalyzer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ShiftLeftSecurity/Buildalyzer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

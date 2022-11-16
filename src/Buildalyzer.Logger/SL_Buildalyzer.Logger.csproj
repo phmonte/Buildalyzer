@@ -2,10 +2,11 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
-    <Description>The MSBuild logger for Buildalyzer. Not intended to be used directly.</Description>
+    <Description>Fork of: https://github.com/daveaglick/Buildalyzer</Description>
     <PackageId>SL_Buildalyzer.Logger</PackageId>
     <PackageVersion>1.0.3</PackageVersion>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
+    <AssemblyName>Buildalyzer.Logger</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="14.3.0" PrivateAssets="All" />

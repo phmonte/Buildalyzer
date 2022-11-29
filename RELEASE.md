@@ -1,3 +1,7 @@
+# 4.1.7
+
+- Updated `Microsoft.CodeAnalysis.CSharp.Workspaces` and `Microsoft.CodeAnalysis.VisualBasic.Workspaces` to 4.4.0 (#220, thanks @colombod).
+
 # 4.1.6
 
 - Fixed a `NullReferenceException` for F# projects (#216, thanks @psfinaki).

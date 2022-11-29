@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -53,6 +54,7 @@ namespace Buildalyzer.Tests
         [TestCase("foo.cs bar.cs csc.dll", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs csc.exe bar.cs", new[] { "foo.cs", "bar.cs" })]
         [TestCase("foo.cs bar.cs", new[] { "foo.cs", "bar.cs" })]
+        [SuppressMessage("CA1062", "CA1062:Validate arguments of public methods", Justification = "Test")]
         public void RemovesCscAssembliesFromSourceFiles(string input, string[] sourceFiles)
         {
             // Given
@@ -95,6 +97,7 @@ namespace Buildalyzer.Tests
 
         [TestCase("C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Professional\\MSBuild\\Current\\Bin\\Roslyn\\csc.exe /noconfig")]
         [TestCase("/one two/three/csc.dll /noconfig")]
+        [SuppressMessage("CA1062", "CA1062:Validate arguments of public methods", Justification = "Test")]
         public void TreatsCscCommandAsSingleArg(string commandLine)
         {
             // Given, When
@@ -205,7 +208,7 @@ namespace Buildalyzer.Tests
             result.ProcessVbcCommandLine(commandLine);
 
             // Then
-            result.References.Count().ShouldBe(2);
+            result.References.Length.ShouldBe(2);
         }
     }
 }

@@ -1,3 +1,7 @@
+# 5.0.0
+
+- Updating Buildalyzer to target .NET 6 (#221, thanks @colombod).
+
 # 4.1.7
 
 - Updated `Microsoft.CodeAnalysis.CSharp.Workspaces` and `Microsoft.CodeAnalysis.VisualBasic.Workspaces` to 4.4.0 (#220, thanks @colombod).

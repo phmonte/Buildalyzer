@@ -290,8 +290,5 @@ __pycache__/
 
 *.ncrunchproject
 
-tests/repos/Statiq.Framework
-tests/repos/cake/
-
 cache/
 marvin/

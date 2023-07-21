@@ -57,7 +57,7 @@ namespace Buildalyzer.Tests.Integration
             public override string ToString() => Url;
         }
 
-        private static readonly List<object[]> ProjectTestCases = new List<object[]>();
+        private static readonly List<object[]> ProjectTestCases = new();
 
         // Do setup in a static constructor since the TestCaseSource depends on it
         // See https://stackoverflow.com/a/40507964/807064
@@ -114,13 +114,13 @@ namespace Buildalyzer.Tests.Integration
         public void CompilesProject(EnvironmentPreference preference, string solutionPath, string projectPath)
         {
             // Given
-            StringWriter log = new StringWriter();
-            AnalyzerManager manager = new AnalyzerManager(solutionPath, new AnalyzerManagerOptions
+            StringWriter log = new();
+            AnalyzerManager manager = new(solutionPath, new AnalyzerManagerOptions
             {
                 LogWriter = log
             });
             IProjectAnalyzer analyzer = manager.GetProject(projectPath);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -186,7 +186,7 @@ namespace Buildalyzer.Tests.Integration
             else
             {
                 TestContext.Progress.WriteLine($"Updating {path}");
-                Repository repo = new Repository(path);
+                Repository repo = new(path);
                 foreach (Remote remote in repo.Network.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);

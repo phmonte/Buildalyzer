@@ -5,9 +5,9 @@ namespace Buildalyzer
 {
     internal class TargetFrameworkComparer : IComparer<string>
     {
-        public static readonly TargetFrameworkComparer Instance = new TargetFrameworkComparer();
+        public static readonly TargetFrameworkComparer Instance = new();
 
-        private static readonly NuGetFrameworkSorter Sorter = new NuGetFrameworkSorter();
+        private static readonly NuGetFrameworkSorter Sorter = new();
 
         private TargetFrameworkComparer()
         {

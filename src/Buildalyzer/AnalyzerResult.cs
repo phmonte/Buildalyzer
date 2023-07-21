@@ -12,10 +12,10 @@ namespace Buildalyzer
 {
     public class AnalyzerResult : IAnalyzerResult
     {
-        private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, IProjectItem[]> _items = new Dictionary<string, IProjectItem[]>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> _properties = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, IProjectItem[]> _items = new(StringComparer.OrdinalIgnoreCase);
         private readonly Guid _projectGuid;
-        private readonly List<string> _assemblyObjects = new List<string>
+        private readonly List<string> _assemblyObjects = new()
         {
             "vbc.exe",
             "vbc.dll",
@@ -282,11 +282,11 @@ namespace Buildalyzer
 
         private static IEnumerable<string> EnumerateCommandLineParts(string commandLine, string initialCommandEnd)
         {
-            StringBuilder part = new StringBuilder();
+            StringBuilder part = new();
             bool isInQuote = false;
             bool initialCommand = true;
 
-            using (StringReader reader = new StringReader(commandLine))
+            using (StringReader reader = new(commandLine))
             {
                 while (reader.Read() is int c && c >= 0)
                 {
@@ -353,8 +353,8 @@ namespace Buildalyzer
         {
             _command = commandLine;
 
-            List<(string, string)> processedArguments = new List<(string, string)>();
-            List<string> arguments = new List<string>();
+            List<(string, string)> processedArguments = new();
+            List<string> arguments = new();
 
             bool initialCommand = true;
             using (IEnumerator<string> enumerator = EnumerateCommandLinePartsFsc(commandLine, initialCommand).GetEnumerator())
@@ -398,10 +398,10 @@ namespace Buildalyzer
 
         private static IEnumerable<string> EnumerateCommandLinePartsFsc(string commandLine, bool initialCommand)
         {
-            StringBuilder part = new StringBuilder();
+            StringBuilder part = new();
             bool isInQuote = false;
 
-            using (StringReader reader = new StringReader(commandLine))
+            using (StringReader reader = new(commandLine))
             {
                 while (reader.Read() is int c && c >= 0)
                 {

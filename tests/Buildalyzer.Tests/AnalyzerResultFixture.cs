@@ -62,7 +62,7 @@ namespace Buildalyzer.Tests
                 + CscOptions
                 + input;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.csproj");
-            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+            AnalyzerResult result = new(projectFilePath, null, null);
 
             // When
             result.ProcessCscCommandLine(commandLine, false);
@@ -156,7 +156,7 @@ namespace Buildalyzer.Tests
                 + VbcOptions
                 + commandLine;
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
-            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+            AnalyzerResult result = new(projectFilePath, null, null);
 
             // When
             result.ProcessVbcCommandLine(commandLine);
@@ -202,7 +202,7 @@ namespace Buildalyzer.Tests
                                  + @" /reference:""C:\Program Files(x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.Data.dll"", ""C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\Facades\System.Collections.dll""";
 
             string projectFilePath = Path.Combine("/", "Code", "Project", "project.vbproj");
-            AnalyzerResult result = new AnalyzerResult(projectFilePath, null, null);
+            AnalyzerResult result = new(projectFilePath, null, null);
 
             // When
             result.ProcessVbcCommandLine(commandLine);

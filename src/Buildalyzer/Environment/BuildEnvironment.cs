@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
 {
@@ -15,7 +13,7 @@ namespace Buildalyzer.Environment
         // .NET "Core" will return ".NET Core" up to 3.x and ".NET" for > 5
         public static bool IsRunningOnCore =>
             !System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
-                .Replace(" ", string.Empty)
+                .Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase)
                 .Trim()
                 .StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase);
 
@@ -126,7 +124,7 @@ namespace Buildalyzer.Environment
             _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
         }
 
-        private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
+        private static Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
         {
             if (source != null)
             {
@@ -151,7 +149,7 @@ namespace Buildalyzer.Environment
         /// </param>
         /// <returns>A new build environment with the specified targets.</returns>
         public BuildEnvironment WithTargetsToBuild(params string[] targets) =>
-            new BuildEnvironment(
+            new(
                 DesignTime,
                 Restore,
                 targets,

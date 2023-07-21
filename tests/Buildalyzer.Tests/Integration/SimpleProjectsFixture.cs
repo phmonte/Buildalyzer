@@ -69,9 +69,9 @@ namespace Buildalyzer.Tests.Integration
             [ValueSource(nameof(ProjectFiles))] string projectFile)
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -93,9 +93,9 @@ namespace Buildalyzer.Tests.Integration
             [ValueSource(nameof(ProjectFiles))] string projectFile)
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference,
                 DesignTime = false
@@ -118,9 +118,9 @@ namespace Buildalyzer.Tests.Integration
             [ValueSource(nameof(ProjectFiles))] string projectFile)
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -146,9 +146,9 @@ namespace Buildalyzer.Tests.Integration
             [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -173,9 +173,9 @@ namespace Buildalyzer.Tests.Integration
             [ValueSource(nameof(ProjectFiles))] string projectFile)
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -213,7 +213,7 @@ namespace Buildalyzer.Tests.Integration
         public void WpfControlLibraryGetsSourceFiles()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"WpfCustomControlLibrary1\WpfCustomControlLibrary1.csproj", log);
 
             // When
@@ -236,7 +236,7 @@ namespace Buildalyzer.Tests.Integration
         public void MultiTargetingBuildAllTargetFrameworksGetsSourceFiles()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
@@ -265,7 +265,7 @@ namespace Buildalyzer.Tests.Integration
         public void SolutionDirShouldEndWithDirectorySeparator()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             analyzer.SolutionDirectory.ShouldEndWith(Path.DirectorySeparatorChar.ToString());
@@ -275,7 +275,7 @@ namespace Buildalyzer.Tests.Integration
         public void MultiTargetingBuildFrameworkTargetFrameworkGetsSourceFiles()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
@@ -296,7 +296,7 @@ namespace Buildalyzer.Tests.Integration
         public void MultiTargetingBuildCoreTargetFrameworkGetsSourceFiles()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkMultiTargetingProject\SdkMultiTargetingProject.csproj", log);
 
             // When
@@ -317,7 +317,7 @@ namespace Buildalyzer.Tests.Integration
         public void SdkProjectWithPackageReferenceGetsReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
@@ -332,7 +332,7 @@ namespace Buildalyzer.Tests.Integration
         public void SdkProjectWithPackageReferenceGetsPackageReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj", log);
 
             // When
@@ -347,7 +347,7 @@ namespace Buildalyzer.Tests.Integration
         public void SdkProjectWithProjectReferenceGetsReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetCore2ProjectWithReference\SdkNetCore2ProjectWithReference.csproj", log);
 
             // When
@@ -363,7 +363,7 @@ namespace Buildalyzer.Tests.Integration
         public void SdkProjectWithDefineContstantsGetsPreprocessorSymbols()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj", log);
 
             // When
@@ -386,7 +386,7 @@ namespace Buildalyzer.Tests.Integration
         public void LegacyFrameworkProjectWithPackageReferenceGetsReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
@@ -401,7 +401,7 @@ namespace Buildalyzer.Tests.Integration
         public void LegacyFrameworkProjectWithPackageReferenceGetsPackageReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithPackageReference\LegacyFrameworkProjectWithPackageReference.csproj", log);
 
             // When
@@ -416,7 +416,7 @@ namespace Buildalyzer.Tests.Integration
         public void LegacyFrameworkProjectWithProjectReferenceGetsReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"LegacyFrameworkProjectWithReference\LegacyFrameworkProjectWithReference.csproj", log);
 
             // When
@@ -432,10 +432,10 @@ namespace Buildalyzer.Tests.Integration
         public void GetsProjectsInSolution()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
 
             // When
-            AnalyzerManager manager = new AnalyzerManager(
+            AnalyzerManager manager = new(
                 GetProjectPath("TestProjects.sln"),
                 new AnalyzerManagerOptions
                 {
@@ -450,10 +450,10 @@ namespace Buildalyzer.Tests.Integration
         public void FiltersProjectsInSolution()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
 
             // When
-            AnalyzerManager manager = new AnalyzerManager(
+            AnalyzerManager manager = new(
                 GetProjectPath("TestProjects.sln"),
                 new AnalyzerManagerOptions
                 {
@@ -469,7 +469,7 @@ namespace Buildalyzer.Tests.Integration
         public void IgnoreSolutionItemsThatAreNotProjects()
         {
             // Given / When
-            AnalyzerManager manager = new AnalyzerManager(GetProjectPath("TestProjects.sln"));
+            AnalyzerManager manager = new(GetProjectPath("TestProjects.sln"));
 
             // Then
             manager.Projects.Any(x => x.Value.ProjectFile.Path.Contains("TestEmptySolutionFolder")).ShouldBeFalse();
@@ -479,10 +479,10 @@ namespace Buildalyzer.Tests.Integration
         public void GetsProjectGuidFromSolution([ValueSource(nameof(Preferences))] EnvironmentPreference preference)
         {
             // Given
-            AnalyzerManager manager = new AnalyzerManager(
+            AnalyzerManager manager = new(
                 GetProjectPath("TestProjects.sln"));
             IProjectAnalyzer analyzer = manager.Projects.First(x => x.Key.EndsWith("SdkNetStandardProject.csproj")).Value;
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -503,7 +503,7 @@ namespace Buildalyzer.Tests.Integration
             const string projectFile = @"SdkNetCore2Project\SdkNetCore2Project.csproj";
             IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -526,7 +526,7 @@ namespace Buildalyzer.Tests.Integration
             const string projectFile = @"SdkNetCore2Project\SdkNetCore2Project.csproj";
             IProjectAnalyzer analyzer = new AnalyzerManager()
                 .GetProject(GetProjectPath(projectFile));
-            EnvironmentOptions options = new EnvironmentOptions
+            EnvironmentOptions options = new()
             {
                 Preference = preference
             };
@@ -547,7 +547,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             const string projectFile = @"FSharpProject\FSharpProject.fsproj";
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
@@ -567,7 +567,7 @@ namespace Buildalyzer.Tests.Integration
         {
             // Given
             const string projectFile = @"VisualBasicProject\VisualBasicNetConsoleApp.vbproj";
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
 
             // When
@@ -593,8 +593,8 @@ namespace Buildalyzer.Tests.Integration
         public void BuildsLotsOfProjects()
         {
             // Given
-            StringWriter log = new StringWriter();
-            AnalyzerManager manager = new AnalyzerManager(
+            StringWriter log = new();
+            AnalyzerManager manager = new(
                 GetProjectPath(@"LotsOfProjects\LotsOfProjects.sln"),
                 new AnalyzerManagerOptions
                 {
@@ -628,21 +628,17 @@ namespace Buildalyzer.Tests.Integration
                     "binlogs",
                     path))
                 .Replace('\\', Path.DirectorySeparatorChar);
-            EnvironmentOptions options = new EnvironmentOptions();
+            EnvironmentOptions options = new();
             using (Stream stream = File.OpenRead(path))
             {
-                using (GZipStream gzip = new GZipStream(stream, CompressionMode.Decompress))
-                {
-                    using (BinaryReader reader = new BinaryReader(gzip))
-                    {
-                        reader.ReadInt32().ShouldBe(expectedVersion);
-                    }
-                }
+                using GZipStream gzip = new(stream, CompressionMode.Decompress);
+                using BinaryReader reader = new(gzip);
+                reader.ReadInt32().ShouldBe(expectedVersion);
             }
 
             // Given
-            StringWriter log = new StringWriter();
-            AnalyzerManager analyzerManager = new AnalyzerManager(
+            StringWriter log = new();
+            AnalyzerManager analyzerManager = new(
                 new AnalyzerManagerOptions
                 {
                     LogWriter = log
@@ -666,8 +662,8 @@ namespace Buildalyzer.Tests.Integration
         public static void DuplicateProjectReferences()
         {
             // Given
-            StringWriter log = new StringWriter();
-            AnalyzerManager manager = new AnalyzerManager(
+            StringWriter log = new();
+            AnalyzerManager manager = new(
                 GetProjectPath(@"DuplicateProjectReferences\MainProject\MainProject.sln"),
                 new AnalyzerManagerOptions
                 {
@@ -693,7 +689,7 @@ namespace Buildalyzer.Tests.Integration
         public void GetsAdditionalCscFiles()
         {
             // Given
-            StringWriter log = new StringWriter();
+            StringWriter log = new();
             IProjectAnalyzer analyzer = GetProjectAnalyzer(@"RazorClassLibraryTest\RazorClassLibraryTest.csproj", log);
 
             // When

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
@@ -22,7 +20,7 @@ namespace Buildalyzer.Environment
         // Don't cache the result because it might change project to project due to global.json
         public string ResolvePath(string projectPath, string dotnetExePath)
         {
-            dotnetExePath = dotnetExePath ?? "dotnet";
+            dotnetExePath ??= "dotnet";
             List<string> output = GetInfo(projectPath, dotnetExePath);
 
             // Did we get any output?
@@ -48,7 +46,7 @@ namespace Buildalyzer.Environment
             // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
             // running 'dotnet --info'. Otherwise, we may get localized results
             // Also unset some MSBuild variables, see https://github.com/OmniSharp/omnisharp-roslyn/blob/df160f86ce906bc566fe3e04e38a4077bd6023b4/src/OmniSharp.Abstractions/Services/DotNetCliService.cs#L36
-            Dictionary<string, string> environmentVariables = new Dictionary<string, string>
+            Dictionary<string, string> environmentVariables = new()
             {
                 { EnvironmentVariables.DOTNET_CLI_UI_LANGUAGE, "en-US" },
                 { EnvironmentVariables.MSBUILD_EXE_PATH, null },
@@ -57,12 +55,10 @@ namespace Buildalyzer.Environment
             };
 
             // global.json may change the version, so need to set working directory
-            using (ProcessRunner processRunner = new ProcessRunner(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory))
-            {
-                processRunner.Start();
-                processRunner.WaitForExit(4000);
-                return processRunner.Output;
-            }
+            using ProcessRunner processRunner = new(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory);
+            processRunner.Start();
+            processRunner.WaitForExit(4000);
+            return processRunner.Output;
         }
 
         // Try to find a base path

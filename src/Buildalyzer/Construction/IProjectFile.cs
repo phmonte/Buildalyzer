@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Buildalyzer.Construction
 {
@@ -53,7 +53,9 @@ namespace Buildalyzer.Construction
         /// Try to find a TargetFrameworkIdentifier in the same PropertyGroup
         /// and if no TargetFrameworkIdentifier was found, assume ".NETFramework".
         /// </remarks>
+#pragma warning disable CA1819 // Properties should not return arrays
         string[] TargetFrameworks { get; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         /// <summary>
         /// Gets the <c>ToolsVersion</c> attribute of the <c>Project</c> element (or <c>null</c> if there isn't one).

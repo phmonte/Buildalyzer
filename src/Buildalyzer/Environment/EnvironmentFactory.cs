@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml.Linq;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment
@@ -35,7 +33,7 @@ namespace Buildalyzer.Environment
 
         public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
         {
-            options = options ?? new EnvironmentOptions();
+            options ??= new EnvironmentOptions();
             BuildEnvironment buildEnvironment;
 
             // Use the .NET Framework if that's the preference
@@ -61,7 +59,7 @@ namespace Buildalyzer.Environment
         private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
         {
             // Get paths
-            DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
+            DotnetPathResolver pathResolver = new(_manager.LoggerFactory);
             string dotnetPath = pathResolver.ResolvePath(_projectFile.Path, options.DotnetExePath);
             if (dotnetPath == null)
             {
@@ -69,13 +67,13 @@ namespace Buildalyzer.Environment
             }
 
             string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-            if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+            if (options?.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH) == true)
             {
                 msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
             }
 
             // Clone the options global properties dictionary so we can add to it
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
+            Dictionary<string, string> additionalGlobalProperties = new(options.GlobalProperties);
 
             // Required to force CoreCompile target when it calculates everything is already built
             // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
@@ -86,7 +84,7 @@ namespace Buildalyzer.Environment
             }
 
             // Clone the options global properties dictionary so we can add to it
-            Dictionary<string, string> additionalEnvironmentVariables = new Dictionary<string, string>(options.EnvironmentVariables);
+            Dictionary<string, string> additionalEnvironmentVariables = new(options.EnvironmentVariables);
 
             // (Re)set the environment variables that dotnet sets
             // See https://github.com/dotnet/cli/blob/0a4ad813ff971f549d34ac4ebc6c8cca9a741c36/src/Microsoft.DotNet.Cli.Utils/MSBuildForwardingAppWithoutLogging.cs#L22-L28
@@ -124,7 +122,7 @@ namespace Buildalyzer.Environment
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
         {
             // Clone the options global properties dictionary so we can add to it
-            Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
+            Dictionary<string, string> additionalGlobalProperties = new(options.GlobalProperties);
 
             // Required to force CoreCompile target when it calculates everything is already built
             // This can happen if the file wasn't previously generated (Clean only cleans what was in that file)
@@ -135,7 +133,7 @@ namespace Buildalyzer.Environment
             }
 
             string msBuildExePath;
-            if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+            if (options?.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH) == true)
             {
                 msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
             }
@@ -159,18 +157,18 @@ namespace Buildalyzer.Environment
                 options.EnvironmentVariables);
         }
 
-        private bool GetFrameworkMsBuildExePath(out string msBuildExePath)
+        private static bool GetFrameworkMsBuildExePath(out string msBuildExePath)
         {
             msBuildExePath = ToolLocationHelper.GetPathToBuildToolsFile("msbuild.exe", ToolLocationHelper.CurrentToolsVersion);
             if (string.IsNullOrEmpty(msBuildExePath))
             {
                 // Could not find the tools path, possibly due to https://github.com/Microsoft/msbuild/issues/2369
                 // Try to poll for it. From https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/4649f55f900a324421bad5a714a2584926a02138/src/StructuredLogViewer/MSBuildLocator.cs
-                List<DirectoryInfo> msBuildDirectories = new List<DirectoryInfo>();
+                List<DirectoryInfo> msBuildDirectories = new();
 
                 // Search in the x86 program files
                 string programFilesX86 = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFilesX86);
-                DirectoryInfo vsX86Directory = new DirectoryInfo(Path.Combine(programFilesX86, "Microsoft Visual Studio"));
+                DirectoryInfo vsX86Directory = new(Path.Combine(programFilesX86, "Microsoft Visual Studio"));
                 if (vsX86Directory.Exists)
                 {
                     msBuildDirectories.AddRange(vsX86Directory.GetDirectories("MSBuild", SearchOption.AllDirectories));
@@ -178,7 +176,7 @@ namespace Buildalyzer.Environment
 
                 // Also search in x64 since VS 2022 and on is now 64-bit
                 string programFiles = System.Environment.GetFolderPath(System.Environment.SpecialFolder.ProgramFiles);
-                DirectoryInfo vsDirectory = new DirectoryInfo(Path.Combine(programFiles, "Microsoft Visual Studio"));
+                DirectoryInfo vsDirectory = new(Path.Combine(programFiles, "Microsoft Visual Studio"));
                 if (vsDirectory.Exists)
                 {
                     msBuildDirectories.AddRange(vsDirectory.GetDirectories("MSBuild", SearchOption.AllDirectories));

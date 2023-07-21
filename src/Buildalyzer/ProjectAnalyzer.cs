@@ -18,12 +18,12 @@ namespace Buildalyzer
 {
     public class ProjectAnalyzer : IProjectAnalyzer
     {
-        private readonly List<ILogger> _buildLoggers = new List<ILogger>();
+        private readonly List<ILogger> _buildLoggers = new();
 
         // Project-specific global properties and environment variables
-        private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, string> _globalProperties = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly ConcurrentDictionary<string, string> _environmentVariables = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, string> _environmentVariables = new(StringComparer.OrdinalIgnoreCase);
 
         public AnalyzerManager Manager { get; }
 
@@ -90,7 +90,7 @@ namespace Buildalyzer
             }
 
             // Create a new build environment for each target
-            AnalyzerResults results = new AnalyzerResults();
+            AnalyzerResults results = new();
             foreach (string targetFramework in targetFrameworks)
             {
                 BuildEnvironment buildEnvironment = EnvironmentFactory.GetBuildEnvironment(targetFramework, environmentOptions);
@@ -114,7 +114,7 @@ namespace Buildalyzer
                 targetFrameworks = new string[] { null };
             }
 
-            AnalyzerResults results = new AnalyzerResults();
+            AnalyzerResults results = new();
             foreach (string targetFramework in targetFrameworks)
             {
                 BuildTargets(buildEnvironment, targetFramework, buildEnvironment.TargetsToBuild, results);
@@ -155,27 +155,23 @@ namespace Buildalyzer
         // This is where the magic happens - returns one result per result target framework
         private IAnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
-            using (CancellationTokenSource cancellation = new CancellationTokenSource())
+            using (CancellationTokenSource cancellation = new())
             {
-                using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
+                using AnonymousPipeLoggerServer pipeLogger = new(cancellation.Token);
+                using EventProcessor eventProcessor = new(Manager, this, BuildLoggers, pipeLogger, results != null);
+                // Run MSBuild
+                int exitCode;
+                string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
+                using (ProcessRunner processRunner = new(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
                 {
-                    using (EventProcessor eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
-                    {
-                        // Run MSBuild
-                        int exitCode;
-                        string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
-                        using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
-                        {
-                            processRunner.Start();
-                            pipeLogger.ReadAll();
-                            processRunner.WaitForExit();
-                            exitCode = processRunner.ExitCode;
-                        }
-
-                        // Collect the results
-                        results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
-                    }
+                    processRunner.Start();
+                    pipeLogger.ReadAll();
+                    processRunner.WaitForExit();
+                    exitCode = processRunner.ExitCode;
                 }
+
+                // Collect the results
+                results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
             }
             return results;
         }
@@ -205,7 +201,7 @@ namespace Buildalyzer
             }
 
             // Get the rest of the arguments
-            List<string> argumentsList = new List<string>();
+            List<string> argumentsList = new();
 
             // Environment arguments
             if (buildEnvironment.Arguments.Any())
@@ -336,7 +332,7 @@ namespace Buildalyzer
             bool removeNulls,
             params IReadOnlyDictionary<string, string>[] innerDictionaries)
         {
-            Dictionary<string, string> effectiveDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> effectiveDictionary = new(StringComparer.OrdinalIgnoreCase);
             foreach (IReadOnlyDictionary<string, string> innerDictionary in innerDictionaries.Where(x => x != null))
             {
                 foreach (KeyValuePair<string, string> pair in innerDictionary)

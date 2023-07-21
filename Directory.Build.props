@@ -1,4 +1,19 @@
 <Project>
+
+  <PropertyGroup Condition="$(BUILD_REASON) == ''">
+    <AnalysisLevel>latest</AnalysisLevel>
+    <!-- <AnalysisMode>AllEnabledByDefault</AnalysisMode> -->
+  </PropertyGroup>
+
+  <!-- https://devblogs.microsoft.com/dotnet/producing-packages-with-source-link/ -->
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Version Condition="'$(BuildalyzerVersion)' == ''">1.0.0</Version>
     <Version Condition="'$(BuildalyzerVersion)' != ''">$(BuildalyzerVersion)</Version>
@@ -27,11 +42,21 @@
     <None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" PackagePath="\"/>
     <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
+
+  <!-- use "Central Package Management (CPM)2 GlobalPackageReference  instead -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Analyzers" Version="4.0.2" PrivateAssets="All"/>
-    <!-- It appears as though there might be a performance issue in versions of Microsoft.VisualStudio.Threading.Analyzers past this at least through 17.0.64 -->
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.9.60" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.6.40">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
+
 </Project>

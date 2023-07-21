@@ -82,17 +82,17 @@ namespace Buildalyzer
         /// <summary>
         /// The namespace for fully-qualified domain names (from RFC 4122, Appendix C).
         /// </summary>
-        public static readonly Guid DnsNamespace = new Guid("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
+        public static readonly Guid DnsNamespace = new("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
 
         /// <summary>
         /// The namespace for URLs (from RFC 4122, Appendix C).
         /// </summary>
-        public static readonly Guid UrlNamespace = new Guid("6ba7b811-9dad-11d1-80b4-00c04fd430c8");
+        public static readonly Guid UrlNamespace = new("6ba7b811-9dad-11d1-80b4-00c04fd430c8");
 
         /// <summary>
         /// The namespace for ISO OIDs (from RFC 4122, Appendix C).
         /// </summary>
-        public static readonly Guid IsoOidNamespace = new Guid("6ba7b812-9dad-11d1-80b4-00c04fd430c8");
+        public static readonly Guid IsoOidNamespace = new("6ba7b812-9dad-11d1-80b4-00c04fd430c8");
 
         // Converts a GUID (expressed as a byte array) to/from network order (MSB-first).
         internal static void SwapByteOrder(byte[] guid)

@@ -10,10 +10,10 @@ namespace Buildalyzer.Logging
 {
     internal class EventProcessor : IDisposable
     {
-        private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
-        private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
-        private readonly Stack<TargetStartedEventArgs> _targetStack = new Stack<TargetStartedEventArgs>();
-        private readonly Dictionary<int, PropertiesAndItems> _evalulationResults = new Dictionary<int, PropertiesAndItems>();
+        private readonly Dictionary<string, AnalyzerResult> _results = new();
+        private readonly Stack<AnalyzerResult> _currentResult = new();
+        private readonly Stack<TargetStartedEventArgs> _targetStack = new();
+        private readonly Dictionary<int, PropertiesAndItems> _evalulationResults = new();
         private readonly AnalyzerManager _manager;
         private readonly ProjectAnalyzer _analyzer;
         private readonly ILogger<EventProcessor> _logger;
@@ -105,7 +105,7 @@ namespace Buildalyzer.Logging
                     .FirstOrDefault(x => string.Equals(x.Key.ToString(), "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase))
                     .Value
                     ?.ToString() ?? string.Empty; // use an empty string if no target framework was found, for example in case of C++ projects with VS >= 2022
-                if (propertiesAndItems != null && propertiesAndItems.Properties != null && propertiesAndItems.Items != null)
+                if (propertiesAndItems?.Properties != null && propertiesAndItems.Items != null)
                 {
                     if (!_results.TryGetValue(tfm, out AnalyzerResult result))
                     {

@@ -20,7 +20,7 @@ namespace Buildalyzer
             SolutionProjectType.WebProject
         };
 
-        private readonly ConcurrentDictionary<string, IProjectAnalyzer> _projects = new ConcurrentDictionary<string, IProjectAnalyzer>();
+        private readonly ConcurrentDictionary<string, IProjectAnalyzer> _projects = new();
 
         public IReadOnlyDictionary<string, IProjectAnalyzer> Projects => _projects;
 
@@ -36,7 +36,7 @@ namespace Buildalyzer
         /// This cache exists in <see cref="AnalyzerManager"/> so that it's lifetime can be controlled and it can be collected when <see cref="AnalyzerManager"/> goes out of scope.
         /// </summary>
 #pragma warning disable SA1401 // Fields should be private
-        internal ConcurrentDictionary<Guid, string[]> WorkspaceProjectReferences = new ConcurrentDictionary<Guid, string[]>();
+        internal ConcurrentDictionary<Guid, string[]> WorkspaceProjectReferences = new();
 #pragma warning restore SA1401 // Fields should be private
 
         public string SolutionFilePath { get; }
@@ -50,7 +50,7 @@ namespace Buildalyzer
 
         public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
         {
-            options = options ?? new AnalyzerManagerOptions();
+            options ??= new AnalyzerManagerOptions();
             LoggerFactory = options.LoggerFactory;
 
             if (!string.IsNullOrEmpty(solutionFilePath))
@@ -98,15 +98,13 @@ namespace Buildalyzer
                 throw new ArgumentException($"The path {binLogPath} could not be found.");
             }
 
-            BinLogReader reader = new BinLogReader();
-            using (EventProcessor eventProcessor = new EventProcessor(this, null, buildLoggers, reader, true))
-            {
-                reader.Replay(binLogPath);
-                return new AnalyzerResults
+            BinLogReader reader = new();
+            using EventProcessor eventProcessor = new(this, null, buildLoggers, reader, true);
+            reader.Replay(binLogPath);
+            return new AnalyzerResults
                 {
                     { eventProcessor.Results, eventProcessor.OverallSuccess }
                 };
-            }
         }
 
         private IProjectAnalyzer GetProject(string projectFilePath, ProjectInSolution projectInSolution)

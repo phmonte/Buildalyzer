@@ -79,7 +79,7 @@ namespace Buildalyzer.Workspaces
                     && existingReferences.Contains(analyzerResult.ProjectFilePath))
                 {
                     // Add the reference to the existing project
-                    ProjectReference projectReference = new ProjectReference(projectId);
+                    ProjectReference projectReference = new(projectId);
                     solution = solution.AddProjectReference(existingProject.Id, projectReference);
                 }
             }
@@ -105,9 +105,9 @@ namespace Buildalyzer.Workspaces
 
             // By now all the references of this project have been recursively added, so resolve any remaining transitive project references
             Project project = workspace.CurrentSolution.GetProject(projectId);
-            HashSet<ProjectReference> referencedProjects = new HashSet<ProjectReference>(project.ProjectReferences);
-            HashSet<ProjectId> visitedProjectIds = new HashSet<ProjectId>();
-            Stack<ProjectReference> projectReferenceStack = new Stack<ProjectReference>(project.ProjectReferences);
+            HashSet<ProjectReference> referencedProjects = new(project.ProjectReferences);
+            HashSet<ProjectId> visitedProjectIds = new();
+            Stack<ProjectReference> projectReferenceStack = new(project.ProjectReferences);
             while (projectReferenceStack.Count > 0)
             {
                 ProjectReference projectReference = projectReferenceStack.Pop();
@@ -125,7 +125,7 @@ namespace Buildalyzer.Workspaces
             {
                 if (!project.ProjectReferences.Contains(referencedProject))
                 {
-                    ProjectReference projectReference = new ProjectReference(referencedProject.ProjectId);
+                    ProjectReference projectReference = new(referencedProject.ProjectId);
                     solution = workspace.CurrentSolution.AddProjectReference(project.Id, projectReference);
                     if (!workspace.TryApplyChanges(solution))
                     {
@@ -168,7 +168,7 @@ namespace Buildalyzer.Workspaces
             {
                 ParseOptions CreateCSharpParseOptions()
                 {
-                    CSharpParseOptions parseOptions = new CSharpParseOptions();
+                    CSharpParseOptions parseOptions = new();
 
                     // Add any constants
                     parseOptions = parseOptions.WithPreprocessorSymbols(analyzerResult.PreprocessorSymbols);
@@ -191,7 +191,7 @@ namespace Buildalyzer.Workspaces
             {
                 ParseOptions CreateVBParseOptions()
                 {
-                    VisualBasicParseOptions parseOptions = new VisualBasicParseOptions();
+                    VisualBasicParseOptions parseOptions = new();
 
                     // Get language version
                     string langVersion = analyzerResult.GetProperty("LangVersion");

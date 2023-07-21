@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace Buildalyzer.Construction
         private readonly XDocument _document;
         private readonly XElement _projectElement;
 
-        private string[] _targetFrameworks = null;
+        private string[] _targetFrameworks;
 
         // The project file path should already be normalized
         internal ProjectFile(string path)
@@ -49,11 +49,11 @@ namespace Buildalyzer.Construction
 
         /// <inheritdoc />
         public string[] TargetFrameworks => _targetFrameworks
-            ?? (_targetFrameworks = GetTargetFrameworks(
+            ??= GetTargetFrameworks(
                 _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
                 _projectElement.GetDescendants(ProjectFileNames.TargetFramework).Select(x => x.Value),
                 _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
-                    .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value))));
+                    .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value)));
 
         /// <inheritdoc />
         public bool UsesSdk =>
@@ -137,7 +137,7 @@ namespace Buildalyzer.Construction
         // See also https://blog.stephencleary.com/2012/05/framework-profiles-in-net.html
         // Can't handle ".NETPortable" because those split out as complex "portable-" TargetFramework
         // Value = (TargetFramework, preserve dots in version)
-        private static readonly Dictionary<string, (string, bool)> TargetFrameworkIdentifierToTargetFramework = new Dictionary<string, (string, bool)>
+        private static readonly Dictionary<string, (string, bool)> TargetFrameworkIdentifierToTargetFramework = new()
         {
             { ".NETStandard", ("netstandard", true) },
             { ".NETCoreApp", ("netcoreapp", true) },

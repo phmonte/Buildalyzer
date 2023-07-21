@@ -15,7 +15,7 @@ namespace Buildalyzer.Workspaces
         internal static AdhocWorkspace CreateWorkspace(this IAnalyzerManager manager)
         {
             ILogger logger = manager.LoggerFactory?.CreateLogger<AdhocWorkspace>();
-            AdhocWorkspace workspace = new AdhocWorkspace();
+            AdhocWorkspace workspace = new();
             workspace.WorkspaceChanged += (sender, args) => logger?.LogDebug($"Workspace changed: {args.Kind.ToString()}{System.Environment.NewLine}");
             workspace.WorkspaceFailed += (sender, args) => logger?.LogError($"Workspace failed: {args.Diagnostic}{System.Environment.NewLine}");
             return workspace;

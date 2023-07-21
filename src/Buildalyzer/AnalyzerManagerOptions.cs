@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
-using Buildalyzer.Construction;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer
@@ -28,7 +26,7 @@ namespace Buildalyzer
                     return;
                 }
 
-                LoggerFactory = LoggerFactory ?? new LoggerFactory();
+                LoggerFactory ??= new LoggerFactory();
                 LoggerFactory.AddProvider(new TextWriterLoggerProvider(value));
             }
         }

@@ -16,7 +16,7 @@ namespace Buildalyzer.Tests.Construction
             XElement xml = XElement.Parse(@"<PackageReference Include=""IncludedDependency"" Version=""1.0.0"" />");
 
             // When
-            PackageReference packageReference = new PackageReference(xml);
+            PackageReference packageReference = new(xml);
 
             // Then
             packageReference.Name.ShouldBe("IncludedDependency");
@@ -29,7 +29,7 @@ namespace Buildalyzer.Tests.Construction
             XElement xml = XElement.Parse(@"<PackageReference Include=""IncludedDependency"" Version=""1.0.0"" />");
 
             // When
-            PackageReference packageReference = new PackageReference(xml);
+            PackageReference packageReference = new(xml);
 
             // Then
             packageReference.Version.ShouldBe("1.0.0");
@@ -42,7 +42,7 @@ namespace Buildalyzer.Tests.Construction
             XElement xml = XElement.Parse(@"<PackageReference Update=""UpdatedDependency"" Version=""1.0.0"" />");
 
             // When
-            PackageReference packageReference = new PackageReference(xml);
+            PackageReference packageReference = new(xml);
 
             // Then
             packageReference.Name.ShouldBe("UpdatedDependency");

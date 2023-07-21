@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Buildalyzer.Environment;
 using NUnit.Framework;
 using Shouldly;
@@ -11,7 +7,7 @@ namespace Buildalyzer.Tests.Environment
     [TestFixture]
     public class EnvironmentFactoryFixture
     {
-        // From https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+        // From https://learn.microsoft.com/en-us/dotnet/standard/frameworks#supported-target-frameworks
         // .NET Core/.NET 5 and up
         [TestCase("netcoreapp1.0", false)]
         [TestCase("netcoreapp1.1", false)]
@@ -36,6 +32,13 @@ namespace Buildalyzer.Tests.Environment
         [TestCase("net6.0-tvos", false)]
         [TestCase("net6.0-watchos", false)]
         [TestCase("net6.0-windows", false)]
+        [TestCase("net7.0", false)]
+        [TestCase("net7.0-android", false)]
+        [TestCase("net7.0-ios", false)]
+        [TestCase("net7.0-macos", false)]
+        [TestCase("net7.0-tvos", false)]
+        [TestCase("net7.0-watchos", false)]
+        [TestCase("net7.0-windows", false)]
         [TestCase("netstandard1.0", false)]
         [TestCase("netstandard1.1", false)]
         [TestCase("netstandard1.2", false)]

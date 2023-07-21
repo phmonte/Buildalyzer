@@ -1,14 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Buildalyzer.Environment;
 using LibGit2Sharp;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using NUnit.Framework;
 using Shouldly;
 

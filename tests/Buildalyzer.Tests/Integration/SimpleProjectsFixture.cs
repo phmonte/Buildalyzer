@@ -704,6 +704,20 @@ namespace Buildalyzer.Tests.Integration
             additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" }, log.ToString());
         }
 
+        [Test]
+        public void GetsAdditionalFile()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
+
+            // When
+            IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+
+            // Then
+            additionalFiles.ShouldBe(new[] { "message.txt" }, log.ToString());
+        }
+
         private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
         {
             IProjectAnalyzer analyzer = new AnalyzerManager(

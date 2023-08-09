@@ -157,6 +157,7 @@ namespace Buildalyzer.Workspaces
                 projectReferences: GetExistingProjectReferences(analyzerResult, workspace),
                 metadataReferences: GetMetadataReferences(analyzerResult),
                 analyzerReferences: GetAnalyzerReferences(analyzerResult, workspace),
+                additionalDocuments: GetAdditionalDocuments(analyzerResult, projectId),
                 parseOptions: CreateParseOptions(analyzerResult, languageName),
                 compilationOptions: CreateCompilationOptions(analyzerResult, languageName));
         }
@@ -267,16 +268,27 @@ namespace Buildalyzer.Workspaces
             ?? Array.Empty<ProjectAnalyzer>();
 
         private static IEnumerable<DocumentInfo> GetDocuments(IAnalyzerResult analyzerResult, ProjectId projectId) =>
-            analyzerResult
-                .SourceFiles?.Where(File.Exists)
-                .Select(x => DocumentInfo.Create(
-                    DocumentId.CreateNewId(projectId),
-                    Path.GetFileName(x),
-                    loader: TextLoader.From(
-                        TextAndVersion.Create(
-                            SourceText.From(File.ReadAllText(x), Encoding.Unicode), VersionStamp.Create())),
-                    filePath: x))
+            GetDocuments(analyzerResult.SourceFiles, projectId);
+
+        private static IEnumerable<DocumentInfo> GetDocuments(IEnumerable<string> files, ProjectId projectId) =>
+           files?.Where(File.Exists)
+               .Select(x => DocumentInfo.Create(
+                   DocumentId.CreateNewId(projectId),
+                   Path.GetFileName(x),
+                   loader: TextLoader.From(
+                       TextAndVersion.Create(
+                           SourceText.From(File.ReadAllText(x), Encoding.Unicode), VersionStamp.Create())),
+                   filePath: x))
             ?? Array.Empty<DocumentInfo>();
+
+        private static IEnumerable<DocumentInfo> GetAdditionalDocuments(IAnalyzerResult analyzerResult, ProjectId projectId)
+        {
+            string projectDirectory = Path.GetDirectoryName(analyzerResult.ProjectFilePath);
+
+            return GetDocuments(
+                analyzerResult.AdditionalFiles?.Select(x => Path.Combine(projectDirectory, x)),
+                projectId);
+        }
 
         private static IEnumerable<MetadataReference> GetMetadataReferences(IAnalyzerResult analyzerResult) =>
             analyzerResult

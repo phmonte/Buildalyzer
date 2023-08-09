@@ -167,7 +167,7 @@ namespace Buildalyzer.Workspaces.Tests
             // Then
             string logged = log.ToString();
             logged.ShouldNotContain("Workspace failed", logged);
-            project.AdditionalDocuments.ShouldContain(doc => Path.GetFileName(doc.FilePath) == "message.txt");
+            project.AdditionalDocuments.Select(d => d.Name).ShouldBe(new[] { "message.txt" });
         }
 
 #if Is_Windows

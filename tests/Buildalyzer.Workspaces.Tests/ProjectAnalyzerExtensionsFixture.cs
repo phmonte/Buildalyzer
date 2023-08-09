@@ -153,6 +153,23 @@ namespace Buildalyzer.Workspaces.Tests
             project.AnalyzerReferences.ShouldContain(reference => reference.Display == "Microsoft.CodeQuality.Analyzers");
         }
 
+        [Test]
+        public void SupportsAdditionalFiles()
+        {
+            // Given
+            SafeStringWriter log = new SafeStringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
+
+            // When
+            Workspace workspace = analyzer.GetWorkspace();
+            Project project = workspace.CurrentSolution.Projects.First();
+
+            // Then
+            string logged = log.ToString();
+            logged.ShouldNotContain("Workspace failed", logged);
+            project.AdditionalDocuments.ShouldContain(doc => Path.GetFileName(doc.FilePath) == "message.txt");
+        }
+
 #if Is_Windows
         [Test]
         public void HandlesWpfCustomControlLibrary()

@@ -288,9 +288,8 @@ namespace Buildalyzer.Workspaces
         {
             IAnalyzerAssemblyLoader loader = workspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
 
-            return analyzerResult
-                .AnalyzerReferences?.Where(File.Exists)
-                .Select(x => new AnalyzerFileReference(x, loader))
+            return analyzerResult.AnalyzerReferences?.Where(x => File.Exists(Path.GetFullPath(x)))
+                .Select(x => new AnalyzerFileReference(Path.GetFullPath(x), loader))
                 ?? (IEnumerable<AnalyzerReference>)Array.Empty<AnalyzerReference>();
         }
 

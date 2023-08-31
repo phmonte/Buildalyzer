@@ -66,7 +66,7 @@ namespace Buildalyzer.Logging
         // See https://twitter.com/KirillOsenkov/status/1427686459713019904
         private void StatusEventRaised(object sender, BuildStatusEventArgs e)
         {
-            if (e is StructuredLogger::Microsoft.Build.Framework.ProjectEvaluationFinishedEventArgs slEv)
+            if (e is ProjectEvaluationFinishedEventArgs slEv)
             {
                 _evalulationResults[slEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
                 {

@@ -1,3 +1,7 @@
+# 5.0.1
+
+- Added support for additional files on `GetWorkspace()` (#231, thanks @Corniel).
+
 # 5.0.0
 
 - Updating Buildalyzer to target .NET 6 (#221, thanks @colombod).

@@ -56,6 +56,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RazorClassLibraryTest", "Ra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResponseFile", "ResponseFile\ResponseFile.csproj", "{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkNet7Project", "SdkNet7Project\SdkNet7Project.csproj", "{8862BA17-36B7-470E-B293-D02E18FD5E4D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -166,6 +168,10 @@ Global
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B18DD8E6-9D47-4FDD-90EA-8F9C6789BE3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8862BA17-36B7-470E-B293-D02E18FD5E4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8862BA17-36B7-470E-B293-D02E18FD5E4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8862BA17-36B7-470E-B293-D02E18FD5E4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8862BA17-36B7-470E-B293-D02E18FD5E4D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

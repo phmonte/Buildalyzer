@@ -237,7 +237,9 @@ namespace Buildalyzer.Workspaces
                 // language-specific code is in local functions, to prevent assembly loading failures when assembly for the other language is not available
                 if (languageName == LanguageNames.CSharp)
                 {
-                    CompilationOptions CreateCSharpCompilationOptions() => new CSharpCompilationOptions(kind.Value);
+                    Enum.TryParse(analyzerResult.GetProperty("Nullable"), ignoreCase: true, out NullableContextOptions nullable);
+
+                    CompilationOptions CreateCSharpCompilationOptions() => new CSharpCompilationOptions(kind.Value, nullableContextOptions: nullable);
 
                     return CreateCSharpCompilationOptions();
                 }

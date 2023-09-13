@@ -59,8 +59,12 @@ namespace Buildalyzer.Environment
             // global.json may change the version, so need to set working directory
             using (ProcessRunner processRunner = new ProcessRunner(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory))
             {
+                int dotnetInfoWaitTime = int.TryParse(System.Environment.GetEnvironmentVariable(EnvironmentVariables.DOTNET_INFO_WAIT_TIME), out int dotnetInfoWaitTimeParsed)
+                    ? dotnetInfoWaitTimeParsed
+                    : 4000;
+                _logger?.LogInformation($"dotnet --info wait time is {dotnetInfoWaitTime}ms");
                 processRunner.Start();
-                processRunner.WaitForExit(4000);
+                processRunner.WaitForExit(dotnetInfoWaitTime);
                 return processRunner.Output;
             }
         }

@@ -54,14 +54,8 @@ namespace Buildalyzer.Tests.Integration
             @"SdkNetStandardProjectWithPackageReference\SdkNetStandardProjectWithPackageReference.csproj",
             @"SdkNetStandardProjectWithConstants\SdkNetStandardProjectWithConstants.csproj",
             @"ResponseFile\ResponseFile.csproj",
-
-            // Using Buildalyzer against Functions projects is currently not supported
-            // the Functions build tooling does some extra compilation and magic that
-            // doesn't work with the default targets Buildlyzer sets (especially for design time builds)
-            // In general, Buildalyzer is not good at analyzing any project that makes extensive use
-            // of custom build tooling and tasks/targets because the behavior and log output is not consistent
-            // See https://github.com/daveaglick/Buildalyzer/issues/210
-            // @"FunctionApp\FunctionApp.csproj",
+            @"FunctionApp\FunctionApp.csproj",
+            @"FunctionAppIsolated\FunctionAppIsolated.csproj",
         };
 
         [Test]

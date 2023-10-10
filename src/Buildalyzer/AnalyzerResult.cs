@@ -24,6 +24,13 @@ namespace Buildalyzer
             "fsc.exe",
             "fsc.dll"
         };
+
+        private readonly List<string> _sourceFiles = new List<string>();
+        private readonly List<string> _additionalFiles = new List<string>();
+        private readonly List<string> _references = new List<string>();
+        private readonly List<string> _analyzerReferences = new List<string>();
+        private readonly List<string> _preprocessorSymbols = new List<string>();
+
         private List<(string, string)> _cscCommandLineArguments;
         private List<(string, string)> _fscCommandLineArguments;
         private List<(string, string)> _vbcCommandLineArguments;
@@ -83,68 +90,15 @@ namespace Buildalyzer
                 new[] { (GetProperty(ProjectFileNames.TargetFrameworkIdentifier), GetProperty(ProjectFileNames.TargetFrameworkVersion)) })
             .FirstOrDefault();
 
-        public string[] SourceFiles =>
-            _cscCommandLineArguments
-                ?.Where(x => x.Item1 == null
-                    && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
-                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-                .ToArray() ?? _fscCommandLineArguments
-                ?.Where(x => x.Item1 == null
-                    && x.Item2?.Contains("fsc.dll") == false
-                    && x.Item2?.Contains("fsc.exe") == false)
-                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-                .ToArray() ?? _vbcCommandLineArguments
-                ?.Where(x => x.Item1 == null && !_assemblyObjects.Contains(Path.GetFileName(x.Item2), StringComparer.OrdinalIgnoreCase))
-                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-                .ToArray() ?? Array.Empty<string>();
+        public string[] SourceFiles => _sourceFiles.Distinct().ToArray();
 
-        public string[] References =>
-            _cscCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Item2)
-                .ToArray()
-            ?? _fscCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Item2)
-                .ToArray()
-            ?? _vbcCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Item2)
-                .ToArray()
-            ?? Array.Empty<string>();
+        public string[] References => _references.Distinct().ToArray();
 
-        public string[] AnalyzerReferences =>
-            _cscCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("analyzer", StringComparison.OrdinalIgnoreCase))
-                .Select(x => x.Item2)
-                .ToArray() ?? Array.Empty<string>();
+        public string[] AnalyzerReferences => _analyzerReferences.Distinct().ToArray();
 
-        public string[] PreprocessorSymbols =>
-            _cscCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
-                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                .Select(x => x.Trim())
-                .ToArray()
-            ?? _vbcCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
-                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                .Select(x => x.Trim())
-                .ToArray()
-            ?? Array.Empty<string>();
+        public string[] PreprocessorSymbols => _preprocessorSymbols.Distinct().ToArray();
 
-        public string[] AdditionalFiles =>
-            _cscCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
-                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                .Select(x => x.Trim())
-                .ToArray()
-            ?? _vbcCommandLineArguments
-                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
-                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-                .Select(x => x.Trim())
-                .ToArray()
-            ?? Array.Empty<string>();
+        public string[] AdditionalFiles => _additionalFiles.Distinct().ToArray();
 
         public IEnumerable<string> ProjectReferences =>
             Items.TryGetValue("ProjectReference", out IProjectItem[] items)
@@ -186,6 +140,11 @@ namespace Buildalyzer
             _compilerFilePath = cmd.FileName;
             _compilerArguments = cmd.Arguments.ToArray();
             _cscCommandLineArguments = cmd.ProcessedArguments;
+            ProcessSourceFiles(cscCommandLineArguments: _cscCommandLineArguments);
+            ProcessAdditionalFiles(cscCommandLineArguments: _cscCommandLineArguments);
+            ProcessReferences(cscCommandLineArguments: _cscCommandLineArguments);
+            ProcessAnalyzerReferences(cscCommandLineArguments: _cscCommandLineArguments);
+            ProcessPreprocessorSymbols(cscCommandLineArguments: _cscCommandLineArguments);
         }
 
         internal static ProcessedCommandLine ProcessCscCommandLine(string commandLine)
@@ -273,6 +232,10 @@ namespace Buildalyzer
             _compilerFilePath = cmd.FileName;
             _compilerArguments = cmd.Arguments.ToArray();
             _vbcCommandLineArguments = cmd.ProcessedArguments;
+            ProcessSourceFiles(vbcCommandLineArguments: _vbcCommandLineArguments);
+            ProcessAdditionalFiles(vbcCommandLineArguments: _vbcCommandLineArguments);
+            ProcessReferences(vbcCommandLineArguments: _vbcCommandLineArguments);
+            ProcessPreprocessorSymbols(vbcCommandLineArguments: _vbcCommandLineArguments);
         }
 
         public bool HasFscArguments()
@@ -394,6 +357,8 @@ namespace Buildalyzer
 
             _fscCommandLineArguments = processedArguments;
             _compilerArguments = arguments.ToArray();
+            ProcessSourceFiles(fscCommandLineArguments: _fscCommandLineArguments);
+            ProcessReferences(fscCommandLineArguments: _fscCommandLineArguments);
         }
 
         private static IEnumerable<string> EnumerateCommandLinePartsFsc(string commandLine, bool initialCommand)
@@ -463,6 +428,89 @@ namespace Buildalyzer
             {
                 yield return part.ToString();
             }
+        }
+
+        private void ProcessSourceFiles(List<(string, string)> cscCommandLineArguments = null, List<(string, string)> fscCommandLineArguments = null, List<(string, string)> vbcCommandLineArguments = null)
+        {
+            string[] sourceFiles = _cscCommandLineArguments
+                ?.Where(x => x.Item1 == null
+                             && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
+                             && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
+                .ToArray() ?? _fscCommandLineArguments
+                ?.Where(x => x.Item1 == null
+                             && x.Item2?.Contains("fsc.dll") == false
+                             && x.Item2?.Contains("fsc.exe") == false)
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
+                .ToArray() ?? _vbcCommandLineArguments
+                ?.Where(x => x.Item1 == null && !_assemblyObjects.Contains(Path.GetFileName(x.Item2), StringComparer.OrdinalIgnoreCase))
+                .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
+                .ToArray() ?? Array.Empty<string>();
+
+            _sourceFiles.AddRange(sourceFiles);
+        }
+
+        private void ProcessAdditionalFiles(List<(string, string)> cscCommandLineArguments = null, List<(string, string)> vbcCommandLineArguments = null)
+        {
+            string[] additionalFiles = cscCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray()
+            ?? vbcCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("additionalfile", StringComparison.OrdinalIgnoreCase))
+                .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Trim())
+                .ToArray()
+            ?? Array.Empty<string>();
+
+            _additionalFiles.AddRange(additionalFiles);
+        }
+
+        private void ProcessReferences(List<(string, string)> cscCommandLineArguments = null, List<(string, string)> fscCommandLineArguments = null, List<(string, string)> vbcCommandLineArguments = null)
+        {
+            string[] references = _cscCommandLineArguments
+                    ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.Item2)
+                    .ToArray()
+                ?? _fscCommandLineArguments
+                    ?.Where(x => x.Item1 is object && x.Item1.Equals("r", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.Item2)
+                    .ToArray()
+                ?? _vbcCommandLineArguments
+                    ?.Where(x => x.Item1 is object && x.Item1.Equals("reference", StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.Item2)
+                    .ToArray()
+                ?? Array.Empty<string>();
+
+            _references.AddRange(references);
+        }
+
+        private void ProcessAnalyzerReferences(List<(string, string)> cscCommandLineArguments = null)
+        {
+            string[] analyzerReferences = _cscCommandLineArguments
+                ?.Where(x => x.Item1 is object && x.Item1.Equals("analyzer", StringComparison.OrdinalIgnoreCase))
+                .Select(x => x.Item2)
+                .ToArray() ?? Array.Empty<string>();
+
+            _analyzerReferences.AddRange(analyzerReferences);
+        }
+
+        private void ProcessPreprocessorSymbols(List<(string, string)> cscCommandLineArguments = null, List<(string, string)> vbcCommandLineArguments = null)
+        {
+            string[] preprocessorSymbols = _cscCommandLineArguments
+                    ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    .Select(x => x.Trim())
+                    .ToArray()
+                ?? _vbcCommandLineArguments
+                    ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                    .Select(x => x.Trim())
+                    .ToArray()
+                ?? Array.Empty<string>();
+
+            _preprocessorSymbols.AddRange(preprocessorSymbols);
         }
 
         private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>

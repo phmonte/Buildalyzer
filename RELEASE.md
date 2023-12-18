@@ -1,3 +1,7 @@
+# 5.0.2
+
+- Ensures paths being passed to Roslyn in Buildalyzer.Workspaces are absolute (#232, thanks @tjchester).
+
 # 5.0.1
 
 - Added support for additional files on `GetWorkspace()` (#231, thanks @Corniel).

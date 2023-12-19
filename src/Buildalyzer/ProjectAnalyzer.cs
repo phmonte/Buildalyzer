@@ -153,18 +153,30 @@ namespace Buildalyzer
         public IAnalyzerResults Build(BuildEnvironment buildEnvironment) => Build((string)null, buildEnvironment);
 
         // This is where the magic happens - returns one result per result target framework
-        private IAnalyzerResults BuildTargets(BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
+        private IAnalyzerResults BuildTargets(
+            BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
         {
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
                 using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
                 {
-                    using (EventProcessor eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
+                    using (EventProcessor eventProcessor =
+                        new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
                     {
                         // Run MSBuild
                         int exitCode;
-                        string fileName = GetCommand(buildEnvironment, targetFramework, targetsToBuild, pipeLogger.GetClientHandle(), out string arguments);
-                        using (ProcessRunner processRunner = new ProcessRunner(fileName, arguments, Path.GetDirectoryName(ProjectFile.Path), GetEffectiveEnvironmentVariables(buildEnvironment), Manager.LoggerFactory))
+                        string fileName = GetCommand(
+                            buildEnvironment,
+                            targetFramework,
+                            targetsToBuild,
+                            pipeLogger.GetClientHandle(),
+                            out string arguments);
+                        using (ProcessRunner processRunner = new ProcessRunner(
+                            fileName,
+                            arguments,
+                            buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
+                            GetEffectiveEnvironmentVariables(buildEnvironment),
+                            Manager.LoggerFactory))
                         {
                             processRunner.Start();
                             pipeLogger.ReadAll();

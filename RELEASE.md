@@ -1,3 +1,7 @@
+# 6.0.1
+
+- Added the ability to specify an alternate working directory for running the build in the environment options (#233).
+
 # 6.0.0
 
 - Updates Microsoft.Build to 17.0.1, along with some other dependency updates (#234, thanks @pentp).

@@ -118,7 +118,8 @@ namespace Buildalyzer.Environment
                 options.DotnetExePath,
                 options.Arguments,
                 additionalGlobalProperties,
-                additionalEnvironmentVariables);
+                additionalEnvironmentVariables,
+                options.WorkingDirectory);
         }
 
         private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
@@ -156,7 +157,8 @@ namespace Buildalyzer.Environment
                 options.DotnetExePath,
                 options.Arguments,
                 additionalGlobalProperties,
-                options.EnvironmentVariables);
+                options.EnvironmentVariables,
+                options.WorkingDirectory);
         }
 
         private bool GetFrameworkMsBuildExePath(out string msBuildExePath)

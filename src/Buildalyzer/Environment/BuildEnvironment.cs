@@ -45,6 +45,8 @@ namespace Buildalyzer.Environment
 
         public string DotnetExePath { get; }
 
+        public string WorkingDirectory { get; }
+
         /// <summary>
         /// Indicates if the <c>-noAutoResponse</c> argument should be set (the default is <c>true</c>).
         /// This is required if a <c>.rsp</c> file might conflict with the command-line arguments and binary
@@ -68,12 +70,14 @@ namespace Buildalyzer.Environment
             string dotnetExePath,
             IEnumerable<string> arguments,
             IDictionary<string, string> additionalGlobalProperties = null,
-            IDictionary<string, string> additionalEnvironmentVariables = null)
+            IDictionary<string, string> additionalEnvironmentVariables = null,
+            string workingDirectory = null)
         {
             DesignTime = designTime;
             Restore = restore;
             TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
             Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+            WorkingDirectory = workingDirectory;
 
             // Check if we've already specified a path to MSBuild
             string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
@@ -159,6 +163,7 @@ namespace Buildalyzer.Environment
                 DotnetExePath,
                 Arguments,
                 _additionalGlobalProperties,
-                _additionalEnvironmentVariables);
+                _additionalEnvironmentVariables,
+                WorkingDirectory);
     }
 }

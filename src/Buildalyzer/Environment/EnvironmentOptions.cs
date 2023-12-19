@@ -58,5 +58,11 @@ namespace Buildalyzer.Environment
         /// Additional MSBuild command-line arguments to use.
         /// </summary>
         public IList<string> Arguments { get; } = new List<string>();
+
+        /// <summary>
+        /// Specifies an alternate working directory to use for the build instead of the project file directory.
+        /// Set to (or keep as) null to use the directory of the project file being built as the working directory.
+        /// </summary>
+        public string WorkingDirectory { get; set; }
     }
 }

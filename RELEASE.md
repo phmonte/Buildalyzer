@@ -1,6 +1,9 @@
-# 5.0.2
+# 6.0.0
 
+- Updates Microsoft.Build to 17.0.1, along with some other dependency updates (#234, thanks @pentp).
 - Ensures paths being passed to Roslyn in Buildalyzer.Workspaces are absolute (#232, thanks @tjchester).
+- Support for nullable context options in Buildalyzer.Workspaces (#235, thanks @Corniel).
+- Added a `DOTNET_INFO_WAIT_TIME` environment variable that can be used to specify an alternate amount of time to wait for `dotnet --info` to complete when getting local SDK information (#236, thanks @phmonte).
 
 # 5.0.1
 

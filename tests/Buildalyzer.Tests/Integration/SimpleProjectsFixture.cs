@@ -155,16 +155,14 @@ namespace Buildalyzer.Tests.Integration
             };
 
             // When
-            IReadOnlyList<string> references = analyzer.Build(options).First().References;
+            IAnalyzerResults results = analyzer.Build(options);
 
             // Then
-            references.ShouldNotBeNull(log.ToString());
-            references.ShouldContain(
-                x => x.Contains("mscorlib"),
-                log.ToString() + System.Environment.NewLine + "References:" + string.Join(System.Environment.NewLine, references));
+            results.ShouldAllBe(x => x.References != null, log.ToString());
+            results.Any(x => x.References.Any(r => r.Contains("mscorlib"))).ShouldBeTrue(log.ToString());
             if (projectFile.Contains("PackageReference"))
             {
-                references.ShouldContain(x => x.EndsWith("NodaTime.dll"), log.ToString());
+                results.Any(x => x.References.Any(r => r.EndsWith("NodaTime.dll"))).ShouldBeTrue(log.ToString());
             }
         }
 
@@ -246,7 +244,7 @@ namespace Buildalyzer.Tests.Integration
             // Then
             // Multi-targeting projects product an extra result with an empty target framework that holds some MSBuild properties (I.e. the "outer" build)
             results.Count.ShouldBe(3);
-            results.TargetFrameworks.ShouldBe(new[] { "net462", "netstandard2.0", string.Empty }, ignoreOrder: false, log.ToString());
+            results.TargetFrameworks.ShouldBe(new[] { string.Empty, "net462", "netstandard2.0" }, ignoreOrder: false, log.ToString());
             results[string.Empty].SourceFiles.ShouldBeEmpty();
             new[]
             {

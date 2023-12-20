@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace Buildalyzer
 
         public IAnalyzerResult this[string targetFramework] => _results[targetFramework];
 
-        public IEnumerable<string> TargetFrameworks => _results.Keys.OrderBy(e => e, TargetFrameworkComparer.Instance);
+        public IEnumerable<string> TargetFrameworks => _results.Keys.OrderBy(e => e, StringComparer.OrdinalIgnoreCase);
 
         public IEnumerable<IAnalyzerResult> Results => TargetFrameworks.Select(e => _results[e]);
 

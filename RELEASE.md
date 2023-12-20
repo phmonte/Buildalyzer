@@ -1,6 +1,7 @@
 # 6.0.1
 
 - Added the ability to specify an alternate working directory for running the build in the environment options (#233).
+- Removed the dependency on NuGet.Frameworks due to some binding issues (#240).
 
 # 6.0.0
 

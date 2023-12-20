@@ -1,3 +1,7 @@
+# 6.0.2
+
+- Changes how projects are added to the `Workspace` in Buildalyzer.Workspaces to be based on the Solution order, if there is a Solution (#241, thanks @AndreasKim).
+
 # 6.0.1
 
 - Added the ability to specify an alternate working directory for running the build in the environment options (#233).

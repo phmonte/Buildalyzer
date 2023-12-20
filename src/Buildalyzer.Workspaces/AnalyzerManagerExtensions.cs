@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Build.Construction;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
@@ -35,18 +36,28 @@ namespace Buildalyzer.Workspaces
                 .Where(x => x != null)
                 .ToList();
 
-            // Add each result to a new workspace
+            // Create a new workspace and add the solution (if there was one)
             AdhocWorkspace workspace = manager.CreateWorkspace();
-
             if (!string.IsNullOrEmpty(manager.SolutionFilePath))
             {
                 SolutionInfo solutionInfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, manager.SolutionFilePath);
                 workspace.AddSolution(solutionInfo);
+
+                // Sort the projects so the order that they're added to the workspace in the same order as the solution file
+                List<ProjectInSolution> projectsInOrder = manager.SolutionFile.ProjectsInOrder.ToList();
+                results = results
+                    .OrderBy(p => projectsInOrder.FindIndex(g => g.AbsolutePath == p.ProjectFilePath))
+                    .ToList();
             }
 
-            foreach (AnalyzerResult result in results)
+            // Add each result to the new workspace (sorted in solution order above, if we have a solution)
+            foreach (IAnalyzerResult result in results)
             {
-                result.AddToWorkspace(workspace);
+                // Check for duplicate project files and don't add them
+                if (workspace.CurrentSolution.Projects.All(p => p.FilePath != result.ProjectFilePath))
+                {
+                    result.AddToWorkspace(workspace);
+                }
             }
             return workspace;
         }

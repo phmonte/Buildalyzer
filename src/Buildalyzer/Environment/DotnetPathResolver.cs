@@ -10,6 +10,8 @@ namespace Buildalyzer.Environment
 {
     internal class DotnetPathResolver
     {
+        private const int DefaultDotNetInfoWaitTime = 10000; // 10 seconds
+
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<DotnetPathResolver> _logger;
 
@@ -61,7 +63,7 @@ namespace Buildalyzer.Environment
             {
                 int dotnetInfoWaitTime = int.TryParse(System.Environment.GetEnvironmentVariable(EnvironmentVariables.DOTNET_INFO_WAIT_TIME), out int dotnetInfoWaitTimeParsed)
                     ? dotnetInfoWaitTimeParsed
-                    : 4000;
+                    : DefaultDotNetInfoWaitTime;
                 _logger?.LogInformation($"dotnet --info wait time is {dotnetInfoWaitTime}ms");
                 processRunner.Start();
                 processRunner.WaitForExit(dotnetInfoWaitTime);

@@ -1,6 +1,7 @@
 # 6.0.2
 
-- Changes how projects are added to the `Workspace` in Buildalyzer.Workspaces to be based on the Solution order, if there is a Solution (#241, thanks @AndreasKim).
+- Changed how projects are added to the `Workspace` in Buildalyzer.Workspaces to be based on the Solution order, if there is a Solution (#241, thanks @AndreasKim).
+- Increased the default timeout for `dotnet --info` calls from 4 seconds to 10 seconds (#228). 
 
 # 6.0.1
 

@@ -1,3 +1,7 @@
+# 6.0.3
+
+- Ensured Roslyn workspaces get project references added from projects (#241, thanks @AndreasKim).
+
 # 6.0.2
 
 - Changed how projects are added to the `Workspace` in Buildalyzer.Workspaces to be based on the Solution order, if there is a Solution (#241, thanks @AndreasKim).

@@ -56,7 +56,7 @@ namespace Buildalyzer.Workspaces
                 // Check for duplicate project files and don't add them
                 if (workspace.CurrentSolution.Projects.All(p => p.FilePath != result.ProjectFilePath))
                 {
-                    result.AddToWorkspace(workspace);
+                    result.AddToWorkspace(workspace, true);
                 }
             }
             return workspace;

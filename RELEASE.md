@@ -1,3 +1,7 @@
+# 6.0.4
+
+- Restored the original sort order of projects to keep the empty target framework last (#242, thanks @0xced).
+
 # 6.0.3
 
 - Ensured Roslyn workspaces get project references added from projects (#241, thanks @AndreasKim).

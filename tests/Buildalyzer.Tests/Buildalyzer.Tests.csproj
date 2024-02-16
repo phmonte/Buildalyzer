@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
-    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="NUnit" Version="4.0.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="Shouldly" Version="3.0.2" />
+    <PackageReference Include="Shouldly" Version="4.2.1" />
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.6" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />

@@ -1,15 +1,16 @@
 <Project>
+
   <PropertyGroup>
     <Version Condition="'$(BuildalyzerVersion)' == ''">1.0.0</Version>
     <Version Condition="'$(BuildalyzerVersion)' != ''">$(BuildalyzerVersion)</Version>
     <AssemblyVersion>$(Version.Split('-')[0])</AssemblyVersion>
     <FileVersion>$(Version.Split('-')[0])</FileVersion>
-    <Authors>Dave Glick and contributors</Authors>
-    <Company>Dave Glick and contributors</Company>
+    <Authors>Dave Glick, Pablo Monteiro, and contributors</Authors>
+    <Company>Dave Glick, Pablo Monteiro, and contributors</Company>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/daveaglick/Buildalyzer</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/daveaglick/Buildalyzer.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/phmonte/Buildalyzer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/phmonte/Buildalyzer.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -17,21 +18,24 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)\LICENSE.md" Pack="true" PackagePath=""/>
     <None Include="$(MSBuildThisFileDirectory)\icon.png" Pack="true" PackagePath="\"/>
     <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Analyzers" Version="4.0.2" PrivateAssets="All"/>
-    <!-- It appears as though there might be a performance issue in versions of Microsoft.VisualStudio.Threading.Analyzers past this at least through 17.0.64 -->
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="16.9.60" PrivateAssets="All"/>
+
+<ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
   </ItemGroup>
+
+  <ItemGroup Label="Analyzers">
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="*" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="*" PrivateAssets="All"/>
+    <PackageReference Include="StyleCop.Analyzers" Version="*-*" PrivateAssets="All"/>
+  </ItemGroup>
+
 </Project>

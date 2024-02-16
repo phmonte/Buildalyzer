@@ -1,8 +1,7 @@
-﻿namespace Buildalyzer.Construction
+﻿namespace Buildalyzer.Construction;
+
+public interface IPackageReference
 {
-    public interface IPackageReference
-    {
-        string Name { get; }
-        string Version { get; }
-    }
+    string Name { get; }
+    string Version { get; }
 }

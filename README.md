@@ -11,9 +11,9 @@ A utility to perform design-time builds of .NET projects without having to think
 
 **Donations**
 
-If you found this library useful, consider [sponsoring more of it on GitHub](https://github.com/sponsors/daveaglick). I promise to use it on something totally frivolous and unrelated.
+If you found this library useful, consider [sponsoring more of it on GitHub](https://github.com/sponsors/phmonte). I promise to use it on something totally frivolous and unrelated.
 
-[![Sponsor](https://img.shields.io/github/sponsors/daveaglick?style=social&logo=github-sponsors)](https://github.com/sponsors/daveaglick)
+[![Sponsor](https://img.shields.io/github/sponsors/phmonte?style=social&logo=github-sponsors)](https://github.com/sponsors/phmonte)
 
 **Sponsors**
 

@@ -1,17 +1,15 @@
-﻿using System;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace Buildalyzer.Construction
+namespace Buildalyzer.Construction;
+
+public class PackageReference : IPackageReference
 {
-    public class PackageReference : IPackageReference
-    {
-        public string Name { get; }
-        public string Version { get; }
+    public string Name { get; }
+    public string Version { get; }
 
-        internal PackageReference(XElement packageReferenceElement)
-        {
-            this.Name = packageReferenceElement.GetAttributeValue("Include") ?? packageReferenceElement.GetAttributeValue("Update");
-            this.Version = packageReferenceElement.GetAttributeValue("Version");
-        }
+    internal PackageReference(XElement packageReferenceElement)
+    {
+        this.Name = packageReferenceElement.GetAttributeValue("Include") ?? packageReferenceElement.GetAttributeValue("Update");
+        this.Version = packageReferenceElement.GetAttributeValue("Version");
     }
 }

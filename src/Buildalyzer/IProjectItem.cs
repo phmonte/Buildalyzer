@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace Buildalyzer
+namespace Buildalyzer;
+
+public interface IProjectItem
 {
-    public interface IProjectItem
-    {
-        string ItemSpec { get; }
-        IReadOnlyDictionary<string, string> Metadata { get; }
-    }
+    string ItemSpec { get; }
+    IReadOnlyDictionary<string, string> Metadata { get; }
 }

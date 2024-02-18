@@ -1,10 +1,9 @@
 ﻿using System.Collections;
 
-namespace Buildalyzer.Logging
+namespace Buildalyzer.Logging;
+
+internal class PropertiesAndItems
 {
-    internal class PropertiesAndItems
-    {
-        public IEnumerable Properties { get; set; }
-        public IEnumerable Items { get; set; }
-    }
+    public IEnumerable Properties { get; set; }
+    public IEnumerable Items { get; set; }
 }

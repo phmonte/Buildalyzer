@@ -1,48 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using Buildalyzer.Environment;
 using NUnit.Framework;
 using Shouldly;
 
-namespace Buildalyzer.Tests.Environment
+namespace Buildalyzer.Tests.Environment;
+
+[TestFixture]
+public class DotnetPathResolverFixture
 {
-    [TestFixture]
-    public class DotnetPathResolverFixture
+    [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
+    [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.300\")]
+    [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.401/")]
+    public void CanParseBasePath([NotNull] string output, string basePath)
     {
-        [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
-        [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.300\")]
-        [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.401/")]
-        public void CanParseBasePath([NotNull] string output, string basePath)
-        {
-            // Given
-            List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
+        // Given
+        List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
 
-            // When
-            string result = DotnetPathResolver.ParseBasePath(lines);
+        // When
+        string result = DotnetPathResolver.ParseBasePath(lines);
 
-            // Then
-            result.ShouldBe(basePath);
-        }
+        // Then
+        result.ShouldBe(basePath);
+    }
 
-        [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
-        [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.201\")]
-        [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.201/")]
-        public void CanParseInstalledSdksPath([NotNull] string output, string sdksPath)
-        {
-            // Given
-            List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
+    [TestCase(WindowsNetOutput, @"C:\Program Files\dotnet\sdk\6.0.100\")]
+    [TestCase(WindowsNetCoreOutput, @"C:\Program Files\dotnet\sdk\2.1.201\")]
+    [TestCase(LinuxOutput, "/usr/share/dotnet/sdk/2.1.201/")]
+    public void CanParseInstalledSdksPath([NotNull] string output, string sdksPath)
+    {
+        // Given
+        List<string> lines = output.Split("\n").Select(x => x.Trim('\r')).ToList();
 
-            // When
-            string result = DotnetPathResolver.ParseInstalledSdksPath(lines);
+        // When
+        string result = DotnetPathResolver.ParseInstalledSdksPath(lines);
 
-            // Then
-            AnalyzerManager.NormalizePath(result).ShouldBe(AnalyzerManager.NormalizePath(sdksPath));
-        }
+        // Then
+        AnalyzerManager.NormalizePath(result).ShouldBe(AnalyzerManager.NormalizePath(sdksPath));
+    }
 
-        public const string LinuxOutput = @".NET Core SDK (reflecting any global.json):
+    public const string LinuxOutput = @".NET Core SDK (reflecting any global.json):
 Version:   2.1.401
 Commit:    91b1c13032
 
@@ -69,7 +67,7 @@ Host (useful for support):
 To install additional .NET Core runtimes or SDKs:
   https://aka.ms/dotnet-download";
 
-        public const string WindowsNetCoreOutput = @".NET Core SDK (reflecting any global.json):
+    public const string WindowsNetCoreOutput = @".NET Core SDK (reflecting any global.json):
  Version:   2.1.300
  Commit:    adab45bf0c
 
@@ -100,7 +98,7 @@ Host (useful for support):
 To install additional .NET Core runtimes or SDKs:
   https://aka.ms/dotnet-download";
 
-        public const string WindowsNetOutput = @".NET SDK (reflecting any global.json):
+    public const string WindowsNetOutput = @".NET SDK (reflecting any global.json):
  Version:   6.0.100
  Commit:    9e8b04bbff
 
@@ -233,5 +231,4 @@ Host (useful for support):
 
 To install additional .NET runtimes or SDKs:
   https://aka.ms/dotnet-download";
-    }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Buildalyzer
+namespace Buildalyzer;
+
+public class EmptyDisposable : IDisposable
 {
-    public class EmptyDisposable : IDisposable
+    public void Dispose()
     {
-        public void Dispose()
-        {
-        }
     }
 }

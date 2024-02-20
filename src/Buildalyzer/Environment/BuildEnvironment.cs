@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.NetworkInformation;
 
 namespace Buildalyzer.Environment;
 
@@ -101,25 +102,7 @@ public sealed class BuildEnvironment
         };
         if (DesignTime)
         {
-            // The actual design-time tasks aren't available outside of Visual Studio,
-            // so we can't do a "real" design-time build and have to fake it with various global properties
-            // See https://github.com/dotnet/msbuild/blob/fb700f90493a0bf47623511edf28b1d6c114e4fa/src/Tasks/Microsoft.CSharp.CurrentVersion.targets#L320
-            // To diagnose build failures in design-time mode, generate a binary log and find the filing target,
-            // then see if there's a condition or property that can be used to modify it's behavior or turn it off
-            _globalProperties.Add(MsBuildProperties.DesignTimeBuild, "true");
-            _globalProperties.Add(MsBuildProperties.BuildingProject, "false"); // Supports Framework projects: https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build
-            _globalProperties.Add(MsBuildProperties.BuildProjectReferences, "false");
-            _globalProperties.Add(MsBuildProperties.SkipCompilerExecution, "true");
-            _globalProperties.Add(MsBuildProperties.DisableRarCache, "true");
-            _globalProperties.Add(MsBuildProperties.AutoGenerateBindingRedirects, "false");
-            _globalProperties.Add(MsBuildProperties.CopyBuildOutputToOutputDirectory, "false");
-            _globalProperties.Add(MsBuildProperties.CopyOutputSymbolsToOutputDirectory, "false");
-            _globalProperties.Add(MsBuildProperties.CopyDocumentationFileToOutputDirectory, "false");
-            _globalProperties.Add(MsBuildProperties.ComputeNETCoreBuildOutputFiles, "false"); // Prevents the CreateAppHost task from running, which doesn't add the apphost.exe to the files to copy
-            _globalProperties.Add(MsBuildProperties.SkipCopyBuildProduct, "true");
-            _globalProperties.Add(MsBuildProperties.AddModules, "false");
-            _globalProperties.Add(MsBuildProperties.UseCommonOutputDirectory, "true");  // This is used in a condition to prevent copying in _CopyFilesMarkedCopyLocal
-            _globalProperties.Add(MsBuildProperties.GeneratePackageOnBuild, "false");  // Prevent NuGet.Build.Tasks.Pack.targets from running the pack targets (since we didn't build anything)
+            _globalProperties = CopyItems(_globalProperties, MsBuildProperties.DesignTime);
         }
         _additionalGlobalProperties = CopyItems(_globalProperties, additionalGlobalProperties);
 
@@ -128,7 +111,7 @@ public sealed class BuildEnvironment
         _additionalEnvironmentVariables = CopyItems(_environmentVariables, additionalEnvironmentVariables);
     }
 
-    private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IDictionary<string, string> source)
+    private Dictionary<string, string> CopyItems(Dictionary<string, string> destination, IEnumerable<KeyValuePair<string, string>> source)
     {
         if (source != null)
         {

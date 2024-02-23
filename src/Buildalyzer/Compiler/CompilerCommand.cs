@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿#nullable enable
+
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
@@ -20,4 +22,10 @@ public abstract record CompilerCommand
     public abstract ImmutableArray<string> PreprocessorSymbolNames { get; }
 
     public abstract ImmutableArray<string> ReferencePaths { get; }
+
+    public string Text { get; init; } = string.Empty;
+
+    /// <inheritdoc />
+    [Pure]
+    public override string ToString() => Text ?? string.Empty;
 }

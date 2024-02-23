@@ -43,16 +43,21 @@ public static class Compiler
         public static CompilerCommand Parse(string commandline, CompilerLanguage language)
         {
             var tokens = Tokenize(commandline, language) ?? throw new FormatException("Commandline could not be parsed.");
-            
-            var root = tokens[0];
-            var args = tokens[1..];
 
-            return language switch
+            return Parse(tokens[0], tokens[1..], language) with
             {
-                CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, ".", root)),
-                CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, ".", root)),
-                _ => throw new NotSupportedException($"The {language} language is not supported."),
+                Text = commandline,
             };
+
+            CompilerCommand Parse(string root, string[] args, CompilerLanguage language)
+            {
+                return language switch
+                {
+                    CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, ".", root)),
+                    CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, ".", root)),
+                    _ => throw new NotSupportedException($"The {language} language is not supported."),
+                };
+            }
         }
     }
 }

@@ -30,10 +30,10 @@ public sealed class DotNetInfo
     public string? GlobalJson { get; init; }
 
     /// <summary>The installed SDK's.</summary>
-    public IReadOnlyDictionary<string, string> SDKs { get; init; } = new Dictionary<string, string>();
+    public ImmutableDictionary<string, string> SDKs { get; init; } = ImmutableDictionary<string, string>.Empty;
 
     /// <summary>The installed Runtimes.</summary>
-    public IReadOnlyDictionary<string, string> Runtimes { get; init; } = new Dictionary<string, string>();
+    public ImmutableDictionary<string, string> Runtimes { get; init; } = ImmutableDictionary<string, string>.Empty;
 
     /// <summary>Parses the input.</summary>
     [Pure]

@@ -72,8 +72,8 @@ internal static class DotNetInfoParser
             RID = rid,
             BasePath = basePath,
             GlobalJson = globalJson,
-            SDKs = sdks,
-            Runtimes = runtimes,
+            SDKs = sdks.ToImmutableDictionary(),
+            Runtimes = runtimes.ToImmutableDictionary(),
         };
 
         void AddSdk(string line)

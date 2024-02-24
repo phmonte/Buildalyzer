@@ -704,10 +704,31 @@ public class SimpleProjectsFixture
         StringWriter log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
 
-        // When + then
-        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
-            .Should().BeEquivalentTo("message.txt");
-    }
+        // When
+        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+
+        [Test]
+        public void GetsProjectFileAsAdditionalFile()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
+
+            // When
+            IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+
+            // Then
+            additionalFiles.ShouldBe(new[] { "ProjectFileAsAdditionalFile.csproj" }, log.ToString());
+        }
+
+        private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        {
+            IProjectAnalyzer analyzer = new AnalyzerManager(
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                })
+                .GetProject(GetProjectPath(projectFile));
 
     [Test]
     public void HandlesProcessFailure()

@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
-using System.ComponentModel;
+using System.Collections.Immutable;
+using System.IO;
 using FSharp.Compiler.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,7 +35,7 @@ public static class Compiler
                     {
                         if (args[i].EndsWith(exec, StringComparison.OrdinalIgnoreCase))
                         {
-                            return args[(i + 1)..];
+                            return args[i..];
                         }
                     }
                 }
@@ -43,28 +44,32 @@ public static class Compiler
         }
 
         [Pure]
-        public static CompilerCommand Parse(string commandline, CompilerLanguage language)
+        public static CompilerCommand Parse(DirectoryInfo? baseDir, string commandline, CompilerLanguage language)
         {
             var tokens = Tokenize(commandline, language) ?? throw new FormatException("Commandline could not be parsed.");
+            var location = new FileInfo(tokens[0]);
+            var args = tokens[1..];
 
-            return Parse(tokens[0], tokens[1..], language) with
+            return Parse(baseDir?.ToString(), location.Directory?.ToString(), args, language) with
             {
                 Text = commandline,
+                CompilerLocation = location,
+                Arguments = args.ToImmutableArray(),
             };
 
-            CompilerCommand Parse(string root, string[] args, CompilerLanguage language)
+            CompilerCommand Parse(string? baseDir, string? root, string[] args, CompilerLanguage language)
             {
                 return language switch
                 {
-                    CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, ".", root)),
-                    CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, ".", root)),
+                    CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, baseDir, root)),
+                    CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, baseDir, root)),
                     CompilerLanguage.FSharp => FSharp(root, args),
                     _ => throw new NotSupportedException($"The {language} language is not supported."),
                 };
             }
         }
 
-        private static CompilerCommand FSharp(string root, string[] args)
+        private static CompilerCommand FSharp(string? root, string[] args)
         {
             var checker = FSharpChecker.Instance;
             var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(args), isInteractive: true, isEditing: false);

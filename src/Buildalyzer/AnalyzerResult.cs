@@ -64,7 +64,7 @@ public class AnalyzerResult : IAnalyzerResult
     public string Command => CompilerCommand?.Text ?? _command;
 
     /// <inheritdoc/>
-    public string CompilerFilePath => _compilerFilePath;
+    public string CompilerFilePath => CompilerCommand?.CompilerLocation?.ToString() ?? _compilerFilePath;
 
     /// <inheritdoc/>
     public string[] CompilerArguments => _compilerArguments;
@@ -180,7 +180,7 @@ public class AnalyzerResult : IAnalyzerResult
             return;
         }
         ProcessedCommandLine cmd = ProcessCscCommandLine(commandLine);
-        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.CSharp);
+        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
         _compilerArguments = cmd.Arguments.ToArray();
@@ -268,7 +268,7 @@ public class AnalyzerResult : IAnalyzerResult
             }
         }
 
-        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.VisualBasic);
+        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.VisualBasic);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
         _compilerArguments = cmd.Arguments.ToArray();
@@ -392,7 +392,7 @@ public class AnalyzerResult : IAnalyzerResult
             }
         }
 
-        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.FSharp);
+        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.FSharp);
         _fscCommandLineArguments = processedArguments;
         _compilerArguments = arguments.ToArray();
     }

@@ -8,34 +8,31 @@ public abstract record RoslynBasedCompilerCommand<TArguments> : CompilerCommand
 {
     protected RoslynBasedCompilerCommand(TArguments arguments)
     {
-        Arguments = Guard.NotNull(arguments);
-        PreprocessorSymbolNames = Arguments.ParseOptions.PreprocessorSymbolNames.ToImmutableArray();
+        CommandLineArguments = Guard.NotNull(arguments);
+        PreprocessorSymbolNames = CommandLineArguments.ParseOptions.PreprocessorSymbolNames.ToImmutableArray();
     }
 
     /// <summary>The Roslyn comppiler arguments.</summary>
-    public TArguments Arguments { get; }
+    public TArguments CommandLineArguments { get; }
 
     /// <inheritdoc />
-    public override CompilerLanguage Language => CompilerLanguage.VisualBasic;
+    public override ImmutableArray<Diagnostic> Errors => CommandLineArguments.Errors;
 
     /// <inheritdoc />
-    public override ImmutableArray<Diagnostic> Errors => Arguments.Errors;
+    public override ImmutableArray<CommandLineSourceFile> SourceFiles => CommandLineArguments.SourceFiles;
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> SourceFiles => Arguments.SourceFiles;
+    public override ImmutableArray<CommandLineSourceFile> AdditionalFiles => CommandLineArguments.AdditionalFiles;
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> AdditionalFiles => Arguments.AdditionalFiles;
+    public override ImmutableArray<CommandLineSourceFile> EmbeddedFiles => CommandLineArguments.EmbeddedFiles;
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> EmbeddedFiles => Arguments.EmbeddedFiles;
-
-    /// <inheritdoc />
-    public override ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences => Arguments.AnalyzerReferences;
+    public override ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences => CommandLineArguments.AnalyzerReferences;
 
     /// <inheritdoc />
     public override ImmutableArray<string> PreprocessorSymbolNames { get; }
 
     /// <inheritdoc />
-    public override ImmutableArray<string> ReferencePaths => Arguments.ReferencePaths;
+    public override ImmutableArray<string> ReferencePaths => CommandLineArguments.ReferencePaths;
 }

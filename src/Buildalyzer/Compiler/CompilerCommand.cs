@@ -1,10 +1,13 @@
 ﻿#nullable enable
 
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
 using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
 
+[DebuggerDisplay("{Language.Display()}: {Text}")]
 public abstract record CompilerCommand
 {
     /// <summary>The compiler lanuague.</summary>
@@ -12,6 +15,12 @@ public abstract record CompilerCommand
 
     /// <summary>The original text of the compiler command.</summary>
     public string Text { get; init; } = string.Empty;
+
+    /// <summary>The parsed command line arguments.</summary>
+    public ImmutableArray<string> Arguments { get; init; }
+
+    /// <summary>The location of the used compiler.</summary>
+    public FileInfo? CompilerLocation { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.Errors" />
     public abstract ImmutableArray<Diagnostic> Errors { get; }

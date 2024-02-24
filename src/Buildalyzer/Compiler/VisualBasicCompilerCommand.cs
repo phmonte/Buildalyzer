@@ -8,4 +8,7 @@ public sealed record VisualBasicCompilerCommand : RoslynBasedCompilerCommand<Vis
        : base(arguments)
     {
     }
+
+    /// <inheritdoc />
+    public override CompilerLanguage Language => CompilerLanguage.VisualBasic;
 }

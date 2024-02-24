@@ -8,4 +8,7 @@ public sealed record CSharpCompilerCommand : RoslynBasedCompilerCommand<CSharpCo
         : base(arguments)
     {
     }
+
+    /// <inheritdoc />
+    public override CompilerLanguage Language => CompilerLanguage.CSharp;
 }

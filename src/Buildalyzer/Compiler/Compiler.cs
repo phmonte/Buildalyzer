@@ -1,8 +1,11 @@
 ﻿#nullable enable
 
+using System.ComponentModel;
+using FSharp.Compiler.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.FSharp.Collections;
 
 namespace Buildalyzer;
 
@@ -55,9 +58,17 @@ public static class Compiler
                 {
                     CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, ".", root)),
                     CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, ".", root)),
+                    CompilerLanguage.FSharp => FSharp(root, args),
                     _ => throw new NotSupportedException($"The {language} language is not supported."),
                 };
             }
+        }
+
+        private static CompilerCommand FSharp(string root, string[] args)
+        {
+            var checker = FSharpChecker.Instance;
+            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(args), isInteractive: true, isEditing: false);
+            return new FSharpCompilerCommand(result.Item1, result.Item2);
         }
     }
 }

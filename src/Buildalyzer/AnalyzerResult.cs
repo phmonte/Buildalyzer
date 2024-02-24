@@ -392,6 +392,7 @@ public class AnalyzerResult : IAnalyzerResult
             }
         }
 
+        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.FSharp);
         _fscCommandLineArguments = processedArguments;
         _compilerArguments = arguments.ToArray();
     }

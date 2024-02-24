@@ -23,7 +23,6 @@ public class AnalyzerResult : IAnalyzerResult
     private List<(string, string)> _fscCommandLineArguments;
     private List<(string, string)> _vbcCommandLineArguments;
     private string _command;
-    private string[] _compilerArguments;
     private string _compilerFilePath;
 
     public CompilerCommand CompilerCommand { get; private set; }
@@ -67,7 +66,7 @@ public class AnalyzerResult : IAnalyzerResult
     public string CompilerFilePath => CompilerCommand?.CompilerLocation?.ToString() ?? _compilerFilePath;
 
     /// <inheritdoc/>
-    public string[] CompilerArguments => _compilerArguments;
+    public string[] CompilerArguments => CompilerCommand?.Arguments.ToArray() ?? [];
 
     /// <inheritdoc/>
     public string GetProperty(string name) =>
@@ -81,20 +80,9 @@ public class AnalyzerResult : IAnalyzerResult
         .FirstOrDefault();
 
     public string[] SourceFiles =>
-        _cscCommandLineArguments
-            ?.Where(x => x.Item1 == null
-                && !string.Equals(Path.GetFileName(x.Item2), "csc.dll", StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(Path.GetFileName(x.Item2), "csc.exe", StringComparison.OrdinalIgnoreCase))
-            .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-            .ToArray() ?? _fscCommandLineArguments
-            ?.Where(x => x.Item1 == null
-                && x.Item2?.Contains("fsc.dll") == false
-                && x.Item2?.Contains("fsc.exe") == false)
-            .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-            .ToArray() ?? _vbcCommandLineArguments
-            ?.Where(x => x.Item1 == null && !_assemblyObjects.Contains(Path.GetFileName(x.Item2), StringComparer.OrdinalIgnoreCase))
-            .Select(x => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.Item2)))
-            .ToArray() ?? Array.Empty<string>();
+        CompilerCommand?.SourceFiles
+            .Select(file => AnalyzerManager.NormalizePath(Path.Combine(Path.GetDirectoryName(ProjectFilePath), file.Path)))
+            .ToArray() ?? [];
 
     public string[] References =>
         _cscCommandLineArguments
@@ -117,19 +105,7 @@ public class AnalyzerResult : IAnalyzerResult
             .Select(x => x.Item2)
             .ToArray() ?? Array.Empty<string>();
 
-    public string[] PreprocessorSymbols =>
-        CompilerCommand?.PreprocessorSymbolNames.ToArray() ??
-        _cscCommandLineArguments
-            ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
-            .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-            .Select(x => x.Trim())
-            .ToArray()
-        ?? _vbcCommandLineArguments
-            ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
-            .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
-            .Select(x => x.Trim())
-            .ToArray()
-        ?? Array.Empty<string>();
+    public string[] PreprocessorSymbols => CompilerCommand?.PreprocessorSymbolNames.ToArray() ?? [];
 
     public string[] AdditionalFiles =>
         _cscCommandLineArguments
@@ -183,7 +159,6 @@ public class AnalyzerResult : IAnalyzerResult
         CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
-        _compilerArguments = cmd.Arguments.ToArray();
         _cscCommandLineArguments = cmd.ProcessedArguments;
     }
 
@@ -271,7 +246,6 @@ public class AnalyzerResult : IAnalyzerResult
         CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.VisualBasic);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
-        _compilerArguments = cmd.Arguments.ToArray();
         _vbcCommandLineArguments = cmd.ProcessedArguments;
     }
 
@@ -394,7 +368,6 @@ public class AnalyzerResult : IAnalyzerResult
 
         CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.FSharp);
         _fscCommandLineArguments = processedArguments;
-        _compilerArguments = arguments.ToArray();
     }
 
     private static IEnumerable<string> EnumerateCommandLinePartsFsc(string commandLine, bool initialCommand)

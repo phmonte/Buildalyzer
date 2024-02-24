@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Build" Version="17.0.1" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.0.1" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.815" Aliases="StructuredLogger" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.9.1" />
   </ItemGroup>
 
   <ItemGroup>

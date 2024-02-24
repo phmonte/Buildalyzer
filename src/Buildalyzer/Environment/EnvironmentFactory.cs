@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.Logging;
+using NuGet.Frameworks;
 
 namespace Buildalyzer.Environment;
 
@@ -198,11 +199,10 @@ public class EnvironmentFactory
 
     // Internal for testing
     // Because the .NET Core/.NET 5 TFMs are better defined, we just check if this is one of them and then negate
-    internal static bool IsFrameworkTargetFramework(string targetFramework) =>
-        !(targetFramework.StartsWith("netcoreapp", StringComparison.OrdinalIgnoreCase)
-        || targetFramework.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase)
-        || (targetFramework.StartsWith("net", StringComparison.OrdinalIgnoreCase)
-            && targetFramework.Length > 3
-            && int.TryParse(new string(new[] { targetFramework[3] }), out int version)
-            && version >= 5));
+    internal static bool IsFrameworkTargetFramework(string targetFramework)
+    {
+        NuGetFramework tfm = NuGetFramework.Parse(targetFramework);
+        return tfm.Framework != ".NETStandard"
+            && tfm.Framework != ".NETCoreApp";
+    }
 }

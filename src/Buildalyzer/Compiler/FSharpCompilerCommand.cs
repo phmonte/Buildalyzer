@@ -8,14 +8,23 @@ namespace Buildalyzer;
 
 public sealed record FSharpCompilerCommand : CompilerCommand
 {
-    public FSharpCompilerCommand(FSharpParsingOptions options, FSharpList<FSharpDiagnostic> diagnostics)
+    public FSharpCompilerCommand(
+        FSharpParsingOptions options,
+        FSharpList<FSharpDiagnostic> diagnostics,
+        IEnumerable<string> metadataReferences)
     {
         Options = Guard.NotNull(options);
         Errors = diagnostics.Select(AsDiagnostic).ToImmutableArray();
         SourceFiles = Options.SourceFiles.Select(AsCommandLineSourceFile).ToImmutableArray();
         PreprocessorSymbolNames = Options.ConditionalDefines.ToImmutableArray();
+        MetadataReferences = metadataReferences.Select(AsMetadataReference).ToImmutableArray();
     }
 
+    [Pure]
+    public static CommandLineReference AsMetadataReference(string r)
+        => new CommandLineReference(r, new MetadataReferenceProperties(MetadataImageKind.Assembly));
+
+    [Pure]
     private static Diagnostic AsDiagnostic(FSharpDiagnostic d)
         => Diagnostic.Create(
             id: d.ErrorNumberText,
@@ -49,9 +58,14 @@ public sealed record FSharpCompilerCommand : CompilerCommand
 
     public override ImmutableArray<CommandLineSourceFile> EmbeddedFiles => throw new NotImplementedException();
 
-    public override ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences => throw new NotImplementedException();
+    /// <inheritdoc />
+    /// <remarks>
+    /// Not supported by F#.
+    /// </remarks>
+    public override ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; }
 
     public override ImmutableArray<string> PreprocessorSymbolNames { get; }
 
-    public override ImmutableArray<string> ReferencePaths => throw new NotImplementedException();
+    /// <inheritdoc />
+    public override ImmutableArray<CommandLineReference> MetadataReferences { get; }
 }

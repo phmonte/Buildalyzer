@@ -9,7 +9,7 @@ public enum CompilerLanguage
     /// <summary>C#.</summary>
     CSharp = 1,
 
-    /// <summary>VB .NET.</summary>
+    /// <summary>VB.NET.</summary>
     VisualBasic = 2,
 
     /// <summary>F#.</summary>

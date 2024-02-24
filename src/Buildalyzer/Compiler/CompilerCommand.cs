@@ -40,8 +40,8 @@ public abstract record CompilerCommand
     /// <inheritdoc  cref="ParseOptions.PreprocessorSymbolNames" />
     public abstract ImmutableArray<string> PreprocessorSymbolNames { get; }
 
-    /// <inheritdoc  cref="CommandLineArguments.AnalyzerReferences" />
-    public abstract ImmutableArray<string> ReferencePaths { get; }
+    /// <inheritdoc  cref="CommandLineArguments.MetadataReferences" />
+    public abstract ImmutableArray<CommandLineReference> MetadataReferences { get; }
 
     /// <inheritdoc />
     [Pure]

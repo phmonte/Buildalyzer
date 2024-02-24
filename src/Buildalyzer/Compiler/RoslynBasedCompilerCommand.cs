@@ -34,5 +34,5 @@ public abstract record RoslynBasedCompilerCommand<TArguments> : CompilerCommand
     public override ImmutableArray<string> PreprocessorSymbolNames { get; }
 
     /// <inheritdoc />
-    public override ImmutableArray<string> ReferencePaths => CommandLineArguments.ReferencePaths;
+    public override ImmutableArray<CommandLineReference> MetadataReferences => CommandLineArguments.MetadataReferences;
 }

@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using Buildalyzer.Environment;
 using FluentAssertions;
-using NUnit.Framework;
 using Shouldly;
 
 namespace Buildalyzer.Tests.Integration;

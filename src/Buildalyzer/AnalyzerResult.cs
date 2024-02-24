@@ -1,3 +1,4 @@
+using System.Collections;
 using System.IO;
 using Buildalyzer.Construction;
 using Buildalyzer.Logging;
@@ -24,6 +25,8 @@ public class AnalyzerResult : IAnalyzerResult
     private string _command;
     private string[] _compilerArguments;
     private string _compilerFilePath;
+
+    public CompilerCommand CompilerCommand { get; private set; }
 
     internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
     {
@@ -58,7 +61,7 @@ public class AnalyzerResult : IAnalyzerResult
     public Guid ProjectGuid => _projectGuid;
 
     /// <inheritdoc/>
-    public string Command => _command;
+    public string Command => CompilerCommand?.Text ?? _command;
 
     /// <inheritdoc/>
     public string CompilerFilePath => _compilerFilePath;
@@ -115,6 +118,7 @@ public class AnalyzerResult : IAnalyzerResult
             .ToArray() ?? Array.Empty<string>();
 
     public string[] PreprocessorSymbols =>
+        CompilerCommand?.PreprocessorSymbolNames.ToArray() ??
         _cscCommandLineArguments
             ?.Where(x => x.Item1 is object && x.Item1.Equals("define", StringComparison.OrdinalIgnoreCase))
             .SelectMany(x => x.Item2.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
@@ -176,6 +180,7 @@ public class AnalyzerResult : IAnalyzerResult
             return;
         }
         ProcessedCommandLine cmd = ProcessCscCommandLine(commandLine);
+        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.CSharp);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
         _compilerArguments = cmd.Arguments.ToArray();
@@ -263,6 +268,7 @@ public class AnalyzerResult : IAnalyzerResult
             }
         }
 
+        CompilerCommand = Compiler.CommandLine.Parse(commandLine, CompilerLanguage.VisualBasic);
         _command = cmd.Command;
         _compilerFilePath = cmd.FileName;
         _compilerArguments = cmd.Arguments.ToArray();

@@ -1,22 +1,16 @@
-﻿using System.Collections.Immutable;
-using FSharp.Compiler.CodeAnalysis;
-using FSharp.Compiler.Diagnostics;
-using Microsoft.CodeAnalysis;
-using Microsoft.FSharp.Collections;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
 
 public sealed record FSharpCompilerCommand : CompilerCommand
 {
     public FSharpCompilerCommand(
-        FSharpParsingOptions options,
-        FSharpList<FSharpDiagnostic> diagnostics,
+        IEnumerable<string> sourceFiles,
+        IEnumerable<string> preprocessorSymbolNames,
         IEnumerable<string> metadataReferences)
     {
-        Options = Guard.NotNull(options);
-        Errors = diagnostics.Select(AsDiagnostic).ToImmutableArray();
-        SourceFiles = Options.SourceFiles.Select(AsCommandLineSourceFile).ToImmutableArray();
-        PreprocessorSymbolNames = Options.ConditionalDefines.ToImmutableArray();
+        SourceFiles = sourceFiles.Select(AsCommandLineSourceFile).ToImmutableArray();
+        PreprocessorSymbolNames = preprocessorSymbolNames.ToImmutableArray();
         MetadataReferences = metadataReferences.Select(AsMetadataReference).ToImmutableArray();
     }
 
@@ -25,21 +19,7 @@ public sealed record FSharpCompilerCommand : CompilerCommand
         => new CommandLineReference(r, new MetadataReferenceProperties(MetadataImageKind.Assembly));
 
     [Pure]
-    private static Diagnostic AsDiagnostic(FSharpDiagnostic d)
-        => Diagnostic.Create(
-            id: d.ErrorNumberText,
-            category: d.Subcategory,
-            message: d.Message,
-            severity: DiagnosticSeverity.Error, // d.Severity,
-            defaultSeverity:  DiagnosticSeverity.Error, ///d.Severity,
-            isEnabledByDefault: true, // TODO
-            warningLevel: 3, //TODO
-            location: Location.Create(d.FileName, default, default)); // TODO: map location
-
-    [Pure]
     private static CommandLineSourceFile AsCommandLineSourceFile(string path) => new(path, isScript: false); // TODO: resolve when it is a script.
-
-    public FSharpParsingOptions Options { get; }
 
     /// <inheritdoc />
     public override CompilerLanguage Language => CompilerLanguage.FSharp;

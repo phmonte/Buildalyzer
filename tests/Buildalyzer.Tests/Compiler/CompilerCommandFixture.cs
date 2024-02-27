@@ -118,7 +118,7 @@ Program.fs";
         {
             Text = commandline,
             Language = CompilerLanguage.FSharp,
-            PreprocessorSymbolNames = new[] { "NETCOREAPP3_1_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP3_1", "NETCOREAPP", "DEBUG", "TRACE", "INTERACTIVE" },
+            PreprocessorSymbolNames = new[] { "NETCOREAPP3_1_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP3_1", "NETCOREAPP", "DEBUG", "TRACE" },
             SourceFiles = Files("obj\\Debug\\netcoreapp3.1\\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs", "obj\\Debug\\netcoreapp3.1\\FSharpProject.AssemblyInfo.fs", "Program.fs"),
             MetadataReferences = MetaReferences("C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.CSharp.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.Core.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.Win32.Primitives.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\mscorlib.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\netstandard.dll"),
         });

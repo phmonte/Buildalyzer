@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
 using FluentAssertions;
+using FSharp.Compiler.CodeAnalysis;
 using Microsoft.CodeAnalysis;
+using Microsoft.FSharp.Collections;
 
 namespace Buildalyzer.Tests.Compiler;
 
@@ -74,7 +76,7 @@ public class CompilerCommandFixture
     [Test]
     public void Parse_FSharp()
     {
-        string commandline = @"C:\Program Files\dotnet\dotnet.exe ""C:\Program Files\dotnet\sdk\8.0.200\FSharp\fsc.dll"" -o:obj\Debug\netcoreapp3.1\FSharpProject.dll
+        string commandLine = @"C:\Program Files\dotnet\dotnet.exe ""C:\Program Files\dotnet\sdk\8.0.200\FSharp\fsc.dll"" -o:obj\Debug\netcoreapp3.1\FSharpProject.dll
 -g
 --debug:portable
 --noframework
@@ -112,16 +114,29 @@ obj\Debug\netcoreapp3.1\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs
 obj\Debug\netcoreapp3.1\FSharpProject.AssemblyInfo.fs
 Program.fs";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandline, CompilerLanguage.FSharp);
+        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandLine, CompilerLanguage.FSharp);
+        var options = GetFSharpParsingOptions(commandLine);
 
         command.Should().BeEquivalentTo(new
         {
-            Text = commandline,
+            Text = commandLine,
             Language = CompilerLanguage.FSharp,
             PreprocessorSymbolNames = new[] { "NETCOREAPP3_1_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP3_1", "NETCOREAPP", "DEBUG", "TRACE" },
             SourceFiles = Files("obj\\Debug\\netcoreapp3.1\\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs", "obj\\Debug\\netcoreapp3.1\\FSharpProject.AssemblyInfo.fs", "Program.fs"),
             MetadataReferences = MetaReferences("C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.CSharp.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.Core.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.Win32.Primitives.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\mscorlib.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\netstandard.dll"),
         });
+
+        command.SourceFiles.Select(f => f.Path).Should().BeEquivalentTo(options.SourceFiles);
+
+        // INTERACTIVE is added by the F# checker. TODO: based on being interactive or not, INTERACTIVE or COMPILED should be added by the parser.
+        command.MetadataReferences.Select(m => m.Reference).Concat(["INTERACTIVE"]).Should().BeEquivalentTo(options.ConditionalDefines);
+
+        static FSharpParsingOptions GetFSharpParsingOptions(string commandLine)
+        {
+            var checker = FSharpChecker.Instance;
+            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(FSharpCommandLineParser.SplitCommandLineIntoArguments(commandLine)), isInteractive: true, isEditing: false);
+            return result.Item1;
+        }
     }
 
     private static ImmutableArray<CommandLineSourceFile> Files(params string[] files)

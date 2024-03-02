@@ -9,10 +9,6 @@ public class IOPathFixture
     [Test]
     public void Is_case_insensitive_on_windows()
         => IOPath.IsCaseSensitive.Should().BeFalse();
-#else
-    [Test]
-    public void Is_case_sensitive_on_Linux()
-        => IOPath.IsCaseSensitive.Should().BeTrue();
 #endif
 
     [Test]

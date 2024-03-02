@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment;
@@ -22,19 +19,13 @@ internal class DotnetPathResolver
     // Don't cache the result because it might change project to project due to global.json
     public string ResolvePath(string projectPath, string dotnetExePath)
     {
-        dotnetExePath = dotnetExePath ?? "dotnet";
+        dotnetExePath ??= "dotnet";
         List<string> output = GetInfo(projectPath, dotnetExePath);
 
-        // Did we get any output?
-        if (output == null || output.Count == 0)
-        {
-            _logger?.LogWarning($"Could not get results from `{dotnetExePath} --info` call");
-            return null;
-        }
+        var info = DotNetInfo.Parse(output);
+        var basePath = info.BasePath ?? info.Runtimes.Values.FirstOrDefault();
 
-        // Try to get a path
-        string basePath = ParseBasePath(output) ?? ParseInstalledSdksPath(output);
-        if (string.IsNullOrWhiteSpace(basePath))
+        if (basePath is null)
         {
             _logger?.LogWarning($"Could not locate SDK path in `{dotnetExePath} --info` results");
             return null;
@@ -67,81 +58,5 @@ internal class DotnetPathResolver
             processRunner.WaitForExit(dotnetInfoWaitTime);
             return processRunner.Output;
         }
-    }
-
-    // Try to find a base path
-    internal static string ParseBasePath(List<string> lines)
-    {
-        foreach (string line in lines.Where(x => x != null))
-        {
-            int colonIndex = line.IndexOf(':');
-            if (colonIndex >= 0
-                && line.Substring(0, colonIndex).Trim().Equals("Base Path", StringComparison.OrdinalIgnoreCase))
-            {
-                string basePath = line.Substring(colonIndex + 1).Trim();
-
-                // Make sure the base path matches the runtime architecture if on Windows
-                // Note that this only works for the default installation locations under "Program Files"
-                if (basePath.Contains(@"\Program Files\") && !System.Environment.Is64BitProcess)
-                {
-                    string newBasePath = basePath.Replace(@"\Program Files\", @"\Program Files (x86)\");
-                    if (Directory.Exists(newBasePath))
-                    {
-                        basePath = newBasePath;
-                    }
-                }
-                else if (basePath.Contains(@"\Program Files (x86)\") && System.Environment.Is64BitProcess)
-                {
-                    string newBasePath = basePath.Replace(@"\Program Files (x86)\", @"\Program Files\");
-                    if (Directory.Exists(newBasePath))
-                    {
-                        basePath = newBasePath;
-                    }
-                }
-
-                return basePath;
-            }
-        }
-        return null;
-    }
-
-    // Fallback if a base path couldn't be found (I.e., global.json version is not available)
-    internal static string ParseInstalledSdksPath(List<string> lines)
-    {
-        int index = lines.IndexOf(".NET SDKs installed:");
-        if (index == -1)
-        {
-            index = lines.IndexOf(".NET Core SDKs installed:");
-            if (index == -1)
-            {
-                return null;
-            }
-        }
-
-        index++;
-        while (true)
-        {
-            if (index >= lines.Count - 1)
-            {
-                throw new InvalidOperationException("Could not find the .NET SDK.");
-            }
-
-            // Not a version number or an empty string?
-            string temp = lines[index].Trim();
-            if (string.IsNullOrWhiteSpace(temp) || !char.IsDigit(temp[0]))
-            {
-                index--;
-                break;
-            }
-
-            index++;
-        }
-
-        string[] segments = lines[index]
-            .Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => x.Trim())
-            .ToArray();
-        return $"{segments[1]}{Path.DirectorySeparatorChar}{segments[0]}{Path.DirectorySeparatorChar}";
     }
 }

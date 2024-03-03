@@ -66,7 +66,7 @@ public class AnalyzerResult : IAnalyzerResult
         .FirstOrDefault();
 
     public string[] SourceFiles =>
-      CompilerCommand?.SourceFiles.Select(file => file.Path).ToArray() ?? [];
+      CompilerCommand?.SourceFiles.Select(file => file.ToString()).ToArray() ?? [];
 
     public string[] References =>
         CompilerCommand?.MetadataReferences.Select(r => r.Reference).ToArray() ?? [];
@@ -77,7 +77,7 @@ public class AnalyzerResult : IAnalyzerResult
     public string[] PreprocessorSymbols => CompilerCommand?.PreprocessorSymbolNames.ToArray() ?? [];
 
     public string[] AdditionalFiles =>
-          CompilerCommand?.AdditionalFiles.Select(file => file.Path).ToArray() ?? [];
+          CompilerCommand?.AdditionalFiles.Select(file => file.ToString()).ToArray() ?? [];
 
     public IEnumerable<string> ProjectReferences =>
         Items.TryGetValue("ProjectReference", out IProjectItem[] items)

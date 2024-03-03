@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Buildalyzer.IO;
 using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
@@ -10,6 +11,12 @@ public abstract record RoslynBasedCompilerCommand<TArguments> : CompilerCommand
     {
         CommandLineArguments = Guard.NotNull(arguments);
         PreprocessorSymbolNames = CommandLineArguments.ParseOptions.PreprocessorSymbolNames.ToImmutableArray();
+
+        SourceFiles = CommandLineArguments.SourceFiles.Select(AsIOPath).ToImmutableArray();
+        AdditionalFiles = CommandLineArguments.AdditionalFiles.Select(AsIOPath).ToImmutableArray();
+        EmbeddedFiles = CommandLineArguments.EmbeddedFiles.Select(AsIOPath).ToImmutableArray();
+
+        IOPath AsIOPath(CommandLineSourceFile file) => IOPath.Parse(file.Path);
     }
 
     /// <summary>The Roslyn comppiler arguments.</summary>
@@ -19,13 +26,13 @@ public abstract record RoslynBasedCompilerCommand<TArguments> : CompilerCommand
     public override ImmutableArray<Diagnostic> Errors => CommandLineArguments.Errors;
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> SourceFiles => CommandLineArguments.SourceFiles;
+    public override ImmutableArray<IOPath> SourceFiles { get; }
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> AdditionalFiles => CommandLineArguments.AdditionalFiles;
+    public override ImmutableArray<IOPath> AdditionalFiles { get; }
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> EmbeddedFiles => CommandLineArguments.EmbeddedFiles;
+    public override ImmutableArray<IOPath> EmbeddedFiles { get; }
 
     /// <inheritdoc />
     public override ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences => CommandLineArguments.AnalyzerReferences;

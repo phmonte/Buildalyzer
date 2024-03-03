@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Buildalyzer.IO;
 using FluentAssertions;
 using FSharp.Compiler.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -126,10 +127,10 @@ Program.fs";
             MetadataReferences = MetaReferences("C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.CSharp.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.Core.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.Win32.Primitives.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\mscorlib.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\netstandard.dll"),
         });
 
-        command.SourceFiles.Select(f => f.Path).Should().BeEquivalentTo(options.SourceFiles);
+        command.SourceFiles.Should().BeEquivalentTo(Files(options.SourceFiles));
 
         // INTERACTIVE is added by the F# checker. TODO: based on being interactive or not, INTERACTIVE or COMPILED should be added by the parser.
-        command.MetadataReferences.Select(m => m.Reference).Concat(["INTERACTIVE"]).Should().BeEquivalentTo(options.ConditionalDefines);
+        command.PreprocessorSymbolNames.Concat(["INTERACTIVE"]).Should().BeEquivalentTo(options.ConditionalDefines);
 
         static FSharpParsingOptions GetFSharpParsingOptions(string commandLine)
         {
@@ -139,8 +140,8 @@ Program.fs";
         }
     }
 
-    private static ImmutableArray<CommandLineSourceFile> Files(params string[] files)
-        => files.Select(f => new CommandLineSourceFile(f, isScript: false)).ToImmutableArray();
+    private static ImmutableArray<IOPath> Files(params string[] files)
+        => files.Select(f => IOPath.Parse(f)).ToImmutableArray();
 
     private static ImmutableArray<CommandLineReference> MetaReferences(params string[] references)
        => references.Select(r => new CommandLineReference(r, new MetadataReferenceProperties(MetadataImageKind.Assembly))).ToImmutableArray();

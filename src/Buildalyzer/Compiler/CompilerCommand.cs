@@ -1,8 +1,7 @@
 ﻿#nullable enable
 
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
+using Buildalyzer.IO;
 using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
@@ -26,13 +25,13 @@ public abstract record CompilerCommand
     public abstract ImmutableArray<Diagnostic> Errors { get; }
 
     /// <inheritdoc  cref="CommandLineArguments.SourceFiles" />
-    public abstract ImmutableArray<CommandLineSourceFile> SourceFiles { get; }
+    public abstract ImmutableArray<IOPath> SourceFiles { get; }
 
     /// <inheritdoc  cref="CommandLineArguments.AdditionalFiles" />
-    public abstract ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; }
+    public abstract ImmutableArray<IOPath> AdditionalFiles { get; }
 
     /// <inheritdoc  cref="CommandLineArguments.EmbeddedFiles" />
-    public abstract ImmutableArray<CommandLineSourceFile> EmbeddedFiles { get; }
+    public abstract ImmutableArray<IOPath> EmbeddedFiles { get; }
 
     /// <inheritdoc  cref="CommandLineArguments.AnalyzerReferences" />
     public abstract ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; }

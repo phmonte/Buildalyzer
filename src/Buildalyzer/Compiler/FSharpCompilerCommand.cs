@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Buildalyzer.IO;
+using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
 
@@ -9,17 +10,14 @@ public sealed record FSharpCompilerCommand : CompilerCommand
         IEnumerable<string> preprocessorSymbolNames,
         IEnumerable<string> metadataReferences)
     {
-        SourceFiles = sourceFiles.Select(AsCommandLineSourceFile).ToImmutableArray();
+        SourceFiles = sourceFiles.Select(AsIOPath).ToImmutableArray();
         PreprocessorSymbolNames = preprocessorSymbolNames.ToImmutableArray();
         MetadataReferences = metadataReferences.Select(AsMetadataReference).ToImmutableArray();
+
+        IOPath AsIOPath(string file) => IOPath.Parse(file);
+
+        CommandLineReference AsMetadataReference(string r) => new(r, new MetadataReferenceProperties(MetadataImageKind.Assembly));
     }
-
-    [Pure]
-    public static CommandLineReference AsMetadataReference(string r)
-        => new CommandLineReference(r, new MetadataReferenceProperties(MetadataImageKind.Assembly));
-
-    [Pure]
-    private static CommandLineSourceFile AsCommandLineSourceFile(string path) => new(path, isScript: false); // TODO: resolve when it is a script.
 
     /// <inheritdoc />
     public override CompilerLanguage Language => CompilerLanguage.FSharp;
@@ -28,15 +26,15 @@ public sealed record FSharpCompilerCommand : CompilerCommand
     public override ImmutableArray<Diagnostic> Errors { get; }
 
     /// <inheritdoc />
-    public override ImmutableArray<CommandLineSourceFile> SourceFiles { get; }
+    public override ImmutableArray<IOPath> SourceFiles { get; }
 
     /// <inheritdoc />
     /// <remarks>
     /// Not supported by F#.
     /// </remarks>
-    public override ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; }
+    public override ImmutableArray<IOPath> AdditionalFiles { get; }
 
-    public override ImmutableArray<CommandLineSourceFile> EmbeddedFiles => throw new NotImplementedException();
+    public override ImmutableArray<IOPath> EmbeddedFiles => throw new NotImplementedException();
 
     /// <inheritdoc />
     /// <remarks>

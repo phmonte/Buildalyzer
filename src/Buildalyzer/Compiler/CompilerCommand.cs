@@ -22,25 +22,28 @@ public abstract record CompilerCommand
     public FileInfo? CompilerLocation { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.Errors" />
-    public abstract ImmutableArray<Diagnostic> Errors { get; }
+    public ImmutableArray<Diagnostic> Errors { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.SourceFiles" />
-    public abstract ImmutableArray<IOPath> SourceFiles { get; }
+    public ImmutableArray<IOPath> SourceFiles { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.AdditionalFiles" />
-    public abstract ImmutableArray<IOPath> AdditionalFiles { get; }
+    public ImmutableArray<IOPath> AdditionalFiles { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.EmbeddedFiles" />
-    public abstract ImmutableArray<IOPath> EmbeddedFiles { get; }
+    public ImmutableArray<IOPath> EmbeddedFiles { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.AnalyzerReferences" />
-    public abstract ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; }
+    public ImmutableArray<IOPath> AnalyzerReferences { get; init; }
+
+    /// <inheritdoc  cref="CommandLineArguments.AnalyzerConfigPaths" />
+    public ImmutableArray<IOPath> AnalyzerConfigPaths { get; init; }
 
     /// <inheritdoc  cref="ParseOptions.PreprocessorSymbolNames" />
-    public abstract ImmutableArray<string> PreprocessorSymbolNames { get; }
+    public ImmutableArray<string> PreprocessorSymbolNames { get; init; }
 
     /// <inheritdoc  cref="CommandLineArguments.MetadataReferences" />
-    public abstract ImmutableArray<CommandLineReference> MetadataReferences { get; }
+    public ImmutableArray<string> MetadataReferences { get; init; }
 
     /// <inheritdoc />
     [Pure]

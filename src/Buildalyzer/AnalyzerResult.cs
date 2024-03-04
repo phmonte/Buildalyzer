@@ -69,10 +69,10 @@ public class AnalyzerResult : IAnalyzerResult
       CompilerCommand?.SourceFiles.Select(file => file.ToString()).ToArray() ?? [];
 
     public string[] References =>
-        CompilerCommand?.MetadataReferences.Select(r => r.Reference).ToArray() ?? [];
+        CompilerCommand?.MetadataReferences.ToArray() ?? [];
 
     public string[] AnalyzerReferences =>
-          CompilerCommand?.AnalyzerReferences.Select(r => r.FilePath).ToArray() ?? [];
+          CompilerCommand?.AnalyzerReferences.Select(r => r.ToString()).ToArray() ?? [];
 
     public string[] PreprocessorSymbols => CompilerCommand?.PreprocessorSymbolNames.ToArray() ?? [];
 

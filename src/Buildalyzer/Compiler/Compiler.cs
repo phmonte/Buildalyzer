@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using System.IO;
+using Buildalyzer.IO;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 
@@ -37,12 +39,83 @@ public static class Compiler
             {
                 return language switch
                 {
-                    CompilerLanguage.CSharp => new CSharpCompilerCommand(CSharpCommandLineParser.Default.Parse(args, baseDir, root)),
-                    CompilerLanguage.VisualBasic => new VisualBasicCompilerCommand(VisualBasicCommandLineParser.Default.Parse(args, baseDir, root)),
-                    CompilerLanguage.FSharp => FSharpCommandLineParser.Parse(args),
+                    CompilerLanguage.CSharp => CSharpParser.Parse(args, baseDir, root),
+                    CompilerLanguage.VisualBasic => VisualBasicParser.Parse(args, baseDir, root),
+                    CompilerLanguage.FSharp => FSharpParser.Parse(args),
                     _ => throw new NotSupportedException($"The {language} language is not supported."),
                 };
             }
         }
     }
+
+    private static class CSharpParser
+    {
+        [Pure]
+        public static CSharpCompilerCommand Parse(string[] args, string? baseDir, string? root)
+        {
+            var arguments = CSharpCommandLineParser.Default.Parse(args, baseDir, root);
+            var command = new CSharpCompilerCommand()
+            {
+                CommandLineArguments = arguments,
+            };
+            return RoslynParser.Enrich(command, arguments);
+        }
+    }
+
+    private static class VisualBasicParser
+    {
+        [Pure]
+        public static VisualBasicCompilerCommand Parse(string[] args, string? baseDir, string? root)
+        {
+            var arguments = VisualBasicCommandLineParser.Default.Parse(args, baseDir, root);
+            var command = new VisualBasicCompilerCommand()
+            {
+                CommandLineArguments = arguments,
+                PreprocessorSymbols = arguments.ParseOptions.PreprocessorSymbols.ToImmutableDictionary(),
+            };
+            return RoslynParser.Enrich(command, arguments);
+        }
+    }
+
+    private static class FSharpParser
+    {
+        [Pure]
+        public static FSharpCompilerCommand Parse(string[] args)
+        {
+            var sourceFiles = args.Where(a => a[0] != '-').Select(IOPath.Parse);
+            var preprocessorSymbolNames = args.Where(a => a.StartsWith("--define:")).Select(a => a[9..]);
+            var metadataReferences = args.Where(a => a.StartsWith("-r:")).Select(a => a[3..]);
+
+            return new()
+            {
+                MetadataReferences = metadataReferences.ToImmutableArray(),
+                PreprocessorSymbolNames = preprocessorSymbolNames.ToImmutableArray(),
+                SourceFiles = sourceFiles.ToImmutableArray(),
+            };
+        }
+    }
+
+    private static class RoslynParser
+    {
+        public static TCommand Enrich<TCommand>(TCommand command, CommandLineArguments arguments)
+            where TCommand : CompilerCommand
+
+            => command with
+            {
+                AnalyzerReferences = arguments.AnalyzerReferences.Select(AsIOPath).ToImmutableArray(),
+                AnalyzerConfigPaths = arguments.AnalyzerConfigPaths.Select(IOPath.Parse).ToImmutableArray(),
+                MetadataReferences = arguments.MetadataReferences.Select(m => m.Reference).ToImmutableArray(),
+                PreprocessorSymbolNames = arguments.ParseOptions.PreprocessorSymbolNames.ToImmutableArray(),
+
+                SourceFiles = arguments.SourceFiles.Select(AsIOPath).ToImmutableArray(),
+                AdditionalFiles = arguments.AdditionalFiles.Select(AsIOPath).ToImmutableArray(),
+                EmbeddedFiles = arguments.EmbeddedFiles.Select(AsIOPath).ToImmutableArray(),
+            };
+    }
+
+    [Pure]
+    internal static IOPath AsIOPath(CommandLineAnalyzerReference file) => IOPath.Parse(file.FilePath);
+
+    [Pure]
+    internal static IOPath AsIOPath(CommandLineSourceFile file) => IOPath.Parse(file.Path);
 }

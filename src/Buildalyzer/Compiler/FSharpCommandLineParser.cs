@@ -5,19 +5,6 @@ namespace Buildalyzer;
 internal static class FSharpCommandLineParser
 {
     [Pure]
-    public static FSharpCompilerCommand Parse(string[] args)
-    {
-        var sourceFiles = args.Where(a => a[0] != '-');
-        var preprocessorSymbolNames = args.Where(a => a.StartsWith("--define:")).Select(a => a[9..]);
-        var metadataReferences = args.Where(a => a.StartsWith("-r:")).Select(a => a[3..]);
-
-        return new FSharpCompilerCommand(
-            sourceFiles,
-            preprocessorSymbolNames,
-            metadataReferences);
-    }
-
-    [Pure]
     public static string[]? SplitCommandLineIntoArguments(string? commandLine)
         => commandLine?.Split(Splitters, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) is { Length: > 0 } args
         && First(args[0]).ToArray() is { Length: >= 1 } first

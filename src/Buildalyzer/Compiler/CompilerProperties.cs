@@ -11,7 +11,7 @@ public sealed class CompilerProperties : IReadOnlyCollection<CompilerProperty>
 #pragma warning restore CA1710 // Identifiers should have correct suffix
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private readonly Dictionary<string, object> _values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, object> _values = new(StringComparer.OrdinalIgnoreCase);
 
     private CompilerProperties()
     {

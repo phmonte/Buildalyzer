@@ -70,8 +70,8 @@ internal class EventProcessor : IDisposable
         {
             _evalulationResults[slEv.BuildEventContext.EvaluationId] = new PropertiesAndItems
             {
-                Properties = slEv.Properties,
-                Items = slEv.Items
+                Properties = CompilerProperties.FromDictionaryEntries(slEv.Properties),
+                Items = CompilerItemsCollection.FromDictionaryEntries(slEv.Items),
             };
         }
     }
@@ -94,17 +94,15 @@ internal class EventProcessor : IDisposable
                     : null)
                 : new PropertiesAndItems
                 {
-                    Properties = e.Properties,
-                    Items = e.Items
+                    Properties = CompilerProperties.FromDictionaryEntries(e.Properties),
+                    Items = CompilerItemsCollection.FromDictionaryEntries(e.Items),
                 };
 
             // Get the TFM for this project
-            string tfm = propertiesAndItems
-                ?.Properties
-                ?.ToDictionaryEntries()
-                .FirstOrDefault(x => string.Equals(x.Key.ToString(), "TargetFrameworkMoniker", StringComparison.OrdinalIgnoreCase))
-                .Value
-                ?.ToString() ?? string.Empty; // use an empty string if no target framework was found, for example in case of C++ projects with VS >= 2022
+            // use an empty string if no target framework was found, for example in case of C++ projects with VS >= 2022
+            var tfm = propertiesAndItems?.Properties.TryGet("TargetFrameworkMoniker")?.StringValue
+                ?? string.Empty;
+
             if (propertiesAndItems != null && propertiesAndItems.Properties != null && propertiesAndItems.Items != null)
             {
                 if (!_results.TryGetValue(tfm, out AnalyzerResult result))

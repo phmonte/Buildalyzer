@@ -1,12 +1,6 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Buildalyzer.Construction;
 using Buildalyzer.Logging;
-using Microsoft.Build.Framework;
 
 namespace Buildalyzer;
 
@@ -162,15 +156,15 @@ public class AnalyzerResult : IAnalyzerResult
     internal void ProcessProject(PropertiesAndItems propertiesAndItems)
     {
         // Add properties
-        foreach (DictionaryEntry entry in propertiesAndItems.Properties.ToDictionaryEntries())
+        foreach (var entry in propertiesAndItems.Properties)
         {
-            _properties[entry.Key.ToString()] = entry.Value.ToString();
+            _properties[entry.Key] = entry.StringValue;
         }
 
         // Add items
-        foreach (IGrouping<string, DictionaryEntry> itemGroup in propertiesAndItems.Items.ToDictionaryEntries().GroupBy(x => x.Key.ToString()))
+        foreach (var items in propertiesAndItems.Items)
         {
-            _items[itemGroup.Key] = itemGroup.Select(x => new ProjectItem((ITaskItem)x.Value)).ToArray();
+            _items[items.Key] = items.Values.Select(task => new ProjectItem(task)).ToArray();
         }
     }
 

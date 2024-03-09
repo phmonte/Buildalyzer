@@ -25,6 +25,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.globalconfig = .globalconfig
 		Directory.Build.props = Directory.Build.props
 		LICENSE.md = LICENSE.md
+		nuget.config = nuget.config
+		RELEASE.md = RELEASE.md
+		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{4FD47340-8E8E-4338-BB20-E4AF8E29E78D}"

@@ -2,6 +2,8 @@ is_global = true
 
 dotnet_diagnostic.CA1506.severity = none
 dotnet_diagnostic.CA1724.severity = none
+dotnet_diagnostic.CA1707.severity = none # Remove the underscores from member names.
+
 dotnet_diagnostic.CS1591.severity = none
 
 dotnet_diagnostic.CA1020.severity = warning
@@ -17,7 +19,6 @@ dotnet_diagnostic.CA1701.severity = warning
 dotnet_diagnostic.CA1702.severity = warning
 dotnet_diagnostic.CA1703.severity = warning
 dotnet_diagnostic.CA1704.severity = warning
-dotnet_diagnostic.CA1707.severity = warning
 dotnet_diagnostic.CA1709.severity = warning
 dotnet_diagnostic.CA1710.severity = warning
 dotnet_diagnostic.CA1711.severity = warning
@@ -37,6 +38,8 @@ dotnet_diagnostic.CA2204.severity = warning
 dotnet_diagnostic.RCS1002.severity = none
 dotnet_diagnostic.RCS1004.severity = none
 dotnet_diagnostic.RCS1007.severity = none
+dotnet_diagnostic.RCS1008.severity = none # Use explicit type instead of 'var'
+dotnet_diagnostic.RCS1009.severity = none # Use explicit type instead of 'var'
 dotnet_diagnostic.RCS1010.severity = none
 dotnet_diagnostic.RCS1012.severity = none # Use explicit type instead of 'var' (when the type is obvious)
 dotnet_diagnostic.RCS1013.severity = none
@@ -93,9 +96,6 @@ dotnet_diagnostic.RCS1198.severity = none
 dotnet_diagnostic.RCS1208.severity = none
 dotnet_diagnostic.RCS1219.severity = none
 dotnet_diagnostic.RCS1223.severity = none
-
-
-
 
 dotnet_diagnostic.SA1101.severity = none
 dotnet_diagnostic.SA1118.severity = none
@@ -285,9 +285,6 @@ dotnet_diagnostic.RCS1229.severity = suggestion
 dotnet_diagnostic.RCS1230.severity = suggestion
 dotnet_diagnostic.RCS1231.severity = suggestion
 
-
-dotnet_diagnostic.RCS1008.severity = warning
-dotnet_diagnostic.RCS1009.severity = warning
 dotnet_diagnostic.RCS1044.severity = warning
 dotnet_diagnostic.RCS1059.severity = warning
 dotnet_diagnostic.RCS1082.severity = warning
@@ -301,3 +298,5 @@ dotnet_diagnostic.RCS1210.severity = warning
 dotnet_diagnostic.RCS1215.severity = warning
 
 dotnet_diagnostic.SX1309.severity = warning
+
+dotnet_diagnostic.VSSpell001.severity = silent # Spell Check

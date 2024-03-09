@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer", "src\Buildalyzer\Buildalyzer.csproj", "{252BD05D-80E4-4AE9-AE83-98B8D01CA30C}"
 EndProject
@@ -16,6 +16,27 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A52BD74E-3894-4A6E-8B9A-143A004F07F3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Buildalyzer.Logger", "src\Buildalyzer.Logger\Buildalyzer.Logger.csproj", "{A46CB47B-1561-41F2-AF52-F0E1DC2C886A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5C0EF6BC-7A9B-4B29-9BFB-4098842FEBB6}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		.gitmodules = .gitmodules
+		.globalconfig = .globalconfig
+		Directory.Build.props = Directory.Build.props
+		LICENSE.md = LICENSE.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{4FD47340-8E8E-4338-BB20-E4AF8E29E78D}"
+	ProjectSection(SolutionItems) = preProject
+		.github\FUNDING.yml = .github\FUNDING.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{7A15ECCE-3AB1-4F0A-A1A0-942E7982C2E2}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\test-report.yml = .github\workflows\test-report.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +74,8 @@ Global
 		{2358397E-7B5D-47E7-AC53-10C61574A1B9} = {2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}
 		{A4258D78-B721-4AE9-A2F5-FFBB21D9ABF0} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
+		{4FD47340-8E8E-4338-BB20-E4AF8E29E78D} = {5C0EF6BC-7A9B-4B29-9BFB-4098842FEBB6}
+		{7A15ECCE-3AB1-4F0A-A1A0-942E7982C2E2} = {4FD47340-8E8E-4338-BB20-E4AF8E29E78D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1716863C-E9E2-4074-B557-E38CEB3B5C84}

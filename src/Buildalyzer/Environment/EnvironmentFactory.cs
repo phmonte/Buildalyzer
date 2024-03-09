@@ -194,8 +194,10 @@ public class EnvironmentFactory
         return !string.IsNullOrEmpty(msBuildExePath);
     }
 
-    private bool OnlyTargetsFramework(string targetFramework) =>
-        targetFramework == null ? _projectFile.TargetFrameworks.All(x => IsFrameworkTargetFramework(x)) : IsFrameworkTargetFramework(targetFramework);
+    private bool OnlyTargetsFramework(string targetFramework)
+        => targetFramework == null 
+            ? _projectFile.TargetFrameworks.TrueForAll(IsFrameworkTargetFramework)
+            : IsFrameworkTargetFramework(targetFramework);
 
     // Internal for testing
     // Because the .NET Core/.NET 5 TFMs are better defined, we just check if this is one of them and then negate

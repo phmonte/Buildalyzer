@@ -124,6 +124,7 @@ dotnet_diagnostic.SA1623.severity = none
 dotnet_diagnostic.SA1633.severity = none
 dotnet_diagnostic.SA1642.severity = none
 dotnet_diagnostic.SA1648.severity = none
+dotnet_diagnostic.SA1649.severity = none # File name should match first type name.
 
 dotnet_diagnostic.RCS1005.severity = silent
 dotnet_diagnostic.RCS1006.severity = silent

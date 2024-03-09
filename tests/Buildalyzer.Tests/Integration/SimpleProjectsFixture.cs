@@ -156,10 +156,10 @@ public class SimpleProjectsFixture
 
         // Then
         results.ShouldAllBe(x => x.References != null, log.ToString());
-        results.Any(x => x.References.Any(r => r.Contains("mscorlib"))).ShouldBeTrue(log.ToString());
+        results.Any(x => x.References.Exists(r => r.Contains("mscorlib"))).ShouldBeTrue(log.ToString());
         if (projectFile.Contains("PackageReference"))
         {
-            results.Any(x => x.References.Any(r => r.EndsWith("NodaTime.dll"))).ShouldBeTrue(log.ToString());
+            results.Any(x => x.References.Exists(r => r.EndsWith("NodaTime.dll"))).ShouldBeTrue(log.ToString());
         }
     }
 

@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <LangVersion>12</LangVersion>
+    <IsPackable>false</IsPackable>
+    <OutputType>library</OutputType>
   </PropertyGroup>
 
   <ItemGroup Label="Test versions">
@@ -14,19 +15,24 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
-    <PackageReference Include="NUnit" Version="4.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.6" GeneratePathProperty="true" />
+    <PackageReference Include="NUnit" Version="4.1.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="*" PrivateAssets="all" />
     <PackageReference Include="Shouldly" Version="4.2.1" />
-    <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.6" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-  </ItemGroup>
+    </ItemGroup>
 
   <ItemGroup Label="Analyzers">
+    <PackageReference Include="FluentAssertions.Analyzers" Version="*" PrivateAssets="all" />
     <PackageReference Include="NUnit.Analyzers" Version="*" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Additional files">
+    <AdditionalFiles Include="*.csproj" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup Condition=" $([MSBuild]::IsOsPlatform('Windows')) ">

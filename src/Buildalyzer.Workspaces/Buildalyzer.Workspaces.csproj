@@ -2,8 +2,20 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <LangVersion>12</LangVersion>
-    <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. This extension library adds support for creating a Roslyn workspace from Buildalyzer.</Description>
+    <Description>
+      A little utility to perform design-time builds of .NET projects without
+      having to think too hard about it. This extension library adds support
+      for creating a Roslyn workspace from Buildalyzer.
+    </Description>
+    <PackageId>Buildalyzer.Workspaces</PackageId>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
+    <OutputType>library</OutputType>
+    <PackageReleaseNotes>
+ToBeReleased
+- Target .NET 8.0. #252
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,4 +27,8 @@
     <ProjectReference Include="..\Buildalyzer\Buildalyzer.csproj" />
   </ItemGroup>
 
+  <ItemGroup Label="Additional files">
+    <AdditionalFiles Include="*.csproj" Visible="false" />
+  </ItemGroup>
+  
 </Project>

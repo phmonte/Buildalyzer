@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Analyzers">
-    <PackageReference Include="NUnit.Analyzers" Version="*" PrivateAssets="All" />
+    <PackageReference Include="NUnit.Analyzers" Version="*" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

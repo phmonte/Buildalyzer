@@ -10,7 +10,7 @@ namespace Buildalyzer.TestTools;
 /// </remarks>
 public sealed class BuildalyzerTestContext : IDisposable
 {
-    private TextWriter Log => IsDisposed ? throw new ObjectDisposedException(GetType().FullName) : log;
+    public TextWriter Log => IsDisposed ? throw new ObjectDisposedException(GetType().FullName) : log;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private readonly TextWriter log = new StringWriter();

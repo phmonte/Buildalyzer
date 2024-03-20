@@ -63,7 +63,7 @@ public static class MsBuildProperties
     {
         [DesignTimeBuild] = "true",
 
-        // Supports Framework projects: https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build    
+        // Supports Framework projects: https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md#determining-whether-a-target-is-running-in-a-design-time-build
         [BuildingProject] = "false",
         [BuildProjectReferences] = "false",
         [SkipCompilerExecution] = "true",

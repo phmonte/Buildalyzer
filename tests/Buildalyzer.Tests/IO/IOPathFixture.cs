@@ -12,10 +12,10 @@ public class IOPathFixture
 #endif
 
     [Test]
-    public void is_seperator_agnostic()
+    public void Is_seperator_agnostic()
         => IOPath.Parse(".\\root\\test\\somefile.txt").Should().Be(IOPath.Parse("./root/test/somefile.txt"));
 
     [TestCase(@"c:\Program Files\Buildalyzer")]
-    public void supports_type_conversion(IOPath path)
+    public void Supports_type_conversion(IOPath path)
         => path.Should().Be(IOPath.Parse(@"c:\Program Files\Buildalyzer"));
 }

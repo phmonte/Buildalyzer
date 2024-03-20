@@ -64,7 +64,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
         // Get (or create) a project GUID
         ProjectGuid = projectInSolution == null
-            ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFile.Name)
+            ? Buildalyzer.ProjectGuid.Create(ProjectFile.Name)
             : Guid.Parse(projectInSolution.ProjectGuid);
 
         // Set the solution directory global property

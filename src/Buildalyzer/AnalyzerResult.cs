@@ -35,7 +35,7 @@ public class AnalyzerResult : IAnalyzerResult
         if (string.IsNullOrEmpty(projectGuid) || !Guid.TryParse(projectGuid, out _projectGuid))
         {
             _projectGuid = analyzer == null
-                ? GuidUtility.Create(GuidUtility.UrlNamespace, ProjectFilePath)
+                ? Buildalyzer.ProjectGuid.Create(ProjectFilePath)
                 : analyzer.ProjectGuid;
         }
     }

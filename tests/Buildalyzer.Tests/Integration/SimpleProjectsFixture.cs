@@ -709,9 +709,28 @@ public class SimpleProjectsFixture
         // When
         IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
 
-        // Then
-        additionalFiles.ShouldBe(new[] { "message.txt" }, log.ToString());
-    }
+        [Test]
+        public void GetsProjectFileAsAdditionalFile()
+        {
+            // Given
+            StringWriter log = new StringWriter();
+            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
+
+            // When
+            IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+
+            // Then
+            additionalFiles.ShouldBe(new[] { "ProjectFileAsAdditionalFile.csproj" }, log.ToString());
+        }
+
+        private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+        {
+            IProjectAnalyzer analyzer = new AnalyzerManager(
+                new AnalyzerManagerOptions
+                {
+                    LogWriter = log
+                })
+                .GetProject(GetProjectPath(projectFile));
 
     private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
     {

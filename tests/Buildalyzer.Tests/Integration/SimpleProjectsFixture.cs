@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using Buildalyzer.Environment;
-using NUnit.Framework;
+using FluentAssertions;
 using Shouldly;
 
 namespace Buildalyzer.Tests.Integration;
@@ -153,13 +150,14 @@ public class SimpleProjectsFixture
 
         // When
         IAnalyzerResults results = analyzer.Build(options);
+        IEnumerable<string> references = results.SelectMany(r => r.References.Select(Path.GetFileName));
 
         // Then
-        results.ShouldAllBe(x => x.References != null, log.ToString());
-        results.Any(x => x.References.Any(r => r.Contains("mscorlib"))).ShouldBeTrue(log.ToString());
+        references.Should().Contain("mscorlib.dll", because: log.ToString());
+
         if (projectFile.Contains("PackageReference"))
         {
-            results.Any(x => x.References.Any(r => r.EndsWith("NodaTime.dll"))).ShouldBeTrue(log.ToString());
+            references.Should().Contain("NodaTime.dll", because: log.ToString());
         }
     }
 
@@ -692,11 +690,11 @@ public class SimpleProjectsFixture
         StringWriter log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"RazorClassLibraryTest\RazorClassLibraryTest.csproj", log);
 
-        // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
-
-        // Then
-        additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" }, log.ToString());
+        // When + then
+        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
+            .Should().BeEquivalentTo(
+            "_Imports.razor",
+            "Component1.razor");
     }
 
     [Test]
@@ -706,11 +704,10 @@ public class SimpleProjectsFixture
         StringWriter log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
 
-        // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+        // When + then
+        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
+            .Should().BeEquivalentTo("message.txt");
 
-        // Then
-        additionalFiles.ShouldBe(new[] { "message.txt" }, log.ToString());
     }
 
     private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

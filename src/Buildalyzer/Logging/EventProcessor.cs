@@ -156,7 +156,7 @@ internal class EventProcessor : IDisposable
             if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
                 && !string.IsNullOrWhiteSpace(e.Message)
                 && _targetStack.Any(x => x.TargetName == "CoreCompile")
-                && !result.HasFscArguments())
+                && result.CompilerCommand is null)
             {
                 result.ProcessFscCommandLine(e.Message);
             }

@@ -14,11 +14,12 @@
   </ItemGroup>
 
   <ItemGroup Label="Analyzers">
-    <PackageReference Include="NUnit.Analyzers" Version="*" PrivateAssets="All"/>
+    <PackageReference Include="NUnit.Analyzers" Version="*" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer.Workspaces\Buildalyzer.Workspaces.csproj" />
+    <ProjectReference Include="..\Buildalyzer.Tests\Buildalyzer.Tests.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition=" $([MSBuild]::IsOsPlatform('Windows')) ">

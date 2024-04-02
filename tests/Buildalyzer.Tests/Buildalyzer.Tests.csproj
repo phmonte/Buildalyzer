@@ -5,6 +5,12 @@
     <LangVersion>12</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup Label="Test versions">
+    <PackageReference Include="FSharp.Compiler.Service" Version="*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.*" />
+    <PackageReference Update="Microsoft.CodeAnalysis.VisualBasic" Version="4.*" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />

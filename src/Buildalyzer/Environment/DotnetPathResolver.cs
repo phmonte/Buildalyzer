@@ -1,4 +1,5 @@
 using System.IO;
+using Buildalyzer.Caching;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment;
@@ -16,7 +17,6 @@ internal class DotnetPathResolver
         _logger = loggerFactory?.CreateLogger<DotnetPathResolver>();
     }
 
-    // Don't cache the result because it might change project to project due to global.json
     public string ResolvePath(string projectPath, string dotnetExePath)
     {
         dotnetExePath ??= "dotnet";
@@ -47,16 +47,24 @@ internal class DotnetPathResolver
             { MsBuildProperties.MSBuildExtensionsPath, null }
         };
 
-        // global.json may change the version, so need to set working directory
-        using (ProcessRunner processRunner = new ProcessRunner(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory))
+        List<string> dotnetInfoCache = DotnetInfoCache.GetCache(projectPath);
+
+        if (dotnetInfoCache == null)
         {
-            int dotnetInfoWaitTime = int.TryParse(System.Environment.GetEnvironmentVariable(EnvironmentVariables.DOTNET_INFO_WAIT_TIME), out int dotnetInfoWaitTimeParsed)
-                ? dotnetInfoWaitTimeParsed
-                : DefaultDotNetInfoWaitTime;
-            _logger?.LogInformation($"dotnet --info wait time is {dotnetInfoWaitTime}ms");
-            processRunner.Start();
-            processRunner.WaitForExit(dotnetInfoWaitTime);
-            return processRunner.Output;
+            // global.json may change the version, so need to set working directory
+            using (ProcessRunner processRunner = new ProcessRunner(dotnetExePath, "--info", Path.GetDirectoryName(projectPath), environmentVariables, _loggerFactory))
+            {
+                int dotnetInfoWaitTime = int.TryParse(System.Environment.GetEnvironmentVariable(EnvironmentVariables.DOTNET_INFO_WAIT_TIME), out int dotnetInfoWaitTimeParsed)
+                    ? dotnetInfoWaitTimeParsed
+                    : DefaultDotNetInfoWaitTime;
+                _logger?.LogInformation($"dotnet --info wait time is {dotnetInfoWaitTime}ms");
+                processRunner.Start();
+                processRunner.WaitForExit(dotnetInfoWaitTime);
+                List<string> dotnetInfoOutput = processRunner.Output;
+                DotnetInfoCache.AddCache(projectPath, dotnetInfoOutput);
+                return dotnetInfoOutput;
+            }
         }
+        return dotnetInfoCache;
     }
 }

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using Buildalyzer.Environment;
+using Buildalyzer.TestTools;
 using FluentAssertions;
 using Shouldly;
 
@@ -59,27 +60,23 @@ public class SimpleProjectsFixture
     };
 
     [Test]
-    public void DesignTimeBuildsProject(
+    public void Builds_DesignTime(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
         [ValueSource(nameof(ProjectFiles))] string projectFile)
     {
-        // Given
-        StringWriter log = new StringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-        EnvironmentOptions options = new EnvironmentOptions
+        using var ctx = Context.ForProject(projectFile);
+
+        var options = new EnvironmentOptions
         {
-            Preference = preference
+            Preference = preference,
+            DesignTime = true,
         };
 
-        // When
-        DeleteProjectDirectory(projectFile, "obj");
-        DeleteProjectDirectory(projectFile, "bin");
-        IAnalyzerResults results = analyzer.Build(options);
+        var results = ctx.Analyzer.Build(options);
 
-        // Then
-        results.Count.ShouldBeGreaterThan(0, log.ToString());
-        results.OverallSuccess.ShouldBeTrue(log.ToString());
-        results.ShouldAllBe(x => x.Succeeded, log.ToString());
+        results.Should().NotBeEmpty();
+        results.OverallSuccess.Should().BeTrue();
+        results.Should().AllSatisfy(r => r.Succeeded.Should().BeTrue());
     }
 
     [Test]
@@ -684,33 +681,30 @@ public class SimpleProjectsFixture
     }
 
     [Test]
-    public void GetsAdditionalCscFiles()
+    public void Resolves_additional_files_for_Razor_project()
     {
-        // Given
-        StringWriter log = new StringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"RazorClassLibraryTest\RazorClassLibraryTest.csproj", log);
+        using var ctx = Context.ForProject("RazorClassLibraryTest/RazorClassLibraryTest.csproj");
 
-        // When + then
-        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
-            .Should().BeEquivalentTo(
-            "_Imports.razor",
-            "Component1.razor");
+        // When
+        IEnumerable<string> additionalFiles = ctx.Analyzer.Build().First().AdditionalFiles;
+
+        // Then
+        additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" });
     }
 
     [Test]
-    public void GetsAdditionalFile()
+    public void Resolves_additional_files()
     {
-        // Given
-        StringWriter log = new StringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
+        using var ctx = Context.ForProject("ProjectWithAdditionalFile/ProjectWithAdditionalFile.csproj");
 
-        // When + then
-        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
-            .Should().BeEquivalentTo("message.txt");
+        // When
+        IEnumerable<string> additionalFiles = ctx.Analyzer.Build().First().AdditionalFiles;
 
+        // Then
+        additionalFiles.ShouldBe(new[] { "message.txt" });
     }
 
-    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, System.IO.StringWriter log)
     {
         IProjectAnalyzer analyzer = new AnalyzerManager(
             new AnalyzerManagerOptions

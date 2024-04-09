@@ -686,10 +686,10 @@ public class SimpleProjectsFixture
         using var ctx = Context.ForProject("RazorClassLibraryTest/RazorClassLibraryTest.csproj");
 
         // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+        IEnumerable<string> additionalFiles = ctx.Analyzer.Build().First().AdditionalFiles;
 
         // Then
-        additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" }, log.ToString());
+        additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" });
     }
 
     [Test]
@@ -698,13 +698,13 @@ public class SimpleProjectsFixture
         using var ctx = Context.ForProject("ProjectWithAdditionalFile/ProjectWithAdditionalFile.csproj");
 
         // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+        IEnumerable<string> additionalFiles = ctx.Analyzer.Build().First().AdditionalFiles;
 
         // Then
-        additionalFiles.ShouldBe(new[] { "message.txt" }, log.ToString());
+        additionalFiles.ShouldBe(new[] { "message.txt" });
     }
 
-    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, System.IO.StringWriter log)
     {
         IProjectAnalyzer analyzer = new AnalyzerManager(
             new AnalyzerManagerOptions

@@ -1,20 +1,29 @@
-﻿namespace Buildalyzer.Caching
+﻿using Microsoft.Build.Framework;
+
+namespace Buildalyzer.Caching
 {
     internal static class DotnetInfoCache
     {
-        private static Dictionary<string, List<string>> cache = new Dictionary<string, List<string>>();
+        private static readonly Dictionary<string, IReadOnlyCollection<string>> Cache = new Dictionary<string, IReadOnlyCollection<string>>();
 
-        [Pure]
-        public static List<string> GetCache(string path)
+        public static IReadOnlyCollection<string> GetCache(string path)
         {
-            return cache.FirstOrDefault(x => x.Key == path).Value;
+            return Cache.TryGetValue(path, out IReadOnlyCollection<string> values) ? values : null;
         }
 
-        [Pure]
-        public static Dictionary<string, List<string>> AddCache(string path, List<string> dotnetInfo)
+        public static void AddCache(string path, IReadOnlyCollection<string> dotnetInfo)
         {
-            cache.Add(path, dotnetInfo);
-            return cache;
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("The path cannot be null or empty.");
+            }
+
+            if (dotnetInfo == null)
+            {
+                throw new ArgumentNullException(nameof(dotnetInfo), "Dotnet info information cannot be null.");
+            }
+
+            Cache[path] = dotnetInfo;
         }
     }
 }

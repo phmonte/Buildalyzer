@@ -1,5 +1,7 @@
-﻿using Buildalyzer.Environment;
+﻿using Buildalyzer.Caching;
+using Buildalyzer.Environment;
 using FluentAssertions;
+using Shouldly;
 
 namespace Buildalyzer.Tests.Environment;
 
@@ -199,5 +201,58 @@ To install additional .NET Core runtimes or SDKs:
             },
             BasePath = "/usr/share/dotnet/sdk/2.1.401",
         });
+    }
+
+    [Test]
+    public void Cached_Dotnet_Info()
+    {
+        // Given
+        var lines = @".NET Core SDK (reflecting any global.json):
+ Version:   2.1.300
+ Commit:    adab45bf0c
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  6.1.7601
+ OS Platform: Windows
+ RID:         win7-x64
+ Base Path:   C:\Program Files\dotnet\sdk\2.1.300\
+
+Host (useful for support):
+  Version: 2.1.0
+  Commit:  caa7b7e2ba
+
+.NET Core SDKs installed:
+  2.1.200 [C:\Program Files\dotnet\sdk]
+  2.1.300 [C:\Program Files\dotnet\sdk]
+  2.1.201 [C:\Program Files\dotnet\sdk]
+
+.NET Core runtimes installed:
+  Microsoft.AspNetCore.All 2.1.0 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.All]
+  Microsoft.AspNetCore.App 2.1.0 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 1.0.0 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 1.0.1 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 2.0.7 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 2.1.0 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+
+To install additional .NET Core runtimes or SDKs:
+  https://aka.ms/dotnet-download";
+        DotnetInfoCache.AddCache("/home/projects/buildalyzer/SampleProject.csproj", lines.Split([System.Environment.NewLine], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        // When
+        var cachedLines = DotnetInfoCache.GetCache("/home/projects/buildalyzer/SampleProject.csproj");
+
+        // Then
+        cachedLines.ShouldNotBeNull();
+        cachedLines.Count().ShouldBe(25);
+    }
+    [Test]
+    public void No_Cached_Dotnet_Info()
+    {
+        // Given, When
+        var cachedLines = DotnetInfoCache.GetCache("/home/projects/buildalyzer/Sample.csproj");
+
+        // Then
+        cachedLines.Should().BeNull();
     }
 }

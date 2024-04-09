@@ -20,7 +20,7 @@ internal class DotnetPathResolver
     public string ResolvePath(string projectPath, string dotnetExePath)
     {
         dotnetExePath ??= "dotnet";
-        List<string> output = GetInfo(projectPath, dotnetExePath);
+        IReadOnlyCollection<string> output = GetInfo(projectPath, dotnetExePath);
 
         var info = DotNetInfo.Parse(output);
         var basePath = info.BasePath ?? info.Runtimes.Values.FirstOrDefault();
@@ -34,7 +34,7 @@ internal class DotnetPathResolver
         return basePath;
     }
 
-    private List<string> GetInfo(string projectPath, string dotnetExePath)
+    private IReadOnlyCollection<string> GetInfo(string projectPath, string dotnetExePath)
     {
         // Ensure that we set the DOTNET_CLI_UI_LANGUAGE environment variable to "en-US" before
         // running 'dotnet --info'. Otherwise, we may get localized results
@@ -47,7 +47,7 @@ internal class DotnetPathResolver
             { MsBuildProperties.MSBuildExtensionsPath, null }
         };
 
-        List<string> dotnetInfoCache = DotnetInfoCache.GetCache(projectPath);
+        IReadOnlyCollection<string> dotnetInfoCache = DotnetInfoCache.GetCache(projectPath);
 
         if (dotnetInfoCache == null)
         {
@@ -60,7 +60,7 @@ internal class DotnetPathResolver
                 _logger?.LogInformation($"dotnet --info wait time is {dotnetInfoWaitTime}ms");
                 processRunner.Start();
                 processRunner.WaitForExit(dotnetInfoWaitTime);
-                List<string> dotnetInfoOutput = processRunner.Output;
+                IReadOnlyCollection<string> dotnetInfoOutput = processRunner.Output;
                 DotnetInfoCache.AddCache(projectPath, dotnetInfoOutput);
                 return dotnetInfoOutput;
             }

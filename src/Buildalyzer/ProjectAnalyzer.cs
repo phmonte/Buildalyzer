@@ -152,36 +152,32 @@ public class ProjectAnalyzer : IProjectAnalyzer
     {
         using (CancellationTokenSource cancellation = new CancellationTokenSource())
         {
-            using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
-            {
-                using (EventProcessor eventProcessor =
-                    new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
-                {
-                    // Run MSBuild
-                    int exitCode;
-                    string fileName = GetCommand(
-                        buildEnvironment,
-                        targetFramework,
-                        targetsToBuild,
-                        pipeLogger.GetClientHandle(),
-                        out string arguments);
-                    using (ProcessRunner processRunner = new ProcessRunner(
-                        fileName,
-                        arguments,
-                        buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
-                        GetEffectiveEnvironmentVariables(buildEnvironment),
-                        Manager.LoggerFactory))
-                    {
-                        processRunner.Start();
-                        pipeLogger.ReadAll();
-                        processRunner.WaitForExit();
-                        exitCode = processRunner.ExitCode;
-                    }
+            using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
+            using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
-                    // Collect the results
-                    results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
-                }
+            // Run MSBuild
+            int exitCode;
+            string fileName = GetCommand(
+                buildEnvironment,
+                targetFramework,
+                targetsToBuild,
+                pipeLogger.GetClientHandle(),
+                out string arguments);
+            using (ProcessRunner processRunner = new ProcessRunner(
+                fileName,
+                arguments,
+                buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
+                GetEffectiveEnvironmentVariables(buildEnvironment),
+                Manager.LoggerFactory))
+            {
+                processRunner.Start();
+                pipeLogger.ReadAll();
+                processRunner.WaitForExit();
+                exitCode = processRunner.ExitCode;
             }
+
+            // Collect the results
+            results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
         }
         return results;
     }

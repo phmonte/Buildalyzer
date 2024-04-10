@@ -43,10 +43,8 @@ public static class AnalyzerManagerExtensions
             workspace.AddSolution(solutionInfo);
 
             // Sort the projects so the order that they're added to the workspace in the same order as the solution file
-            List<ProjectInSolution> projectsInOrder = manager.SolutionFile.ProjectsInOrder.ToList();
-            results = results
-                .OrderBy(p => projectsInOrder.FindIndex(g => g.AbsolutePath == p.ProjectFilePath))
-                .ToList();
+            List<ProjectInSolution> projectsInOrder = [.. manager.SolutionFile.ProjectsInOrder];
+            results = [.. results.OrderBy(p => projectsInOrder.FindIndex(g => g.AbsolutePath == p.ProjectFilePath))];
         }
 
         // Add each result to the new workspace (sorted in solution order above, if we have a solution)

@@ -61,8 +61,8 @@ public class AnalyzerResult : IAnalyzerResult
     public string TargetFramework =>
         ProjectFile.GetTargetFrameworks(
             null,  // Don't want all target frameworks since the result is just for one
-            new[] { GetProperty(ProjectFileNames.TargetFramework) },
-            new[] { (GetProperty(ProjectFileNames.TargetFrameworkIdentifier), GetProperty(ProjectFileNames.TargetFrameworkVersion)) })
+            [GetProperty(ProjectFileNames.TargetFramework)],
+            [(GetProperty(ProjectFileNames.TargetFrameworkIdentifier), GetProperty(ProjectFileNames.TargetFrameworkVersion))])
         .FirstOrDefault();
 
     public string[] SourceFiles =>
@@ -84,13 +84,13 @@ public class AnalyzerResult : IAnalyzerResult
             ? items.Distinct(new ProjectItemItemSpecEqualityComparer())
                    .Select(x => AnalyzerManager.NormalizePath(
                         Path.Combine(Path.GetDirectoryName(ProjectFilePath), x.ItemSpec)))
-            : Array.Empty<string>();
+            : [];
 
     /// <inheritdoc/>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> PackageReferences =>
         Items.TryGetValue("PackageReference", out IProjectItem[] items)
             ? items.Distinct(new ProjectItemItemSpecEqualityComparer()).ToDictionary(x => x.ItemSpec, x => x.Metadata)
-            : new Dictionary<string, IReadOnlyDictionary<string, string>>();
+            : [];
 
     internal void ProcessProject(PropertiesAndItems propertiesAndItems)
     {

@@ -32,7 +32,7 @@ public static class Compiler
             {
                 Text = commandLine,
                 CompilerLocation = location,
-                Arguments = args.ToImmutableArray(),
+                Arguments = [.. args],
             };
 
             CompilerCommand Parse(string? baseDir, string? root, string[] args, CompilerLanguage language)

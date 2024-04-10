@@ -10,11 +10,11 @@ namespace Buildalyzer;
 
 public class AnalyzerManager : IAnalyzerManager
 {
-    internal static readonly SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
-    {
+    internal static readonly SolutionProjectType[] SupportedProjectTypes =
+    [
         SolutionProjectType.KnownToBeMSBuildFormat,
         SolutionProjectType.WebProject
-    };
+    ];
 
     private readonly ConcurrentDictionary<string, IProjectAnalyzer> _projects = new ConcurrentDictionary<string, IProjectAnalyzer>();
 

@@ -163,7 +163,7 @@ public class ProjectAnalyzerExtensionsFixture
         // Then
         string logged = log.ToString();
         logged.ShouldNotContain("Workspace failed");
-        project.AdditionalDocuments.Select(d => d.Name).ShouldBe(new[] { "message.txt" });
+        project.AdditionalDocuments.Select(d => d.Name).ShouldBe(["message.txt"]);
     }
 
     [Test]

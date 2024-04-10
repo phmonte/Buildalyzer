@@ -146,9 +146,7 @@ Program.fs";
         }
     }
 
-    private static ImmutableArray<IOPath> Files(params string[] files)
-        => files.Select(f => IOPath.Parse(f)).ToImmutableArray();
+    private static ImmutableArray<IOPath> Files(params string[] files) => [..files.Select(IOPath.Parse)];
 
-    private static ImmutableArray<string> Array(params string[] references)
-       => references.ToImmutableArray();
+    private static ImmutableArray<string> Array(params string[] references) => [.. references];
 }

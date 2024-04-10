@@ -46,7 +46,7 @@ public class AnalyzerManager : IAnalyzerManager
 
     public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
     {
-        options = options ?? new AnalyzerManagerOptions();
+        options ??= new AnalyzerManagerOptions();
         LoggerFactory = options.LoggerFactory;
 
         if (!string.IsNullOrEmpty(solutionFilePath))

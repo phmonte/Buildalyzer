@@ -207,11 +207,7 @@ public class ProjectAnalyzerExtensionsFixture
     {
         // The path will get normalized inside the .GetProject() call below
         string projectPath = GetFullPath(projectFile);
-        if (manager == null)
-        {
-            manager = new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
-        }
-
+        manager ??= new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
         return manager.GetProject(projectPath);
     }
 

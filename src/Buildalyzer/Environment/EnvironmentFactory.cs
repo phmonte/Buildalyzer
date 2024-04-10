@@ -34,7 +34,7 @@ public class EnvironmentFactory
 
     public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
     {
-        options = options ?? new EnvironmentOptions();
+        options ??= new EnvironmentOptions();
         BuildEnvironment buildEnvironment;
 
         // Use the .NET Framework if that's the preference

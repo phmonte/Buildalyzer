@@ -135,7 +135,7 @@ public class SimpleProjectsFixture
     [Test]
     public void GetsReferences(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
-        [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
+        [ValueSource(nameof(ProjectFiles))][NotNull] string projectFile)
     {
         // Given
         StringWriter log = new StringWriter();
@@ -683,28 +683,30 @@ public class SimpleProjectsFixture
     [Test]
     public void Resolves_additional_files_for_Razor_project()
     {
-        using var ctx = Context.ForProject("RazorClassLibraryTest/RazorClassLibraryTest.csproj");
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"RazorClassLibraryTest\RazorClassLibraryTest.csproj", log);
 
-        // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
-
-        // Then
-        additionalFiles.ShouldBe(new[] { "_Imports.razor", "Component1.razor" }, log.ToString());
+        // When + then
+        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
+            .Should().BeEquivalentTo(
+            "_Imports.razor",
+            "Component1.razor");
     }
 
     [Test]
     public void Resolves_additional_files()
     {
-        using var ctx = Context.ForProject("ProjectWithAdditionalFile/ProjectWithAdditionalFile.csproj");
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
 
-        // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
-
-        // Then
-        additionalFiles.ShouldBe(new[] { "message.txt" }, log.ToString());
+        // When + then
+        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
+            .Should().BeEquivalentTo("message.txt");
     }
 
-    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, System.IO.StringWriter log)
     {
         IProjectAnalyzer analyzer = new AnalyzerManager(
             new AnalyzerManagerOptions

@@ -35,16 +35,13 @@ public static class Compiler
                 Arguments = args.ToImmutableArray(),
             };
 
-            CompilerCommand Parse(string? baseDir, string? root, string[] args, CompilerLanguage language)
+            static CompilerCommand Parse(string? baseDir, string? root, string[] args, CompilerLanguage language) => language switch
             {
-                return language switch
-                {
-                    CompilerLanguage.CSharp => CSharpParser.Parse(args, baseDir, root),
-                    CompilerLanguage.VisualBasic => VisualBasicParser.Parse(args, baseDir, root),
-                    CompilerLanguage.FSharp => FSharpParser.Parse(args),
-                    _ => throw new NotSupportedException($"The {language} language is not supported."),
-                };
-            }
+                CompilerLanguage.CSharp => CSharpParser.Parse(args, baseDir, root),
+                CompilerLanguage.VisualBasic => VisualBasicParser.Parse(args, baseDir, root),
+                CompilerLanguage.FSharp => FSharpParser.Parse(args),
+                _ => throw new NotSupportedException($"The {language} language is not supported."),
+            };
         }
     }
 

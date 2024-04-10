@@ -195,7 +195,7 @@ public class EnvironmentFactory
     }
 
     private bool OnlyTargetsFramework(string targetFramework)
-        => targetFramework == null 
+        => targetFramework == null
             ? _projectFile.TargetFrameworks.TrueForAll(IsFrameworkTargetFramework)
             : IsFrameworkTargetFramework(targetFramework);
 

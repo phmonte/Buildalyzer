@@ -38,5 +38,5 @@ internal static class Guard
     /// </remarks>
     [Conditional("Analysis")]
     [AttributeUsage(AttributeTargets.Parameter)]
-    private sealed class ValidatedNotNullAttribute : Attribute { }
+    private sealed class ValidatedNotNullAttribute : Attribute;
 }

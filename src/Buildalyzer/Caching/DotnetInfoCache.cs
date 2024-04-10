@@ -6,6 +6,7 @@ namespace Buildalyzer.Caching
     {
         private static readonly Dictionary<string, IReadOnlyCollection<string>> Cache = new Dictionary<string, IReadOnlyCollection<string>>();
 
+        [Pure]
         public static IReadOnlyCollection<string> GetCache(string path)
         {
             return Cache.TryGetValue(path, out IReadOnlyCollection<string> values) ? values : null;

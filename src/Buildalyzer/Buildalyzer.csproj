@@ -1,19 +1,29 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
-    <LangVersion>12</LangVersion>
-    <Description>A little utility to perform design-time builds of .NET projects without having to think too hard about it. Should work with any project type on any .NET runtime.</Description>
+    <PackageId>Buildalyzer</PackageId>
+    <IsPackable>true</IsPackable>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
+    <OutputType>library</OutputType>
+    <PackageReleaseNotes>
+ToBeReleased
+- Marked EmptyDisposable as obsolete. #253
+- Target .NET 8.0. #252
+    </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" AllowedVersion="[4,)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.0.1" AllowedVersion="[4,)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="[4,)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" Version="[4,)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="MsBuildPipeLogger.Server" Version="1.1.6" />
     <PackageReference Include="Microsoft.Build" Version="17.0.1" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.1.815" Aliases="StructuredLogger" />
+    <PackageReference Include="MsBuildPipeLogger.Server" Version="1.1.6" />
     <PackageReference Include="NuGet.Frameworks" Version="6.9.1" />
   </ItemGroup>
 
@@ -28,6 +38,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Buildalyzer.Logger\Buildalyzer.Logger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Additional files">
+    <AdditionalFiles Include="*.csproj" Visible="false" />
   </ItemGroup>
 
 </Project>

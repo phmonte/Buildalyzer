@@ -1,15 +1,6 @@
 <Project>
 
   <PropertyGroup>
-    <Version Condition="'$(BuildalyzerVersion)' == ''">1.0.0</Version>
-    <Version Condition="'$(BuildalyzerVersion)' != ''">$(BuildalyzerVersion)</Version>
-    <AssemblyVersion>$(Version.Split('-')[0])</AssemblyVersion>
-    <FileVersion>$(Version.Split('-')[0])</FileVersion>
-    <Authors>Dave Glick, Pablo Monteiro, and contributors</Authors>
-    <Company>Dave Glick, Pablo Monteiro, and contributors</Company>
-    <PackageIcon>icon.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/phmonte/Buildalyzer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/phmonte/Buildalyzer.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,9 +8,41 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Shared properties">
+    <Version Condition="'$(BuildalyzerVersion)' == ''">1.0.0</Version>
+    <Version Condition="'$(BuildalyzerVersion)' != ''">$(BuildalyzerVersion)</Version>
+    <AssemblyVersion>$(Version.Split('-')[0])</AssemblyVersion>
+    <FileVersion>$(Version.Split('-')[0])</FileVersion>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPublishable>false</IsPublishable>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package information">
+    <Description>
+      A little utility to perform design-time builds of .NET projects without
+      having to think too hard about it. Should work with any project type on
+      any .NET runtime.
+    </Description>
+    <PackageTags>
+      Roslyn,
+      MsBuild,
+      Workspaces,
+      C#,
+      F#,
+      VB.NET
+    </PackageTags>
+    <Authors>Dave Glick, Pablo Monteiro, Corniel Nobel, and contributors</Authors>
+    <Company>Dave Glick, Pablo Monteiro, and contributors</Company>
+    <Copyright>Dave Glick, Pablo Monteiro</Copyright>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl>https://github.com/phmonte/Buildalyzer/blob/main/icon.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/phmonte/Buildalyzer</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,14 +51,18 @@
     <None Include="$(MSBuildThisFileDirectory)\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
-<ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all"/>
   </ItemGroup>
 
   <ItemGroup Label="Analyzers">
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="*" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Analyzers" Version="*" PrivateAssets="All"/>
-    <PackageReference Include="StyleCop.Analyzers" Version="*-*" PrivateAssets="All"/>
+    <PackageReference Include="DotNetProjectFile.Analyzers" Version="*" PrivateAssets="all" Condition="'$(TargetFramework)'=='net8.0'" />
+    <PackageReference Include="IDisposableAnalyzers" Version="*" PrivateAssets="all"/>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="*" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="*" PrivateAssets="all"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="*" PrivateAssets="all"/>
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="*" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" Version="*-*" PrivateAssets="all"/>
   </ItemGroup>
 
 </Project>

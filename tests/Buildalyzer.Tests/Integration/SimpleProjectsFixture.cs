@@ -707,7 +707,6 @@ public class SimpleProjectsFixture
         // When + then
         analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
             .Should().BeEquivalentTo("message.txt");
-
     }
 
     private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)

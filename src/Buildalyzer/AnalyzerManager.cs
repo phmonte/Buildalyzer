@@ -1,10 +1,6 @@
 ﻿extern alias StructuredLogger;
-
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Extensions.Logging;
@@ -14,11 +10,11 @@ namespace Buildalyzer;
 
 public class AnalyzerManager : IAnalyzerManager
 {
-    internal static readonly SolutionProjectType[] SupportedProjectTypes = new SolutionProjectType[]
-    {
+    internal static readonly SolutionProjectType[] SupportedProjectTypes =
+    [
         SolutionProjectType.KnownToBeMSBuildFormat,
         SolutionProjectType.WebProject
-    };
+    ];
 
     private readonly ConcurrentDictionary<string, IProjectAnalyzer> _projects = new ConcurrentDictionary<string, IProjectAnalyzer>();
 
@@ -50,7 +46,7 @@ public class AnalyzerManager : IAnalyzerManager
 
     public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
     {
-        options = options ?? new AnalyzerManagerOptions();
+        options ??= new AnalyzerManagerOptions();
         LoggerFactory = options.LoggerFactory;
 
         if (!string.IsNullOrEmpty(solutionFilePath))
@@ -99,22 +95,18 @@ public class AnalyzerManager : IAnalyzerManager
         }
 
         BinLogReader reader = new BinLogReader();
-        using (EventProcessor eventProcessor = new EventProcessor(this, null, buildLoggers, reader, true))
+
+        using EventProcessor eventProcessor = new EventProcessor(this, null, buildLoggers, reader, true);
+        reader.Replay(binLogPath);
+        return new AnalyzerResults
         {
-            reader.Replay(binLogPath);
-            return new AnalyzerResults
-            {
-                { eventProcessor.Results, eventProcessor.OverallSuccess }
-            };
-        }
+            { eventProcessor.Results, eventProcessor.OverallSuccess }
+        };
     }
 
     private IProjectAnalyzer GetProject(string projectFilePath, ProjectInSolution projectInSolution)
     {
-        if (projectFilePath == null)
-        {
-            throw new ArgumentNullException(nameof(projectFilePath));
-        }
+        Guard.NotNull(projectFilePath);
 
         projectFilePath = NormalizePath(projectFilePath);
         if (!File.Exists(projectFilePath))

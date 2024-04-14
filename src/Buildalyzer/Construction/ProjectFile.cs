@@ -49,11 +49,11 @@ public class ProjectFile : IProjectFile
 
     /// <inheritdoc />
     public string[] TargetFrameworks => _targetFrameworks
-        ?? (_targetFrameworks = GetTargetFrameworks(
+        ??= GetTargetFrameworks(
             _projectElement.GetDescendants(ProjectFileNames.TargetFrameworks).Select(x => x.Value),
             _projectElement.GetDescendants(ProjectFileNames.TargetFramework).Select(x => x.Value),
             _projectElement.GetDescendants(ProjectFileNames.TargetFrameworkVersion)
-                .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value))));
+                .Select(x => (x.Parent.GetDescendants(ProjectFileNames.TargetFrameworkIdentifier).FirstOrDefault()?.Value ?? ".NETFramework", x.Value)));
 
     /// <inheritdoc />
     public bool UsesSdk =>

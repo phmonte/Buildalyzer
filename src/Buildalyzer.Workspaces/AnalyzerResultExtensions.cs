@@ -111,7 +111,7 @@ public static class AnalyzerResultExtensions
         {
             ProjectReference projectReference = projectReferenceStack.Pop();
             Project nestedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
-            if (nestedProject is object && visitedProjectIds.Add(nestedProject.Id))
+            if (nestedProject is not null && visitedProjectIds.Add(nestedProject.Id))
             {
                 foreach (ProjectReference nestedProjectReference in nestedProject.ProjectReferences)
                 {
@@ -257,20 +257,19 @@ public static class AnalyzerResultExtensions
     private static IEnumerable<ProjectReference> GetExistingProjectReferences(IAnalyzerResult analyzerResult, Workspace workspace) =>
         analyzerResult.ProjectReferences
             .Select(x => workspace.CurrentSolution.Projects.FirstOrDefault(y => y.FilePath.Equals(x, StringComparison.OrdinalIgnoreCase)))
-
             .Where(x => x != null)
             .Select(x => new ProjectReference(x.Id))
-        ?? Array.Empty<ProjectReference>();
+            ?? [];
 
     private static IEnumerable<IProjectAnalyzer> GetReferencedAnalyzerProjects(IAnalyzerResult analyzerResult) =>
         analyzerResult.ProjectReferences
             .Select(x => analyzerResult.Manager.Projects.TryGetValue(x, out IProjectAnalyzer a) ? a : analyzerResult.Manager.GetProject(x))
             .Where(x => x != null)
-        ?? Array.Empty<ProjectAnalyzer>();
+            ?? [];
 
     private static IEnumerable<DocumentInfo> GetDocuments(IAnalyzerResult analyzerResult, ProjectId projectId)
     {
-        string[] sourceFiles = analyzerResult.SourceFiles ?? Array.Empty<string>();
+        string[] sourceFiles = analyzerResult.SourceFiles ?? [];
         return GetDocuments(sourceFiles, projectId);
     }
 
@@ -287,7 +286,7 @@ public static class AnalyzerResultExtensions
     private static IEnumerable<DocumentInfo> GetAdditionalDocuments(IAnalyzerResult analyzerResult, ProjectId projectId)
     {
         string projectDirectory = Path.GetDirectoryName(analyzerResult.ProjectFilePath);
-        string[] additionalFiles = analyzerResult.AdditionalFiles ?? Array.Empty<string>();
+        string[] additionalFiles = analyzerResult.AdditionalFiles ?? [];
         return GetDocuments(additionalFiles.Select(x => Path.Combine(projectDirectory!, x)), projectId);
     }
 
@@ -295,7 +294,7 @@ public static class AnalyzerResultExtensions
         analyzerResult
             .References?.Where(File.Exists)
             .Select(x => MetadataReference.CreateFromFile(x))
-        ?? (IEnumerable<MetadataReference>)Array.Empty<MetadataReference>();
+            ?? [];
 
     private static IEnumerable<AnalyzerReference> GetAnalyzerReferences(IAnalyzerResult analyzerResult, Workspace workspace)
     {
@@ -304,7 +303,7 @@ public static class AnalyzerResultExtensions
         string projectDirectory = Path.GetDirectoryName(analyzerResult.ProjectFilePath);
         return analyzerResult.AnalyzerReferences?.Where(x => File.Exists(Path.GetFullPath(x, projectDirectory!)))
             .Select(x => new AnalyzerFileReference(Path.GetFullPath(x, projectDirectory!), loader))
-            ?? (IEnumerable<AnalyzerReference>)Array.Empty<AnalyzerReference>();
+            ?? [];
     }
 
     private static bool TryGetSupportedLanguageName(string projectPath, out string languageName)

@@ -18,7 +18,7 @@ namespace Buildalyzer;
 
 public class ProjectAnalyzer : IProjectAnalyzer
 {
-    private readonly List<ILogger> _buildLoggers = new List<ILogger>();
+    private readonly List<ILogger> _buildLoggers = [];
 
     // Project-specific global properties and environment variables
     private readonly ConcurrentDictionary<string, string> _globalProperties = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -78,15 +78,12 @@ public class ProjectAnalyzer : IProjectAnalyzer
     /// <inheritdoc/>
     public IAnalyzerResults Build(string[] targetFrameworks, EnvironmentOptions environmentOptions)
     {
-        if (environmentOptions == null)
-        {
-            throw new ArgumentNullException(nameof(environmentOptions));
-        }
+        Guard.NotNull(environmentOptions);
 
         // If the set of target frameworks is empty, just build the default
         if (targetFrameworks == null || targetFrameworks.Length == 0)
         {
-            targetFrameworks = new string[] { null };
+            targetFrameworks = [null];
         }
 
         // Create a new build environment for each target
@@ -103,15 +100,12 @@ public class ProjectAnalyzer : IProjectAnalyzer
     /// <inheritdoc/>
     public IAnalyzerResults Build(string[] targetFrameworks, BuildEnvironment buildEnvironment)
     {
-        if (buildEnvironment == null)
-        {
-            throw new ArgumentNullException(nameof(buildEnvironment));
-        }
+        Guard.NotNull(buildEnvironment);
 
         // If the set of target frameworks is empty, just build the default
         if (targetFrameworks == null || targetFrameworks.Length == 0)
         {
-            targetFrameworks = new string[] { null };
+            targetFrameworks = [null];
         }
 
         AnalyzerResults results = new AnalyzerResults();
@@ -133,12 +127,12 @@ public class ProjectAnalyzer : IProjectAnalyzer
             targetFramework,
             EnvironmentFactory.GetBuildEnvironment(
                 targetFramework,
-                environmentOptions ?? throw new ArgumentNullException(nameof(environmentOptions))));
+                Guard.NotNull(environmentOptions)));
 
     /// <inheritdoc/>
     public IAnalyzerResults Build(string targetFramework, BuildEnvironment buildEnvironment) =>
         BuildTargets(
-            buildEnvironment ?? throw new ArgumentNullException(nameof(buildEnvironment)),
+            Guard.NotNull(buildEnvironment),
             targetFramework,
             buildEnvironment.TargetsToBuild,
             new AnalyzerResults());
@@ -158,36 +152,32 @@ public class ProjectAnalyzer : IProjectAnalyzer
     {
         using (CancellationTokenSource cancellation = new CancellationTokenSource())
         {
-            using (AnonymousPipeLoggerServer pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token))
-            {
-                using (EventProcessor eventProcessor =
-                    new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null))
-                {
-                    // Run MSBuild
-                    int exitCode;
-                    string fileName = GetCommand(
-                        buildEnvironment,
-                        targetFramework,
-                        targetsToBuild,
-                        pipeLogger.GetClientHandle(),
-                        out string arguments);
-                    using (ProcessRunner processRunner = new ProcessRunner(
-                        fileName,
-                        arguments,
-                        buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
-                        GetEffectiveEnvironmentVariables(buildEnvironment),
-                        Manager.LoggerFactory))
-                    {
-                        processRunner.Start();
-                        pipeLogger.ReadAll();
-                        processRunner.WaitForExit();
-                        exitCode = processRunner.ExitCode;
-                    }
+            using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
+            using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
-                    // Collect the results
-                    results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
-                }
+            // Run MSBuild
+            int exitCode;
+            string fileName = GetCommand(
+                buildEnvironment,
+                targetFramework,
+                targetsToBuild,
+                pipeLogger.GetClientHandle(),
+                out string arguments);
+            using (ProcessRunner processRunner = new ProcessRunner(
+                fileName,
+                arguments,
+                buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
+                GetEffectiveEnvironmentVariables(buildEnvironment),
+                Manager.LoggerFactory))
+            {
+                processRunner.Start();
+                pipeLogger.ReadAll();
+                processRunner.WaitForExit();
+                exitCode = processRunner.ExitCode;
             }
+
+            // Collect the results
+            results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
         }
         return results;
     }
@@ -378,24 +368,8 @@ public class ProjectAnalyzer : IProjectAnalyzer
         });
 
     /// <inheritdoc/>
-    public void AddBuildLogger(ILogger logger)
-    {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
-        _buildLoggers.Add(logger);
-    }
+    public void AddBuildLogger(ILogger logger) => _buildLoggers.Add(Guard.NotNull(logger));
 
     /// <inheritdoc/>
-    public void RemoveBuildLogger(ILogger logger)
-    {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
-        _buildLoggers.Remove(logger);
-    }
+    public void RemoveBuildLogger(ILogger logger) => _buildLoggers.Remove(Guard.NotNull(logger));
 }

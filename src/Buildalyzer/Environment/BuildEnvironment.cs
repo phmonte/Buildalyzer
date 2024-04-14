@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.NetworkInformation;
+﻿using System.IO;
 
 namespace Buildalyzer.Environment;
 
@@ -44,7 +41,7 @@ public sealed class BuildEnvironment
 
     public string DotnetExePath { get; }
 
-    public string WorkingDirectory { get; }
+    public string? WorkingDirectory { get; }
 
     /// <summary>
     /// Indicates if the <c>-noAutoResponse</c> argument should be set (the default is <c>true</c>).
@@ -68,14 +65,14 @@ public sealed class BuildEnvironment
         string msBuildExePath,
         string dotnetExePath,
         IEnumerable<string> arguments,
-        IDictionary<string, string> additionalGlobalProperties = null,
-        IDictionary<string, string> additionalEnvironmentVariables = null,
-        string workingDirectory = null)
+        IDictionary<string, string>? additionalGlobalProperties = null,
+        IDictionary<string, string>? additionalEnvironmentVariables = null,
+        string? workingDirectory = null)
     {
         DesignTime = designTime;
         Restore = restore;
-        TargetsToBuild = targetsToBuild ?? throw new ArgumentNullException(nameof(targetsToBuild));
-        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+        TargetsToBuild = Guard.NotNull(targetsToBuild);
+        Arguments = Guard.NotNull(arguments);
         WorkingDirectory = workingDirectory;
 
         // Check if we've already specified a path to MSBuild
@@ -88,7 +85,7 @@ public sealed class BuildEnvironment
         }
 
         // The dotnet path defaults to "dotnet" - if it's null then the user changed it and we should warn them
-        DotnetExePath = dotnetExePath ?? throw new ArgumentNullException(nameof(dotnetExePath));
+        DotnetExePath = Guard.NotNull(dotnetExePath);
 
         // Set global properties
         _globalProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

@@ -163,7 +163,7 @@ public class ProjectAnalyzerExtensionsFixture
         // Then
         string logged = log.ToString();
         logged.ShouldNotContain("Workspace failed");
-        project.AdditionalDocuments.Select(d => d.Name).ShouldBe(new[] { "message.txt" });
+        project.AdditionalDocuments.Select(d => d.Name).ShouldBe(["message.txt"]);
     }
 
     [Test]
@@ -207,11 +207,7 @@ public class ProjectAnalyzerExtensionsFixture
     {
         // The path will get normalized inside the .GetProject() call below
         string projectPath = GetFullPath(projectFile);
-        if (manager == null)
-        {
-            manager = new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
-        }
-
+        manager ??= new AnalyzerManager(new AnalyzerManagerOptions { LogWriter = log });
         return manager.GetProject(projectPath);
     }
 

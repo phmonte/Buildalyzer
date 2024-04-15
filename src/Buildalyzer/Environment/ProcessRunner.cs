@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Buildalyzer.Environment;
 
 internal class ProcessRunner : IDisposable
 {
-    private readonly ILogger<ProcessRunner> _logger;
+    private readonly ILogger Logger;
 
     public List<string> Output { get; } = new List<string>();
     public List<string> Error { get; } = new List<string>();
+
     public int ExitCode => Process.ExitCode;
 
     private Process Process { get; }
@@ -22,9 +21,9 @@ internal class ProcessRunner : IDisposable
         string arguments,
         string workingDirectory,
         Dictionary<string, string> environmentVariables,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory? loggerFactory)
     {
-        _logger = loggerFactory?.CreateLogger<ProcessRunner>();
+        Logger = loggerFactory?.CreateLogger<ProcessRunner>() ?? NullLogger<ProcessRunner>.Instance;
         Process = new Process
         {
             StartInfo =
@@ -57,7 +56,7 @@ internal class ProcessRunner : IDisposable
             if (!string.IsNullOrEmpty(e.Data))
             {
                 Output.Add(e.Data);
-                _logger?.LogDebug(e.Data + System.Environment.NewLine);
+                Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
             }
         };
         Process.ErrorDataReceived += (_, e) =>
@@ -65,7 +64,7 @@ internal class ProcessRunner : IDisposable
             if (!string.IsNullOrEmpty(e.Data))
             {
                 Error.Add(e.Data);
-                _logger?.LogError(e.Data + System.Environment.NewLine);
+                Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
             }
         };
     }
@@ -75,14 +74,23 @@ internal class ProcessRunner : IDisposable
         Process.Start();
         Process.BeginOutputReadLine();
         Process.BeginErrorReadLine();
-        _logger?.LogDebug($"{System.Environment.NewLine}Started process {Process.Id}: \"{Process.StartInfo.FileName}\" {Process.StartInfo.Arguments}{System.Environment.NewLine}");
+        Logger.LogDebug(
+            "Started process {ProcessId}: \"{FileName}\" {Arguments}{NewLine}",
+            Process.Id,
+            Process.StartInfo.FileName,
+            Process.StartInfo.Arguments,
+            System.Environment.NewLine);
         return this;
     }
 
-    private void ProcessExited(object sender, EventArgs e)
+    private void ProcessExited(object? sender, EventArgs e)
     {
         Exited?.Invoke();
-        _logger?.LogDebug($"Process {Process.Id} exited with code {Process.ExitCode}{System.Environment.NewLine}{System.Environment.NewLine}");
+        Logger.LogDebug(
+            "Process {Id} exited with code {ExitCode}{NewLine}",
+            Process.Id,
+            Process.ExitCode,
+            System.Environment.NewLine);
     }
 
     public void WaitForExit() => Process.WaitForExit();

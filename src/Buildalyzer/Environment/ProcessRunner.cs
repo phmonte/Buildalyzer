@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Environment;
@@ -21,7 +18,7 @@ internal class ProcessRunner : IDisposable
         string fileName,
         string arguments,
         string workingDirectory,
-        Dictionary<string, string> environmentVariables,
+        Dictionary<string, string?> environmentVariables,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory?.CreateLogger<ProcessRunner>();

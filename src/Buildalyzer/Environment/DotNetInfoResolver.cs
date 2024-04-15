@@ -1,14 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using Buildalyzer.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Buildalyzer.Environment;
 
-internal sealed class DotNetInfoResolver(ILoggerFactory factory)
+internal sealed class DotNetInfoResolver(ILoggerFactory? factory)
 {
     private static readonly TimeSpan FallbackWaitTime = TimeSpan.FromSeconds(10);
-    private readonly ILogger Logger = Guard.NotNull(factory).CreateLogger<DotNetInfoResolver>();
-    private readonly ILoggerFactory Factory = Guard.NotNull(factory);
+    private readonly ILoggerFactory Factory = factory ?? NullLoggerFactory.Instance;
+    private readonly ILogger Logger = (factory ?? NullLoggerFactory.Instance).CreateLogger<DotNetInfoResolver>();
 
     [Pure]
     public DotNetInfo Resolve(IOPath projectPath, IOPath dotNetExePath)
@@ -51,7 +52,7 @@ internal sealed class DotNetInfoResolver(ILoggerFactory factory)
     {
         if (int.TryParse(System.Environment.GetEnvironmentVariable(EnvironmentVariables.DOTNET_INFO_WAIT_TIME), out int waitTime))
         {
-            Logger.LogInformation("dotnet --info wait time is {WaitTime}ms", waitTime);
+            Logger?.LogInformation("dotnet --info wait time is {WaitTime}ms", waitTime);
             return waitTime;
         }
         else

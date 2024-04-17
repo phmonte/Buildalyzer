@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Buildalyzer.Construction;
 using Buildalyzer.Environment;
@@ -255,6 +252,10 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
         // Get the logger arguments (/l)
         string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+        if (string.IsNullOrEmpty(loggerPath))
+        {
+            loggerPath = SearchCurrentDirectoryLogger();
+        }
         bool logEverything = _buildLoggers.Count > 0;
         string loggerArgStart = "/l"; // in case of MSBuild.exe use slash as parameter prefix for logger
         if (isDotNet)
@@ -285,6 +286,17 @@ public class ProjectAnalyzer : IProjectAnalyzer
         arguments += string.Join(" ", argumentsList);
 
         return fileName;
+    }
+
+    private static string SearchCurrentDirectoryLogger()
+    {
+        string customLoggerPath = Path.Combine(Directory.GetCurrentDirectory(), typeof(BuildalyzerLogger).Assembly.ManifestModule.ScopeName);
+        if (!File.Exists(customLoggerPath))
+        {
+            throw new InvalidOperationException($"Could not find: {typeof(BuildalyzerLogger).Assembly.ManifestModule.ScopeName}");
+        }
+
+        return customLoggerPath;
     }
 
     private static string FormatArgument(string argument)

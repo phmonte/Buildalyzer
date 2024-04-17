@@ -87,6 +87,10 @@ Calling `GetProject()` again for the same project path will return the existing 
 
 To build the project, which triggers evaluation of the specified MSBuild tasks and targets but stops short of invoking the compiler by default in Buildalyzer, call `Build()`. This method has a number of overloads that lets you customize the build process by specifying target frameworks, build targets, and more.
 
+### Publish Single File
+If your project uses PublishSingleFile, the Build will fail as the `Buildalyzer.Logger` and `MsBuildPipeLogger.Logger` dlls are physically required to be sent to MsBuild.
+One suggestion is to keep the dlls in the root, where the project is running.
+
 ## Results
 
 Calling `ProjectAnalyzer.Build()` (or an overload) will return an `AnalyzerResults` object, which is a collection of `AnalyzerResult` objects for each of the target frameworks that were built. It will usually only contain a single `AnalyzerResult` unless the project is multi-targeted.

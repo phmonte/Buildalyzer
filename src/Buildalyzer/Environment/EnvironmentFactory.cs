@@ -63,7 +63,7 @@ public class EnvironmentFactory
 
         if ((info.BasePath ?? info.Runtimes.Values.FirstOrDefault()) is not { } dotnetPath)
         {
-            _logger?.LogWarning("Could not locate SDK path in `{DotnetPath} --info` results", options.DotnetExePath);
+            Logger.LogWarning("Could not locate SDK path in `{DotnetPath} --info` results", options.DotnetExePath);
             return null;
         }
 

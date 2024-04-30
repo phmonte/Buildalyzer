@@ -21,19 +21,19 @@ public class EnvironmentFactory
         Logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>() ?? NullLogger<EnvironmentFactory>.Instance;
     }
 
-    public BuildEnvironment GetBuildEnvironment() =>
+    public BuildEnvironment? GetBuildEnvironment() =>
         GetBuildEnvironment(null, null);
 
-    public BuildEnvironment GetBuildEnvironment(string targetFramework) =>
+    public BuildEnvironment? GetBuildEnvironment(string? targetFramework) =>
         GetBuildEnvironment(targetFramework, null);
 
-    public BuildEnvironment GetBuildEnvironment(EnvironmentOptions options) =>
+    public BuildEnvironment? GetBuildEnvironment(EnvironmentOptions? options) =>
         GetBuildEnvironment(null, options);
 
-    public BuildEnvironment GetBuildEnvironment(string targetFramework, EnvironmentOptions options)
+    public BuildEnvironment? GetBuildEnvironment(string? targetFramework, EnvironmentOptions? options)
     {
         options ??= new EnvironmentOptions();
-        BuildEnvironment buildEnvironment;
+        BuildEnvironment? buildEnvironment;
 
         // Use the .NET Framework if that's the preference
         // ...or if this project file uses a target known to require .NET Framework
@@ -55,18 +55,20 @@ public class EnvironmentFactory
 
     // Based on code from OmniSharp
     // https://github.com/OmniSharp/omnisharp-roslyn/blob/78ccc8b4376c73da282a600ac6fb10fce8620b52/src/OmniSharp.Abstractions/Services/DotNetCliService.cs
-    private BuildEnvironment CreateCoreEnvironment(EnvironmentOptions options)
+    private BuildEnvironment? CreateCoreEnvironment(EnvironmentOptions options)
     {
         // Get paths
-        DotnetPathResolver pathResolver = new DotnetPathResolver(_manager.LoggerFactory);
-        string dotnetPath = pathResolver.ResolvePath(_projectFile.Path, options.DotnetExePath);
-        if (dotnetPath == null)
+        var resolver = new DotNetInfoResolver(_manager.LoggerFactory);
+        var info = resolver.Resolve(IO.IOPath.Parse(_projectFile.Path), IO.IOPath.Parse(options.DotnetExePath));
+
+        if ((info.BasePath ?? info.Runtimes.Values.FirstOrDefault()) is not { } dotnetPath)
         {
+            _logger?.LogWarning("Could not locate SDK path in `{DotnetPath} --info` results", options.DotnetExePath);
             return null;
         }
 
         string msBuildExePath = Path.Combine(dotnetPath, "MSBuild.dll");
-        if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+        if (options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
         {
             msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
         }
@@ -119,7 +121,7 @@ public class EnvironmentFactory
             options.WorkingDirectory);
     }
 
-    private BuildEnvironment CreateFrameworkEnvironment(EnvironmentOptions options)
+    private BuildEnvironment? CreateFrameworkEnvironment(EnvironmentOptions options)
     {
         // Clone the options global properties dictionary so we can add to it
         Dictionary<string, string> additionalGlobalProperties = new Dictionary<string, string>(options.GlobalProperties);
@@ -133,7 +135,7 @@ public class EnvironmentFactory
         }
 
         string msBuildExePath;
-        if (options != null && options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
+        if (options.EnvironmentVariables.ContainsKey(EnvironmentVariables.MSBUILD_EXE_PATH))
         {
             msBuildExePath = options.EnvironmentVariables[EnvironmentVariables.MSBUILD_EXE_PATH];
         }
@@ -192,7 +194,7 @@ public class EnvironmentFactory
         return !string.IsNullOrEmpty(msBuildExePath);
     }
 
-    private bool OnlyTargetsFramework(string targetFramework)
+    private bool OnlyTargetsFramework(string? targetFramework)
         => targetFramework == null
             ? _projectFile.TargetFrameworks.TrueForAll(IsFrameworkTargetFramework)
             : IsFrameworkTargetFramework(targetFramework);

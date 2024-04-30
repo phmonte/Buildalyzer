@@ -20,7 +20,7 @@ internal class ProcessRunner : IDisposable
         string fileName,
         string arguments,
         string workingDirectory,
-        Dictionary<string, string> environmentVariables,
+        Dictionary<string, string?> environmentVariables,
         ILoggerFactory? loggerFactory)
     {
         Logger = loggerFactory?.CreateLogger<ProcessRunner>() ?? NullLogger<ProcessRunner>.Instance;

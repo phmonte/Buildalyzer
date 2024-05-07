@@ -250,7 +250,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
         {
             argumentsList.Add(
                 propertyArgStart
-                    + $":{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value)}"))}");
+                    + $":{string.Join(";", effectiveGlobalProperties.Select(x => $"{x.Key}={FormatArgument(x.Value).Replace(";", "%3B")}"))}");
         }
 
         // Get the logger arguments (/l)

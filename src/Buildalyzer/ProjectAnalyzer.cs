@@ -9,6 +9,7 @@ using Buildalyzer.Environment;
 using Buildalyzer.Logger;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
 using Microsoft.Extensions.Logging;
 using MsBuildPipeLogger;
@@ -154,7 +155,13 @@ public class ProjectAnalyzer : IProjectAnalyzer
         {
             using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
             bool receivedAnyEvent = false;
-            pipeLogger.AnyEventRaised += (_, _) => receivedAnyEvent = true;
+
+            void OnPipeLoggerOnAnyEventRaised(object o, BuildEventArgs buildEventArgs)
+            {
+                receivedAnyEvent = true;
+            }
+
+            pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
             using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
             // Run MSBuild
@@ -172,13 +179,15 @@ public class ProjectAnalyzer : IProjectAnalyzer
                 GetEffectiveEnvironmentVariables(buildEnvironment),
                 Manager.LoggerFactory))
             {
-                processRunner.Exited += () =>
+                void OnProcessRunnerExited()
                 {
                     if (!receivedAnyEvent && processRunner.ExitCode != 0)
                     {
                         pipeLogger.Dispose();
                     }
-                };
+                }
+
+                processRunner.Exited += OnProcessRunnerExited;
                 processRunner.Start();
                 try
                 {

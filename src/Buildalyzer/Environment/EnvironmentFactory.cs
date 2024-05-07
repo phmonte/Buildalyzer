@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NuGet.Frameworks;
 
 namespace Buildalyzer.Environment;
@@ -11,13 +12,13 @@ public class EnvironmentFactory
 {
     private readonly IAnalyzerManager _manager;
     private readonly IProjectFile _projectFile;
-    private readonly ILogger<EnvironmentFactory> _logger;
+    private readonly ILogger Logger;
 
     internal EnvironmentFactory(IAnalyzerManager manager, IProjectFile projectFile)
     {
         _manager = manager;
         _projectFile = projectFile;
-        _logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>();
+        Logger = _manager.LoggerFactory?.CreateLogger<EnvironmentFactory>() ?? NullLogger<EnvironmentFactory>.Instance;
     }
 
     public BuildEnvironment? GetBuildEnvironment() =>
@@ -62,7 +63,7 @@ public class EnvironmentFactory
 
         if ((info.BasePath ?? info.Runtimes.Values.FirstOrDefault()) is not { } dotnetPath)
         {
-            _logger?.LogWarning("Could not locate SDK path in `{DotnetPath} --info` results", options.DotnetExePath);
+            Logger.LogWarning("Could not locate SDK path in `{DotnetPath} --info` results", options.DotnetExePath);
             return null;
         }
 
@@ -140,7 +141,7 @@ public class EnvironmentFactory
         }
         else if (!GetFrameworkMsBuildExePath(out msBuildExePath))
         {
-            _logger?.LogWarning("Couldn't find a .NET Framework MSBuild path");
+            Logger.LogWarning("Couldn't find a .NET Framework MSBuild path");
             return null;
         }
 

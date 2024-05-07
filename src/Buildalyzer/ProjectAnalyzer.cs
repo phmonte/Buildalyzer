@@ -153,6 +153,8 @@ public class ProjectAnalyzer : IProjectAnalyzer
         using (CancellationTokenSource cancellation = new CancellationTokenSource())
         {
             using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
+            bool receivedAnyEvent = false;
+            pipeLogger.AnyEventRaised += (_, _) => receivedAnyEvent = true;
             using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
             // Run MSBuild
@@ -170,8 +172,22 @@ public class ProjectAnalyzer : IProjectAnalyzer
                 GetEffectiveEnvironmentVariables(buildEnvironment),
                 Manager.LoggerFactory))
             {
+                processRunner.Exited += () =>
+                {
+                    if (!receivedAnyEvent && processRunner.ExitCode != 0)
+                    {
+                        pipeLogger.Dispose();
+                    }
+                };
                 processRunner.Start();
-                pipeLogger.ReadAll();
+                try
+                {
+                    pipeLogger.ReadAll();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Ignore
+                }
                 processRunner.WaitForExit();
                 exitCode = processRunner.ExitCode;
             }

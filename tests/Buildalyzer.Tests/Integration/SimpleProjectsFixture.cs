@@ -709,6 +709,23 @@ public class SimpleProjectsFixture
             .Should().BeEquivalentTo("message.txt");
     }
 
+    [Test]
+    public void HandlesProcessFailure()
+    {
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNet6Exe\SdkNet6Exe.csproj", log);
+
+        // When
+        IAnalyzerResults results = analyzer.Build(new EnvironmentOptions
+        {
+            Arguments = { "/unknown" } // This argument will cause msbuild to immediately fail
+        });
+
+        // Then
+        results.OverallSuccess.ShouldBeFalse();
+    }
+
     private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
     {
         IProjectAnalyzer analyzer = new AnalyzerManager(

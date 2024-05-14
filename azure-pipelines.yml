@@ -8,7 +8,7 @@ trigger:
      - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 variables:
   solution: '**/*.sln'
@@ -22,6 +22,10 @@ steps:
     echo "##vso[task.setvariable variable=myVersion;isOutput=true]$tags"
   name: createTagVariableStep
   displayName: 'Get Latest Tag on Main Branch'
+
+- script: |
+    choco install dotnet4.5
+  displayName: 'Install .NET Framework 4.5'
 
 - script: echo "The version is $(createTagVariableStep.myVersion)"
   displayName: 'Display Version'

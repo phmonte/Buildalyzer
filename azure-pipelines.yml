@@ -17,9 +17,9 @@ variables:
   
 steps:
 - bash: |
-    tag=$(echo "$BUILD_SOURCEBRANCH" | sed 's/refs\/tags\///')
-    echo "##vso[task.setvariable variable=tag;isOutput=true]$tag"
-  name: createTagVariableStep
+    latest_tag=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+    echo "Latest tag on main branch: $latest_tag"
+  displayName: 'Get Latest Tag on Main Branch'
 - task: VSBuild@1
   inputs:
     solution: MyLib.sln

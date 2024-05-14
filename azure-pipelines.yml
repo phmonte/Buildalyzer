@@ -29,14 +29,15 @@ steps:
 
 - script: echo "The version is $(createTagVariableStep.myVersion)"
   displayName: 'Display Version'
+  
+- bash: | 
+    ls
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: '/src/*.csproj'
     arguments: '/p:Version=$(createTagVariableStep.myVersion)'
 
-- bash: | 
-    ls
 - task: NuGetCommand@2
   inputs:
     command: 'pack'

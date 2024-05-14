@@ -26,14 +26,14 @@ steps:
 - script: echo "The version is $(createTagVariableStep.myVersion)"
   displayName: 'Display Version'
 
-- bash: | 
-    ls
-
 - script: |
     dotnet restore
     dotnet build
     dotnet pack --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) /p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=$(ApiCompatGenerateSuppressionFile)
   displayName: 'Dotnet Pack'
 
-- bash: | 
-    ls
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'

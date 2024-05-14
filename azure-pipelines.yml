@@ -32,8 +32,17 @@ steps:
     dotnet pack --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) /p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=$(ApiCompatGenerateSuppressionFile)
   displayName: 'Dotnet Pack'
 
+
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '**/CompatibilitySuppressions.xml'
+    ArtifactName: 'CompatibilitySuppressions'
     publishLocation: 'Container'

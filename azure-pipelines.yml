@@ -32,7 +32,7 @@ steps:
   inputs:
     command: 'build'
     projects: 'src/**/*.csproj'
-    arguments: '/p:Version=$(createTagVariableStep.myVersion)'
+    arguments: '/p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=true'
 
 
 - bash: | 
@@ -43,5 +43,5 @@ steps:
     command: 'pack'
     packagesToPack: 'src/**/*.csproj'
     versioningScheme: 'off'
-
-
+    buildProperties: '/p:ApiCompatGenerateSuppressionFile=true'
+  

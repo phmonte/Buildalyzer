@@ -43,6 +43,6 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '/src/Buildalyzer/CompatibilitySuppressions.xml'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/src/Buildalyzer/CompatibilitySuppressions.xml'
     ArtifactName: 'CompatibilitySuppressions'
     publishLocation: 'Container'

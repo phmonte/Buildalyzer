@@ -17,8 +17,7 @@ variables:
   
 steps:
 - bash: |
-    $tag = "$(Build.SourceBranch)"
-    $tag = $tag -replace "refs/tags/", ""
+    tag=$(echo "$BUILD_SOURCEBRANCH" | sed 's/refs\/tags\///')
     echo "##vso[task.setvariable variable=tag;isOutput=true]$tag"
   name: createTagVariableStep
 - task: VSBuild@1

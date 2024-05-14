@@ -43,6 +43,6 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '**/CompatibilitySuppressions.xml'
+    PathtoPublish: '/**/**/CompatibilitySuppressions.xml'
     ArtifactName: 'CompatibilitySuppressions'
     publishLocation: 'Container'

@@ -19,7 +19,7 @@ steps:
 - bash: |
     tags=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
     echo "Latest tag on main branch: $tags"
-    echo "##vso[task.setvariable variable=myVersion;isOutput=true]$(tags)"
+    echo "##vso[task.setvariable variable=myVersion;isOutput=true]$tags"
   name: createTagVariableStep
   displayName: 'Get Latest Tag on Main Branch'
 

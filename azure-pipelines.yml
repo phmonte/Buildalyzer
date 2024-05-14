@@ -28,20 +28,12 @@ steps:
 
 - bash: | 
     ls
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: 'src/**/*.csproj'
-    arguments: '/p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=true'
 
+- script: |
+    dotnet restore
+    dotnet build
+    dotnet pack --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) /p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=true
+  displayName: 'Dotnet Pack'
 
 - bash: | 
     ls
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/**/*.csproj'
-    versioningScheme: 'off'
-    buildProperties: '/p:ApiCompatGenerateSuppressionFile=true'
-  

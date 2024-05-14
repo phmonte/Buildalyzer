@@ -5,12 +5,9 @@
     <PackageId>Buildalyzer</PackageId>
     <IsPackable>true</IsPackable>
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>7.0.1</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
-ToBeReleased
-- Marked EmptyDisposable as obsolete. #253
-- Target .NET 8.0. #252
     </PackageReleaseNotes>
   </PropertyGroup>
 

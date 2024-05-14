@@ -1,13 +1,13 @@
 A utility to perform design-time builds of .NET projects without having to think too hard about it.
 
-![Buildalyzer Logo](buildalyzer.png?raw=true)
+![Buildalyzer Logo](https://raw.githubusercontent.com/phmonte/Buildalyzer/main/buildalyzer.png)
 
 **NuGet**
 * [Buildalyzer](https://www.nuget.org/packages/Buildalyzer/)
 * [Buildalyzer.Workspaces](https://www.nuget.org/packages/Buildalyzer.Workspaces/)
 
 **GitHub**
-* [Buildalyzer](https://github.com/daveaglick/Buildalyzer)
+* [Buildalyzer](https://github.com/phmonte/Buildalyzer)
 
 **Donations**
 
@@ -17,7 +17,7 @@ If you found this library useful, consider [sponsoring more of it on GitHub](htt
 
 **Sponsors**
 
-![AWS Logo](aws.png?raw=true)
+![AWS Logo](https://raw.githubusercontent.com/phmonte/Buildalyzer/main/aws.png)
 
 [Amazon Web Services (AWS)](https://aws.amazon.com/) generously sponsors this project. [Go check out](https://aws.amazon.com/developer/language/net) what they have to offer for .NET developers (it's probably more than you think).
 

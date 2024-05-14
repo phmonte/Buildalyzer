@@ -8,7 +8,7 @@ trigger:
      - main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 variables:
   solution: '**/*.sln'
@@ -23,10 +23,6 @@ steps:
   name: createTagVariableStep
   displayName: 'Get Latest Tag on Main Branch'
 
-- script: |
-    choco install dotnet4.5
-  displayName: 'Install .NET Framework 4.5'
-
 - script: echo "The version is $(createTagVariableStep.myVersion)"
   displayName: 'Display Version'
 
@@ -38,10 +34,14 @@ steps:
     projects: 'src/**/*.csproj'
     arguments: '/p:Version=$(createTagVariableStep.myVersion)'
 
+
+- bash: | 
+    ls
+
 - task: NuGetCommand@2
   inputs:
     command: 'pack'
-    packagesToPack: '**/*.csproj'
+    packagesToPack: 'src/**/*.csproj'
     versioningScheme: 'off'
 
 

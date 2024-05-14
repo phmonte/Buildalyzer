@@ -32,7 +32,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '**/*.csproj'
+    projects: 'src/*.csproj'
     arguments: '/p:Version=$(createTagVariableStep.myVersion)'
 
 - bash: | 

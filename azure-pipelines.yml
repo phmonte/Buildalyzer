@@ -1,0 +1,41 @@
+
+trigger:
+  tags:
+    include:
+    - '*'
+  branches:
+   include:
+     - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  
+steps:
+- bash: |
+    $tag = "$(Build.SourceBranch)"
+    $tag = $tag -replace "refs/tags/", ""
+    echo "##vso[task.setvariable variable=tag;isOutput=true]$tag"
+  name: createTagVariableStep
+- task: VSBuild@1
+  inputs:
+    solution: MyLib.sln
+    platform: Any CPU
+    configuration: Release
+    msbuildArgs: /p:Version=$(Build.BuildNumber)
+- task: NuGetCommand@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/*.csproj'
+    versioningScheme: 'off'
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'Nuget'
+

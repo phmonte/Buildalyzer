@@ -29,7 +29,7 @@ steps:
   inputs:
     command: 'build'
     projects: '**/*.csproj'
-    arguments: '/p:Version=$(tags)'
+    arguments: '/p:Version=$(createTagVariableStep.myVersion)'
 
 - bash: | 
     ls

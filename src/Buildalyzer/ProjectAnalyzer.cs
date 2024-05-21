@@ -279,7 +279,8 @@ public class ProjectAnalyzer : IProjectAnalyzer
         }
 
         // Get the logger arguments (/l)
-        string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+        string loggerPath = GetLoggerPath();
+
         bool logEverything = _buildLoggers.Count > 0;
         string loggerArgStart = "/l"; // in case of MSBuild.exe use slash as parameter prefix for logger
         if (isDotNet)
@@ -310,6 +311,23 @@ public class ProjectAnalyzer : IProjectAnalyzer
         arguments += string.Join(" ", argumentsList);
 
         return fileName;
+    }
+
+    private static string GetLoggerPath()
+    {
+        string loggerPath = typeof(BuildalyzerLogger).Assembly.Location;
+        if (!string.IsNullOrEmpty(loggerPath))
+        {
+            return loggerPath;
+        }
+
+        string? loggerDllPathEnv = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.LoggerPathDll);
+        if (string.IsNullOrEmpty(loggerDllPathEnv))
+        {
+            throw new ArgumentException($"The dll of {nameof(BuildalyzerLogger)} is required");
+        }
+
+        return loggerDllPathEnv;
     }
 
     private static string FormatArgument(string argument)

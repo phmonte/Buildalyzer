@@ -119,6 +119,19 @@ If you want to change the configured properties before loading or compiling the 
 
 Be careful though, you may break the ability to load, compile, or interpret the project if you change the MSBuild properties.
 
+
+## Publish SingleFile
+If your application's output is a single file, you will need to provide the path to the following DLLs:
+
+-MsBuildPipeLogger.Logger.dll
+-Buildalyzer.logger.dll
+
+Variable name: LoggerPathDll
+
+See related issue [224](https://github.com/phmonte/Buildalyzer/issues/224)
+msbuild needs the physical address of the logger, for this reason it is not possible to use single file publish without informing this route.
+
+Remembering that if the files are in the root where the project is running, it is not necessary to inform the path.
 ## Binary Log Files
 
 Buildalyzer can also read [MSBuild binary log files](http://msbuildlog.com/):

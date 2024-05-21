@@ -14,4 +14,5 @@ public static class EnvironmentVariables
     public const string MSBUILDDISABLENODEREUSE = nameof(MSBUILDDISABLENODEREUSE);
     public const string MSBuildExtensionsPath = nameof(MSBuildExtensionsPath);
     public const string MSBuildSDKsPath = nameof(MSBuildSDKsPath);
+    public const string LoggerPathDll = nameof(LoggerPathDll);
 }

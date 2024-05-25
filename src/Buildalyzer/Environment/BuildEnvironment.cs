@@ -76,7 +76,7 @@ public sealed class BuildEnvironment
         WorkingDirectory = workingDirectory;
 
         // Check if we've already specified a path to MSBuild
-        string envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
+        string? envMsBuildExePath = System.Environment.GetEnvironmentVariable(Environment.EnvironmentVariables.MSBUILD_EXE_PATH);
         MsBuildExePath = !string.IsNullOrEmpty(envMsBuildExePath) && File.Exists(envMsBuildExePath)
             ? envMsBuildExePath : msBuildExePath;
         if (string.IsNullOrWhiteSpace(MsBuildExePath) && string.IsNullOrWhiteSpace(dotnetExePath))

@@ -1,8 +1,4 @@
 extern alias StructuredLogger;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
@@ -100,7 +96,7 @@ internal class EventProcessor : IDisposable
 
             // Get the TFM for this project
             // use an empty string if no target framework was found, for example in case of C++ projects with VS >= 2022
-            var tfm = propertiesAndItems?.Properties.TryGet("TargetFrameworkMoniker")?.StringValue
+            string tfm = propertiesAndItems?.Properties.TryGet("TargetFrameworkMoniker")?.StringValue
                 ?? string.Empty;
 
             if (propertiesAndItems != null && propertiesAndItems.Properties != null && propertiesAndItems.Items != null)

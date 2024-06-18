@@ -1,0 +1,53 @@
+
+trigger:
+  tags:
+    include:
+    - '*'
+  branches:
+   include:
+     - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  
+steps:
+- bash: |
+    tags=$(git describe --abbrev=0 --tags $(git rev-list --tags --max-count=1))
+    echo "Latest tag on main branch: $tags"
+    echo "##vso[task.setvariable variable=myVersion;isOutput=true]$tags"
+  name: createTagVariableStep
+  displayName: 'Get Latest Tag on Main Branch'
+
+- script: echo "The version is $(createTagVariableStep.myVersion)"
+  displayName: 'Display Version'
+
+- script: |
+    dotnet restore
+    dotnet build
+    dotnet pack --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) /p:Version=$(createTagVariableStep.myVersion) /p:ApiCompatGenerateSuppressionFile=$(ApiCompatGenerateSuppressionFile)
+  displayName: 'Dotnet Pack'
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'external'
+    publishFeedCredentials: 'Nuget'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/src/Buildalyzer/CompatibilitySuppressions.xml'
+    ArtifactName: 'CompatibilitySuppressions'
+    publishLocation: 'Container'

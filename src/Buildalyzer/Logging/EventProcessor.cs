@@ -1,4 +1,6 @@
 extern alias StructuredLogger;
+
+using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
@@ -148,26 +150,24 @@ internal class EventProcessor : IDisposable
         AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
         if (result is object)
         {
-            // Process the command line arguments for the Fsc task
-            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
-                && !string.IsNullOrWhiteSpace(e.Message)
-                && _targetStack.Any(x => x.TargetName == "CoreCompile")
-                && result.CompilerCommand is null)
+            CompilerOptionsContext context = new()
             {
-                result.ProcessFscCommandLine(e.Message);
-            }
+                IsFirst = result.CompilerCommand is null,
+                CoreCompile = _targetStack.Any(x => x.TargetName == "CoreCompile"),
+                BaseDirectory = new FileInfo(result.ProjectFilePath).Directory,
+            };
 
-            // Process the command line arguments for the Csc task
-            if (e is TaskCommandLineEventArgs cmd
-                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+            foreach (ICompilerOptionsParser parser in _manager.CompilerOptionsParsers)
             {
-                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
-            }
-
-            if (e is TaskCommandLineEventArgs cmdVbc &&
-                string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessVbcCommandLine(cmdVbc.CommandLine);
+                if (parser.IsSupportedInvocation(sender, e, context))
+                {
+                    CompilerCommand? command = parser.Parse(e.Message, context);
+                    if (command is not null)
+                    {
+                        result.CompilerCommand = command;
+                        break;
+                    }
+                }
             }
         }
     }

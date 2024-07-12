@@ -11,7 +11,7 @@ public class AnalyzerResult : IAnalyzerResult
     private readonly Dictionary<string, IProjectItem[]> _items = new Dictionary<string, IProjectItem[]>(StringComparer.OrdinalIgnoreCase);
     private readonly Guid _projectGuid;
 
-    public CompilerCommand CompilerCommand { get; private set; }
+    public CompilerCommand CompilerCommand { get; internal set; }
 
     internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
     {

@@ -30,4 +30,6 @@ public class AnalyzerManagerOptions
             LoggerFactory.AddProvider(new TextWriterLoggerProvider(value));
         }
     }
+
+    public List<ICompilerOptionsParser> CompilerOptionsParsers { get; set; } = [];
 }

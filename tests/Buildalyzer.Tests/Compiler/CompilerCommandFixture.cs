@@ -39,12 +39,15 @@ public class CompilerCommandFixture
             + "Startup.cs "
             + "/warnaserror+:NU1605";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandline, CompilerLanguage.CSharp);
+        var command = CscOptionsParser.Instance.Parse(commandline, new CompilerOptionsContext
+        {
+            BaseDirectory = new(".")
+        });
 
         command.Should().BeEquivalentTo(new
         {
             Text = commandline,
-            Language = CompilerLanguage.CSharp,
+            Language = "C#",
             PreprocessorSymbolNames = new[] { "TRACE", "DEBUG", "NETCOREAPP", "NETCOREAPP3_1", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP3_1_OR_GREATER" },
             SourceFiles = Files(".\\Program.cs", ".\\Startup.cs"),
             AnalyzerConfigPaths = Files(".\\code\\buildalyzer\\.editorconfig", ".\\code\\buildalyzer\\tests\\.editorconfig"),
@@ -67,12 +70,15 @@ public class CompilerCommandFixture
             + "\"obj\\Debug\\net6.0\\VisualBasicNetConsoleApp.AssemblyInfo.vb\" "
             + "/warnaserror+:NU1605";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandline, CompilerLanguage.VisualBasic);
+        var command = VbcOptionsParser.Instance.Parse(commandline, new CompilerOptionsContext
+        {
+            BaseDirectory = new("."),
+        });
 
         command.Should().BeEquivalentTo(new
         {
             Text = commandline,
-            Language = CompilerLanguage.VisualBasic,
+            Language = "VB.NET",
             PreprocessorSymbolNames = new[] { "TRACE", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NET6_0", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "_MyType", "NETCOREAPP", "NETCOREAPP2_1_OR_GREATER", "NET6_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "CONFIG", "NET", "PLATFORM", "NETCOREAPP3_1_OR_GREATER", "DEBUG", "NET5_0_OR_GREATER", "VBC_VER", "TARGET" },
             SourceFiles = Files(".\\Configuration.vb", ".\\Program.vb", ".\\obj\\Debug\\net6.0\\.NETCoreApp,Version=v6.0.AssemblyAttributes.vb", ".\\obj\\Debug\\net6.0\\VisualBasicNetConsoleApp.AssemblyInfo.vb"),
             AnalyzerReferences = Files("C:\\Program Files\\dotnet\\sdk\\8.0.200\\Sdks\\Microsoft.NET.Sdk\\targets\\..\\analyzers\\Microsoft.CodeAnalysis.VisualBasic.NetAnalyzers.dll", "C:\\Program Files\\dotnet\\sdk\\8.0.200\\Sdks\\Microsoft.NET.Sdk\\targets\\..\\analyzers\\Microsoft.CodeAnalysis.NetAnalyzers.dll"),
@@ -121,13 +127,16 @@ obj\Debug\netcoreapp3.1\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs
 obj\Debug\netcoreapp3.1\FSharpProject.AssemblyInfo.fs
 Program.fs";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandLine, CompilerLanguage.FSharp);
+        var command = FscOptionsParser.Instance.Parse(commandLine, new CompilerOptionsContext
+        {
+            BaseDirectory = new("."),
+        });
         var options = GetFSharpParsingOptions(commandLine);
 
         command.Should().BeEquivalentTo(new
         {
             Text = commandLine,
-            Language = CompilerLanguage.FSharp,
+            Language = "F#",
             PreprocessorSymbolNames = new[] { "NETCOREAPP3_1_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP3_1", "NETCOREAPP", "DEBUG", "TRACE" },
             SourceFiles = Files("obj\\Debug\\netcoreapp3.1\\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs", "obj\\Debug\\netcoreapp3.1\\FSharpProject.AssemblyInfo.fs", "Program.fs"),
             MetadataReferences = Array("C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.CSharp.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.Core.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.VisualBasic.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\Microsoft.Win32.Primitives.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\mscorlib.dll", "C:\\Program Files\\dotnet\\packs\\Microsoft.NETCore.App.Ref\\3.1.0\\ref\\netcoreapp3.1\\netstandard.dll"),

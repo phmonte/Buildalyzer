@@ -34,7 +34,7 @@ public sealed class CscOptionsParser : ICompilerOptionsParser
             return null;
         }
 
-        var tokens = Buildalyzer.RoslynParser.SplitCommandLineIntoArguments(commandLine, "csc.dll", "csc.exe")
+        var tokens = RoslynParser.SplitCommandLineIntoArguments(commandLine, "csc.dll", "csc.exe")
                   ?? throw new FormatException("Commandline could not be parsed.");
         var location = new FileInfo(tokens[0]);
         var args = tokens[1..];

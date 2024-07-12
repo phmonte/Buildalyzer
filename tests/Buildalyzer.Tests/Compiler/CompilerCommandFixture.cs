@@ -41,7 +41,8 @@ public class CompilerCommandFixture
 
         var command = CscOptionsParser.Instance.Parse(commandline, new CompilerOptionsContext
         {
-            BaseDirectory = new(".")
+            BaseDirectory = new("."),
+            IsFirstInvocation = true,
         });
 
         command.Should().BeEquivalentTo(new
@@ -73,6 +74,7 @@ public class CompilerCommandFixture
         var command = VbcOptionsParser.Instance.Parse(commandline, new CompilerOptionsContext
         {
             BaseDirectory = new("."),
+            IsFirstInvocation = true,
         });
 
         command.Should().BeEquivalentTo(new
@@ -130,6 +132,7 @@ Program.fs";
         var command = FscOptionsParser.Instance.Parse(commandLine, new CompilerOptionsContext
         {
             BaseDirectory = new("."),
+            IsFirstInvocation = true,
         });
         var options = GetFSharpParsingOptions(commandLine);
 

@@ -44,6 +44,9 @@ public sealed class FscOptionsParser : ICompilerOptionsParser
             MetadataReferences = metadataReferences.ToImmutableArray(),
             PreprocessorSymbolNames = preprocessorSymbolNames.ToImmutableArray(),
             SourceFiles = sourceFiles.ToImmutableArray(),
+            Text = commandLine,
+            CompilerLocation = location,
+            Arguments = args.ToImmutableArray(),
         };
     }
 }

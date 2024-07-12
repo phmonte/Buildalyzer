@@ -38,6 +38,9 @@ public sealed class VbcOptionsParser : ICompilerOptionsParser
         {
             CommandLineArguments = arguments,
             PreprocessorSymbols = arguments.ParseOptions.PreprocessorSymbols.ToImmutableDictionary(),
+            Text = commandLine,
+            CompilerLocation = location,
+            Arguments = args.ToImmutableArray(),
         };
         return RoslynParser.Enrich(command, arguments);
     }

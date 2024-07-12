@@ -43,6 +43,9 @@ public sealed class CscOptionsParser : ICompilerOptionsParser
         var command = new CSharpCompilerCommand()
         {
             CommandLineArguments = arguments,
+            Text = commandLine,
+            CompilerLocation = location,
+            Arguments = args.ToImmutableArray(),
         };
         return RoslynParser.Enrich(command, arguments);
     }

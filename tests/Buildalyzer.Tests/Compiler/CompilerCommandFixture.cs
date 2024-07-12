@@ -141,7 +141,7 @@ Program.fs";
         static FSharpParsingOptions GetFSharpParsingOptions(string commandLine)
         {
             var checker = FSharpChecker.Instance;
-            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(FSharpCommandLineParser.SplitCommandLineIntoArguments(commandLine)), isInteractive: true, isEditing: false);
+            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(FSharpParser.SplitCommandLineIntoArguments(commandLine)), isInteractive: true, isEditing: false);
             return result.Item1;
         }
     }

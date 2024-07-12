@@ -40,7 +40,7 @@ public readonly struct CompilerOptionsContext
     /// True, if this is the first compiler invocation.
     /// False, if one is already found.
     /// </summary>
-    public bool IsFirst { get; init; }
+    public bool IsFirstInvocation { get; init; }
 
     /// <summary>
     /// True, if this is a call inside CoreCompile.
@@ -51,4 +51,9 @@ public readonly struct CompilerOptionsContext
     /// The base directory of the project.
     /// </summary>
     public DirectoryInfo? BaseDirectory { get; init; }
+
+    /// <summary>
+    /// The target stack.
+    /// </summary>
+    public IReadOnlyCollection<TargetStartedEventArgs> TargetStack { get; init; }
 }

@@ -152,9 +152,10 @@ internal class EventProcessor : IDisposable
         {
             CompilerOptionsContext context = new()
             {
-                IsFirst = result.CompilerCommand is null,
+                IsFirstInvocation = result.CompilerCommand is null,
                 CoreCompile = _targetStack.Any(x => x.TargetName == "CoreCompile"),
                 BaseDirectory = new FileInfo(result.ProjectFilePath).Directory,
+                TargetStack = _targetStack,
             };
 
             foreach (ICompilerOptionsParser parser in _manager.CompilerOptionsParsers)

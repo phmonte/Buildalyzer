@@ -31,5 +31,8 @@ public class AnalyzerManagerOptions
         }
     }
 
-    public List<ICompilerOptionsParser> CompilerOptionsParsers { get; set; } = [];
+    public List<ICompilerOptionsParser> CompilerOptionsParsers { get; set; } = [
+        CscOptionsParser.Instance,
+        VbcOptionsParser.Instance,
+        FscOptionsParser.Instance];
 }

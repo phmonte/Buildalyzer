@@ -2,7 +2,7 @@
 
 namespace Buildalyzer;
 
-internal static class FSharpCommandLineParser
+internal static class FSharpParser
 {
     [Pure]
     public static string[]? SplitCommandLineIntoArguments(string? commandLine)

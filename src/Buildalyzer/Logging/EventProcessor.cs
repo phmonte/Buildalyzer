@@ -146,7 +146,8 @@ internal class EventProcessor : IDisposable
     private void MessageRaised(object sender, BuildMessageEventArgs e)
     {
         AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
-        if (result is object)
+        // do not process any sub project
+        if (result is object && (string.IsNullOrEmpty(result.Command) || AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath))
         {
             // Process the command line arguments for the Fsc task
             if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true

@@ -145,32 +145,36 @@ internal class EventProcessor : IDisposable
 
     private void MessageRaised(object sender, BuildMessageEventArgs e)
     {
-        AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
-        // do not process any sub project
-        if (result is object && (string.IsNullOrEmpty(result.Command) || AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath))
+        var result = _currentResult.Count == 0 ? null : _currentResult.Peek();
+        if (result is not object || !IsRelevant())
         {
-            // Process the command line arguments for the Fsc task
-            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
-                && !string.IsNullOrWhiteSpace(e.Message)
-                && _targetStack.Any(x => x.TargetName == "CoreCompile")
-                && result.CompilerCommand is null)
-            {
-                result.ProcessFscCommandLine(e.Message);
-            }
-
-            // Process the command line arguments for the Csc task
-            if (e is TaskCommandLineEventArgs cmd
-                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
-            }
-
-            if (e is TaskCommandLineEventArgs cmdVbc &&
-                string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessVbcCommandLine(cmdVbc.CommandLine);
-            }
+            return;
         }
+
+        // Process the command line arguments for the Fsc task
+        if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
+            && !string.IsNullOrWhiteSpace(e.Message)
+            && _targetStack.Any(x => x.TargetName == "CoreCompile")
+            && result.CompilerCommand is null)
+        {
+            result.ProcessFscCommandLine(e.Message);
+        }
+
+        // Process the command line arguments for the Csc task
+        if (e is TaskCommandLineEventArgs cmd
+            && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+        {
+            result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
+        }
+
+        if (e is TaskCommandLineEventArgs cmdVbc &&
+            string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
+        {
+            result.ProcessVbcCommandLine(cmdVbc.CommandLine);
+        }
+
+        bool IsRelevant() => string.IsNullOrEmpty(result.Command) || AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath;
+        
     }
 
     private void BuildFinished(object sender, BuildFinishedEventArgs e)

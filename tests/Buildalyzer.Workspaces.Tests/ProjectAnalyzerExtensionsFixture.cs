@@ -183,6 +183,24 @@ public class ProjectAnalyzerExtensionsFixture
         diagnostics.ShouldBeEmpty();
     }
 
+    [Test(Description = "Test C#12 features https://github.com/phmonte/Buildalyzer/issues/281")]
+
+    public async Task SupportsLangVersion12Features()
+    {
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNet8CS12FeaturesProject\SdkNet8CS12FeaturesProject.csproj", log);
+        AdhocWorkspace workspace = analyzer.GetWorkspace();
+        Project project = workspace.CurrentSolution.Projects.Single();
+
+        // When
+        Compilation compilation = await project.GetCompilationAsync();
+
+        Diagnostic[] diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+
+        diagnostics.ShouldBeEmpty();
+    }
+
 #if Is_Windows
     [Test]
     public void HandlesWpfCustomControlLibrary()

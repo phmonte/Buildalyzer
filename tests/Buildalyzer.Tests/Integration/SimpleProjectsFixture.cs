@@ -138,7 +138,7 @@ public class SimpleProjectsFixture
     [Test]
     public void GetsReferences(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
-        [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
+        [ValueSource(nameof(ProjectFiles))][NotNull] string projectFile)
     {
         // Given
         StringWriter log = new StringWriter();
@@ -704,31 +704,23 @@ public class SimpleProjectsFixture
         StringWriter log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectWithAdditionalFile\ProjectWithAdditionalFile.csproj", log);
 
-        // When
-        IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
+        // When + then
+        analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
+            .Should().BeEquivalentTo("message.txt");
+    }
 
-        [Test]
-        public void GetsProjectFileAsAdditionalFile()
-        {
-            // Given
-            StringWriter log = new StringWriter();
-            IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
+    [Test]
+    public void GetsProjectFileAsAdditionalFile()
+    {
+        // Given
+        using var log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
 
-            // When
-            IEnumerable<string> additionalFiles = analyzer.Build().First().AdditionalFiles;
-
-            // Then
-            additionalFiles.ShouldBe(new[] { "ProjectFileAsAdditionalFile.csproj" }, log.ToString());
-        }
-
-        private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
-        {
-            IProjectAnalyzer analyzer = new AnalyzerManager(
-                new AnalyzerManagerOptions
-                {
-                    LogWriter = log
-                })
-                .GetProject(GetProjectPath(projectFile));
+        // When + then
+        analyzer.Build().First().AdditionalFiles
+            .Select(Path.GetFileName)
+            .Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
+    }
 
     [Test]
     public void HandlesProcessFailure()

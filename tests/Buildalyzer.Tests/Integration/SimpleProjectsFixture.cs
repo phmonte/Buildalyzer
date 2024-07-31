@@ -716,12 +716,15 @@ public class SimpleProjectsFixture
         using var log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
 
+        // When
         var builds = analyzer.Build();
 
-        // When + then
-        builds.First().AdditionalFiles
-            .Select(Path.GetFileName)
-            .Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
+        // Then
+        var v6_0 = builds.Single(b => b.TargetFramework == "net6.0");
+        var v5_0 = builds.Single(b => b.TargetFramework == "net5.0");
+
+        v6_0.AdditionalFiles.Select(Path.GetFileName).Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
+        v5_0.AdditionalFiles.Select(Path.GetFileName).Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
     }
 
     [Test]

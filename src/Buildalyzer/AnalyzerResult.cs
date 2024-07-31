@@ -1,10 +1,10 @@
-using System.Collections;
 using System.IO;
 using Buildalyzer.Construction;
 using Buildalyzer.Logging;
 
 namespace Buildalyzer;
 
+[DebuggerDisplay("{DebuggerDisplay}")]
 public class AnalyzerResult : IAnalyzerResult
 {
     private readonly Dictionary<string, string> _properties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -91,6 +91,41 @@ public class AnalyzerResult : IAnalyzerResult
         Items.TryGetValue("PackageReference", out IProjectItem[] items)
             ? items.Distinct(new ProjectItemItemSpecEqualityComparer()).ToDictionary(x => x.ItemSpec, x => x.Metadata)
             : [];
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay
+    {
+        get
+        {
+            var sb = new StringBuilder();
+
+            sb
+                .Append(Path.GetFileName(ProjectFilePath))
+                .Append($", TFM = {TargetFramework}")
+                .Append($", Properties = {Properties.Count}")
+                .Append($", Items = {Items.Count}")
+                .Append($", Source Files = {SourceFiles.Length}");
+
+            if (!Succeeded)
+            {
+                sb.Append(", Succeeded = false");
+            }
+
+            if (ProjectReferences.Any())
+            {
+                sb.Append($", Project References = {ProjectReferences.Count()}");
+            }
+            if (AdditionalFiles is { Length: > 0 } af)
+            {
+                sb.Append($", Additional Files = {af.Length}");
+            }
+            if (PackageReferences is { Count: > 0 } pr)
+            {
+                sb.Append($", Package References = {pr.Count}");
+            }
+            return sb.ToString();
+        }
+    }
 
     internal void ProcessProject(PropertiesAndItems propertiesAndItems)
     {

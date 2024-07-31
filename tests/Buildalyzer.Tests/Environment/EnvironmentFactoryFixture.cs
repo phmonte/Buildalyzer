@@ -1,5 +1,4 @@
 ﻿using Buildalyzer.Environment;
-using NUnit.Framework;
 using Shouldly;
 
 namespace Buildalyzer.Tests.Environment;

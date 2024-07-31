@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Buildalyzer.Environment;
+﻿namespace Buildalyzer.Environment;
 
 public static class MsBuildProperties
 {

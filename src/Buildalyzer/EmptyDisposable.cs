@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Buildalyzer;
+﻿namespace Buildalyzer;
 
 [Obsolete("Will be dropped in the next major version.")]
 public class EmptyDisposable : IDisposable

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Buildalyzer.Construction;
+﻿namespace Buildalyzer.Construction;
 
 public interface IProjectFile
 {

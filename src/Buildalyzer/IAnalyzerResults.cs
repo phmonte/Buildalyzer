@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Buildalyzer;
+﻿namespace Buildalyzer;
 
 public interface IAnalyzerResults : IEnumerable<IAnalyzerResult>
 {

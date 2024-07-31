@@ -1,6 +1,5 @@
 ﻿using System.Xml.Linq;
 using Buildalyzer.Construction;
-using NUnit.Framework;
 using Shouldly;
 
 namespace Buildalyzer.Tests.Construction;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Buildalyzer.Construction;
+﻿using Buildalyzer.Construction;
 using Buildalyzer.Environment;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Logging;

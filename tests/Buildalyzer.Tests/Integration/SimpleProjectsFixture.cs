@@ -716,8 +716,10 @@ public class SimpleProjectsFixture
         using var log = new StringWriter();
         IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
 
+        var builds = analyzer.Build();
+
         // When + then
-        analyzer.Build().First().AdditionalFiles
+        builds.First().AdditionalFiles
             .Select(Path.GetFileName)
             .Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
     }

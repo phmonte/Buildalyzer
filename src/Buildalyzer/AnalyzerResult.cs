@@ -142,20 +142,7 @@ public class AnalyzerResult : IAnalyzerResult
         }
     }
 
-    internal void ProcessCscCommandLine(string commandLine)
-    {
-       CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
-    }
-
-    internal void ProcessVbcCommandLine(string commandLine)
-    {
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.VisualBasic);
-    }
-
-    internal void ProcessFscCommandLine(string commandLine)
-    {
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.FSharp);
-    }
+    internal void SetCompilerCommand(CompilerCommand cmd) => CompilerCommand = cmd;
 
     private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>
     {

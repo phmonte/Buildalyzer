@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Buildalyzer.IO;
+using Buildalyzer.Processors;
 using FluentAssertions;
 using FSharp.Compiler.CodeAnalysis;
 using Microsoft.CodeAnalysis;
@@ -39,7 +40,7 @@ public class CompilerCommandFixture
             + "Startup.cs "
             + "/warnaserror+:NU1605";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandline, CompilerLanguage.CSharp);
+        var command = new CSharpCommandLineProcessor().Parse(commandline, new("."));
 
         command.Should().BeEquivalentTo(new
         {
@@ -67,7 +68,7 @@ public class CompilerCommandFixture
             + "\"obj\\Debug\\net6.0\\VisualBasicNetConsoleApp.AssemblyInfo.vb\" "
             + "/warnaserror+:NU1605";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandline, CompilerLanguage.VisualBasic);
+        var command = new VisualBasicCommandLineProcessor().Parse(commandline, new("."));
 
         command.Should().BeEquivalentTo(new
         {
@@ -83,7 +84,7 @@ public class CompilerCommandFixture
     [Test]
     public void Parse_FSharp()
     {
-        string commandLine = @"C:\Program Files\dotnet\dotnet.exe ""C:\Program Files\dotnet\sdk\8.0.200\FSharp\fsc.dll"" -o:obj\Debug\netcoreapp3.1\FSharpProject.dll
+        string commandline = @"C:\Program Files\dotnet\dotnet.exe ""C:\Program Files\dotnet\sdk\8.0.200\FSharp\fsc.dll"" -o:obj\Debug\netcoreapp3.1\FSharpProject.dll
 -g
 --debug:portable
 --noframework
@@ -121,12 +122,12 @@ obj\Debug\netcoreapp3.1\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs
 obj\Debug\netcoreapp3.1\FSharpProject.AssemblyInfo.fs
 Program.fs";
 
-        var command = Buildalyzer.Compiler.CommandLine.Parse(new("."), commandLine, CompilerLanguage.FSharp);
-        var options = GetFSharpParsingOptions(commandLine);
+        var command = new FSharpCommandLineProcessor().Parse(commandline, new("."));
+        var options = GetFSharpParsingOptions(commandline);
 
         command.Should().BeEquivalentTo(new
         {
-            Text = commandLine,
+            Text = commandline,
             Language = CompilerLanguage.FSharp,
             PreprocessorSymbolNames = new[] { "NETCOREAPP3_1_OR_GREATER", "NETCOREAPP3_0_OR_GREATER", "NETCOREAPP2_2_OR_GREATER", "NETCOREAPP2_1_OR_GREATER", "NETCOREAPP2_0_OR_GREATER", "NETCOREAPP1_1_OR_GREATER", "NETCOREAPP1_0_OR_GREATER", "NETCOREAPP3_1", "NETCOREAPP", "DEBUG", "TRACE" },
             SourceFiles = Files("obj\\Debug\\netcoreapp3.1\\.NETCoreApp,Version=v3.1.AssemblyAttributes.fs", "obj\\Debug\\netcoreapp3.1\\FSharpProject.AssemblyInfo.fs", "Program.fs"),
@@ -138,10 +139,10 @@ Program.fs";
         // INTERACTIVE is added by the F# checker. TODO: based on being interactive or not, INTERACTIVE or COMPILED should be added by the parser.
         command.PreprocessorSymbolNames.Concat(["INTERACTIVE"]).Should().BeEquivalentTo(options.ConditionalDefines);
 
-        static FSharpParsingOptions GetFSharpParsingOptions(string commandLine)
+        FSharpParsingOptions GetFSharpParsingOptions(string commandLine)
         {
             var checker = FSharpChecker.Instance;
-            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(FSharpCommandLineParser.SplitCommandLineIntoArguments(commandLine)), isInteractive: true, isEditing: false);
+            var result = checker.GetParsingOptionsFromCommandLineArgs(ListModule.OfArray(new FSharpCommandLineProcessor().SplitCommandLineIntoArguments(commandLine)), isInteractive: true, isEditing: false);
             return result.Item1;
         }
     }

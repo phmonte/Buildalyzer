@@ -1,11 +1,22 @@
 extern alias StructuredLogger;
+
+using System.IO;
+using Buildalyzer.Processors;
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer.Logging;
 
 internal class EventProcessor : IDisposable
 {
+    private static readonly List<CommandLineProcessor> Processors =
+    [
+        new CSharpCommandLineProcessor(),
+        new FSharpCommandLineProcessor(),
+        new VisualBasicCommandLineProcessor(),
+    ];
+
     private readonly Dictionary<string, AnalyzerResult> _results = new Dictionary<string, AnalyzerResult>();
     private readonly Stack<AnalyzerResult> _currentResult = new Stack<AnalyzerResult>();
     private readonly Stack<TargetStartedEventArgs> _targetStack = new Stack<TargetStartedEventArgs>();
@@ -145,31 +156,23 @@ internal class EventProcessor : IDisposable
 
     private void MessageRaised(object sender, BuildMessageEventArgs e)
     {
-        AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
-        if (result is object)
+        // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
+        if (!_currentResult.TryPeek(out var result)
+            || result is null
+            || !IsRelevant()
+            || result.CompilerCommand is { }
+            || !_targetStack.Any(x => x.TargetName == "CoreCompile")
+            || e.Message is not { Length: > 0 })
         {
-            // Process the command line arguments for the Fsc task
-            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
-                && !string.IsNullOrWhiteSpace(e.Message)
-                && _targetStack.Any(x => x.TargetName == "CoreCompile")
-                && result.CompilerCommand is null)
-            {
-                result.ProcessFscCommandLine(e.Message);
-            }
-
-            // Process the command line arguments for the Csc task
-            if (e is TaskCommandLineEventArgs cmd
-                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
-            }
-
-            if (e is TaskCommandLineEventArgs cmdVbc &&
-                string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
-            {
-                result.ProcessVbcCommandLine(cmdVbc.CommandLine);
-            }
+            return;
         }
+
+        if (Processors.Find(p => p.IsApplicable(e)) is { } processor)
+        {
+            result.SetCompilerCommand(processor.Parse(e.Message, new FileInfo(result.ProjectFilePath).Directory));
+        }
+
+        bool IsRelevant() => string.IsNullOrEmpty(result.Command) || AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath;
     }
 
     private void BuildFinished(object sender, BuildFinishedEventArgs e)

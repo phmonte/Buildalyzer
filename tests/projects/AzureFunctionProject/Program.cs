@@ -1,20 +1,16 @@
 ﻿using Microsoft.Extensions.Hosting;
 
-namespace StrykerReplication
+namespace AzureFunctionProject;
+
+public class Program
 {
-    public class Program
+    public static void Main()
     {
-        public static void Main()
-        {
-            var host = new HostBuilder()
-                .ConfigureServices(s =>
-                {
+        var host = new HostBuilder()
+            .ConfigureServices(_ =>
+            {})
+            .Build();
 
-                })
-                .Build();
-
-            host.Run();
-
-        }
+        host.Run();
     }
 }

@@ -1,7 +1,4 @@
-﻿using Buildalyzer.IO;
-using Microsoft.CodeAnalysis;
-
-namespace Buildalyzer;
+﻿namespace Buildalyzer;
 
 public sealed record FSharpCompilerCommand : CompilerCommand
 {

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.IO;
 using Buildalyzer.Construction;
 using Buildalyzer.Logging;

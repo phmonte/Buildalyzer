@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.Build.Construction;
+﻿using Microsoft.Build.Construction;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer;

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Buildalyzer.Environment;
+﻿namespace Buildalyzer.Environment;
 
 public class EnvironmentOptions
 {

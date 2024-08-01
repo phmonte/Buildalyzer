@@ -142,14 +142,9 @@ public class AnalyzerResult : IAnalyzerResult
         }
     }
 
-    internal void ProcessCscCommandLine(string commandLine, bool coreCompile)
+    internal void ProcessCscCommandLine(string commandLine)
     {
-        // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
-        if (string.IsNullOrWhiteSpace(commandLine) || (CompilerCommand != null && !coreCompile))
-        {
-            return;
-        }
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
+       CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
     }
 
     internal void ProcessVbcCommandLine(string commandLine)

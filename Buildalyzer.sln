@@ -41,6 +41,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\test-report.yml = .github\workflows\test-report.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "projects", "projects", "{A7A6E392-4132-4773-97DC-1815D773CFA5}"
+	ProjectSection(SolutionItems) = preProject
+		tests\projects\ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj = tests\projects\ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +84,7 @@ Global
 		{A46CB47B-1561-41F2-AF52-F0E1DC2C886A} = {A52BD74E-3894-4A6E-8B9A-143A004F07F3}
 		{4FD47340-8E8E-4338-BB20-E4AF8E29E78D} = {5C0EF6BC-7A9B-4B29-9BFB-4098842FEBB6}
 		{7A15ECCE-3AB1-4F0A-A1A0-942E7982C2E2} = {4FD47340-8E8E-4338-BB20-E4AF8E29E78D}
+		{A7A6E392-4132-4773-97DC-1815D773CFA5} = {2D6F1622-8D17-4D49-A9D1-E4AEAFE99370}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1716863C-E9E2-4074-B557-E38CEB3B5C84}

@@ -7,7 +7,7 @@ namespace Buildalyzer;
 public sealed record VisualBasicCompilerCommand : RoslynBasedCompilerCommand<VisualBasicCommandLineArguments>
 {
     /// <inheritdoc />
-    public override CompilerLanguage Language => CompilerLanguage.VisualBasic;
+    public override string Language => "VB.NET";
 
     /// <inheritdoc cref="VisualBasicParseOptions.PreprocessorSymbols" />
     public ImmutableDictionary<string, object>? PreprocessorSymbols { get; init; }

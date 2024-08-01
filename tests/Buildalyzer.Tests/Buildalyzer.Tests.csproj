@@ -29,7 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Buildalyzer\Buildalyzer.csproj" />
-    <ProjectReference Include="..\..\test\Buildalyzer.TestTools\Buildalyzer.TestTools.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Additional files">

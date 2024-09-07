@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Buildalyzer.Construction;
@@ -159,6 +160,9 @@ public class ProjectAnalyzer : IProjectAnalyzer
             }
 
             pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
+
+            using var tracer = new BuildTracer(pipeLogger);
+
             using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
             // Run MSBuild
@@ -169,6 +173,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
                 targetsToBuild,
                 pipeLogger.GetClientHandle(),
                 out string arguments);
+
             using (ProcessRunner processRunner = new ProcessRunner(
                 fileName,
                 arguments,
@@ -200,6 +205,9 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
             // Collect the results
             results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+
+            var traces = tracer.Traces;
+
         }
         return results;
     }

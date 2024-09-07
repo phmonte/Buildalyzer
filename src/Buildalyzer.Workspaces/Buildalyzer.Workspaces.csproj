@@ -24,7 +24,7 @@ ToBeReleased
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Buildalyzer\Buildalyzer.csproj" />
+    <ProjectReference Include="../Buildalyzer/Buildalyzer.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Additional files">

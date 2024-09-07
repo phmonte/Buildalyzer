@@ -9,6 +9,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Label="Shared properties">
@@ -18,7 +19,7 @@
     <FileVersion>$(Version.Split('-')[0])</FileVersion>
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <IsPublishable>false</IsPublishable>
   </PropertyGroup>
 

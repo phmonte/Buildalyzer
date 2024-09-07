@@ -205,21 +205,6 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
             // Collect the results
             results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
-
-            var es = tracer.Events;
-
-            var commandlines = es.Where(e => e.Event is TaskCommandLineEventArgs).ToArray();
-
-            if (commandlines.Length > 1)
-            {
-                //var bs = es.Where(e => e.Event is BuildMessageEventArgs a && a.SenderName == "Fsc").ToArray();
-
-                //if (!bs.Any())
-                {
-                    throw new InvalidOperationException("No commandline event found.");
-                }
-            }
-
         }
         return results;
     }

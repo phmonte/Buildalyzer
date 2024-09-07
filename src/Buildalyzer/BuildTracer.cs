@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using Buildalyzer.IO;
 using Microsoft.Build.Framework;
 
 namespace Buildalyzer;
@@ -9,9 +8,29 @@ public sealed class BuildTracer : IDisposable
 {
     private readonly IEventSource EventSource;
 
-    private ConcurrentDictionary<BuildEventContext, BuildTrace> Tracer = [];
+    private ConcurrentDictionary<BuildTraceId, BuildTrace> Tracer = [];
 
     public IReadOnlyCollection<BuildTrace> Traces => Tracer.Values.ToArray();
+
+    public IReadOnlyCollection<BuildTraceEvent> Events => Tracer.Values.SelectMany(e => e.Events).ToArray();
+
+    public IEnumerable<KeyValuePair<BuildEventContext, CompilerProperties>> Properties
+        => Events
+        .Where(e => e.Event is ProjectStartedEventArgs)
+        .Select(e => KeyValuePair.Create(
+            e.Context, CompilerProperties.FromDictionaryEntries(((ProjectStartedEventArgs)e.Event).Properties)));
+
+    public IEnumerable<KeyValuePair<BuildEventContext, CompilerItemsCollection>> CompilerItemsCollections
+        => Events
+        .Where(e => e.Event is ProjectStartedEventArgs)
+        .Select(e => KeyValuePair.Create(
+            e.Context, CompilerItemsCollection.FromDictionaryEntries(((ProjectStartedEventArgs)e.Event).Properties)));
+
+    public IEnumerable<KeyValuePair<BuildEventContext, CompilerCommand>> Commands
+        => Events
+            .Where(e => e.Event is ProjectStartedEventArgs)
+            .Select(e => KeyValuePair.Create(
+                e.Context, CompilerProperties.FromDictionaryEntries(((ProjectStartedEventArgs)e.Event).Properties)));
 
     public BuildTracer(IEventSource eventSource)
     {
@@ -36,104 +55,84 @@ public sealed class BuildTracer : IDisposable
     private void TaskStarted(object? sender, TaskStartedEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void TargetStarted(object? sender, TargetStartedEventArgs e)
     {
         var trace = Trace(e);
-        trace.Update(t =>
-        {
-            t.BuildReason = e.BuildReason;
-            t.Message = e.Message;
-            t.ProjectFile = IOPath.Parse(e.ProjectFile);
-            t.TargetFile = IOPath.Parse(e.TargetFile);
-            t.Timestamp = e.Timestamp;
-        });
+        trace?.Add(e);
         Log(e);
     }
 
     private void TargetFinished(object? sender, TargetFinishedEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void ProjectStarted(object? sender, ProjectStartedEventArgs e)
     {
         var trace = Trace(e);
-        trace.Update(t =>
-        {
-            t.Parent = e.ParentProjectBuildEventContext is { } p ? Trace(p) : null;
-            t.Message = e.Message;
-            t.ProjectFile = IOPath.Parse(e.ProjectFile);
-            t.GlobalProperties = CompilerProperties.FromDictionaryEntries(e.GlobalProperties);
-            t.Properties = CompilerProperties.FromDictionaryEntries(e.Properties);
-            t.Items = CompilerItemsCollection.FromDictionaryEntries(e.Items);
-            t.Timestamp = e.Timestamp;
-        });
+        trace?.Add(e);
         Log(e);
     }
 
     private void MessageRaised(object? sender, BuildMessageEventArgs e)
     {
         var trace = Trace(e);
-        trace.Update(t =>
-        {
-            t.Message = e.Message;
-            t.ProjectFile = IOPath.Parse(e.ProjectFile);
-            t.Importance = e.Importance;
-            t.Timestamp = e.Timestamp;
-        });
+        trace?.Add(e);
         Log(e);
     }
 
     private void StatusEventRaised(object? sender, BuildStatusEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void BuildStarted(object? sender, BuildStartedEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void ErrorRaised(object? sender, BuildErrorEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void CustomEventRaised(object? sender, CustomBuildEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void TaskFinished(object? sender, TaskFinishedEventArgs e)
     {
         var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
     private void ProjectFinished(object? sender, ProjectFinishedEventArgs e)
     {
         var trace = Trace(e);
-        trace.Update(t =>
-        {
-            t.Succeeded = e.Succeeded;
-        });
+        trace?.Add(e);
         Log(e);
     }
 
     private void BuildFinished(object? sender, BuildFinishedEventArgs e)
     {
-        if (e.BuildEventContext is { } ctx)
-        {
-            var trace = Trace(ctx);
-        }
+        var trace = Trace(e);
+        trace?.Add(e);
         Log(e);
     }
 
@@ -143,25 +142,30 @@ public sealed class BuildTracer : IDisposable
         Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {paramName}");
     }
 
-    private BuildTrace Trace(BuildEventArgs e) => Trace(e.BuildEventContext);
+    private BuildTrace? Trace(BuildEventArgs e) => Trace(e.BuildEventContext);
 
-    private BuildTrace Trace(BuildStatusEventArgs e) => Trace(e.BuildEventContext);
+    private BuildTrace? Trace(BuildStatusEventArgs e) => Trace(e.BuildEventContext);
 
-    private BuildTrace Trace(BuildEventContext? context)
+    private BuildTrace? Trace(BuildEventContext? context)
     {
-        context = Guard.NotNull(context);
-
-        if (!Tracer.TryGetValue(context, out var trace))
+        if (context is null)
         {
-            trace = new BuildTrace(context);
-            Tracer[context] = trace;
+            return null;
+        }
+
+        var id = BuildTraceId.New(context);
+
+        if (!Tracer.TryGetValue(id, out var trace))
+        {
+            trace = new BuildTrace(id);
+            Tracer[id] = trace;
         }
         return trace;
     }
 
     public void Dispose()
     {
-        if (!disposed)
+        if (!Disposed)
         {
             EventSource.BuildStarted -= BuildStarted;
             EventSource.ProjectStarted -= ProjectStarted;
@@ -177,14 +181,8 @@ public sealed class BuildTracer : IDisposable
             EventSource.ProjectFinished -= ProjectFinished;
             EventSource.TaskFinished -= TaskFinished;
             EventSource.TargetFinished -= TargetFinished;
-            disposed = true;
+            Disposed = true;
         }
     }
-    private bool disposed;
+    private bool Disposed;
 }
-
-public sealed class ProjectTrace
-{
-    public ProjectFinishedTrace? Finished { get; internal set; }
-}
-public sealed record ProjectFinishedTrace(bool Succeeded, string Message);

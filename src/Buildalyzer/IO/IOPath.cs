@@ -52,6 +52,10 @@ public readonly struct IOPath : IEquatable<IOPath>, IFormattable
     public bool Equals(IOPath other, bool caseSensitive)
         => string.Equals(_path, other._path, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
+    public static bool operator ==(IOPath left, IOPath right) => left.Equals(right);
+
+    public static bool operator !=(IOPath left, IOPath right) => !(left == right);
+
     /// <inheritdoc />
     [Pure]
     public override int GetHashCode()

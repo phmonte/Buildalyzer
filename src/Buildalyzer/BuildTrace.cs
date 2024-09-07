@@ -1,51 +1,53 @@
-﻿using Buildalyzer.IO;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.Build.Framework;
 
 namespace Buildalyzer;
 
 [DebuggerDisplay("{DebuggerDisplay}")]
-public sealed class BuildTrace(BuildEventContext context)
+public sealed class BuildTrace(BuildTraceId id)
 {
-    public BuildEventContext Context { get; } = context;
+    public BuildTraceId Id { get; } = id;
 
     public BuildTrace? Parent { get; internal set; }
 
-    public IOPath ProjectFile { get; internal set; }
+    public List<BuildTraceEvent> Events { get; } = [];
 
-    public IOPath TargetFile { get; internal set; }
+    public IEnumerable<BuildTraceEvent> ProjectStarted => Events.Where(e => e.Event is ProjectStartedEventArgs);
 
-    public CompilerProperties GlobalProperties { get; internal set; } = new([]);
-
-    public CompilerProperties Properties { get; internal set; } = new([]);
-
-    public CompilerItemsCollection Items { get; internal set; } = new([]);
-
-    public DateTime Timestamp { get; internal set; }
-
-    public string? Message { get; internal set; }
-
-    public MessageImportance Importance { get; internal set; }
-
-    public TargetBuiltReason BuildReason { get; internal set; }
-
-    public bool? Succeeded { get; internal set; }
-
-    public void Update(Action<BuildTrace> update)
+    public BuildTrace Add(BuildEventArgs? e, [CallerMemberName] string? paramName = null)
     {
-        Guard.NotNull(update);
-
-        lock (Locker)
+        if (e is { })
         {
-            update(this);
+            lock (Locker)
+            {
+                Events.Add(new() { Context = e.BuildEventContext, Event = e, Name = paramName! });
+            }
         }
+
+        return this;
+    }
+
+    public BuildTrace Add(BuildStatusEventArgs? e, [CallerMemberName] string? paramName = null)
+    {
+        if (e is { })
+        {
+            lock (Locker)
+            {
+                Events.Add(new() { Context = e.BuildEventContext, Event = e, Name = paramName! });
+            }
+        }
+
+        return this;
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly object Locker = new();
 
     private string DebuggerDisplay
-        => $"{Context.ProjectContextId}, "
-        + $"Properties = {Properties.Count}, "
-        + $"Items = {Items.Count}, "
-        + $"Message = {Message}";
+        => $"{Id}, "
+        + $"Events = {Events.Count}, "
+        + $"ProjectStarted = {ProjectStarted.Count()}"
+        ;
+        //+ $"Items = {Items.Count}, "
+        //+ $"Message = {Message}";
 }

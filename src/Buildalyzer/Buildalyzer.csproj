@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
@@ -8,6 +8,9 @@
     <PackageValidationBaselineVersion>7.0.1</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
+      <![CDATA[
+ToBeReleased
+]]>
     </PackageReleaseNotes>
   </PropertyGroup>
 

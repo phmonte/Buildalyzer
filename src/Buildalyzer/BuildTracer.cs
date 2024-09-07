@@ -1,6 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.IO;
-using System.Runtime.CompilerServices;
 using Buildalyzer.IO;
 using Microsoft.Build.Framework;
 
@@ -41,19 +39,16 @@ public sealed class BuildTracer : IDisposable
     private void TaskStarted(object? sender, TaskStartedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void TargetStarted(object? sender, TargetStartedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void TargetFinished(object? sender, TargetFinishedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void ProjectStarted(object? sender, ProjectStartedEventArgs e)
@@ -67,8 +62,6 @@ public sealed class BuildTracer : IDisposable
         Paths.Add(KeyValuePair.Create(e.BuildEventContext, path));
         Properties.Add(KeyValuePair.Create(e.BuildEventContext, properties));
         Items.Add(KeyValuePair.Create(e.BuildEventContext, items));
-
-        Log(e);
     }
 
     private void MessageRaised(object? sender, BuildMessageEventArgs e)
@@ -91,55 +84,41 @@ public sealed class BuildTracer : IDisposable
         {
             Commands.Add(KeyValuePair.Create(e.BuildEventContext, command));
         }
-        Log(e);
     }
 
     private void StatusEventRaised(object? sender, BuildStatusEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void BuildStarted(object? sender, BuildStartedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void ErrorRaised(object? sender, BuildErrorEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void CustomEventRaised(object? sender, CustomBuildEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void TaskFinished(object? sender, TaskFinishedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void ProjectFinished(object? sender, ProjectFinishedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
     }
 
     private void BuildFinished(object? sender, BuildFinishedEventArgs e)
     {
         Events.Add(e);
-        Log(e);
-    }
-
-    private static void Log(object obj, [CallerMemberName] string? paramName = null)
-    {
-        //var json = System.Text.Json.JsonSerializer.Serialize(obj, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-        Console.WriteLine($"{DateTime.Now:HH:mm:ss.fff}: {paramName}");
     }
 
     public void Dispose()
@@ -163,5 +142,6 @@ public sealed class BuildTracer : IDisposable
             Disposed = true;
         }
     }
+
     private bool Disposed;
 }

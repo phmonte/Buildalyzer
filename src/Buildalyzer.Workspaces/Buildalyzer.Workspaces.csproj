@@ -13,8 +13,10 @@
     <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
+      <![CDATA[
 ToBeReleased
 - Target .NET 8.0. #252
+]]>
     </PackageReleaseNotes>
   </PropertyGroup>
 
@@ -24,7 +26,7 @@ ToBeReleased
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Buildalyzer\Buildalyzer.csproj" />
+    <ProjectReference Include="../Buildalyzer/Buildalyzer.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Additional files">

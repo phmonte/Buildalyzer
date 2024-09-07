@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Buildalyzer.Logger\Buildalyzer.Logger.csproj" />
+    <ProjectReference Include="../Buildalyzer.Logger/Buildalyzer.Logger.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Additional files">

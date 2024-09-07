@@ -81,11 +81,9 @@ public sealed class BuildTracer : IDisposable
 
         var command = e switch
         {
-            //TaskCommandLineEventArgs a when a.SenderName.IsMatch("Csc") => Compiler.CommandLine.Parse(dir, a.CommandLine, CompilerLanguage.CSharp),
-            //TaskCommandLineEventArgs a when a.SenderName.IsMatch("Vbc") => Compiler.CommandLine.Parse(dir, a.CommandLine, CompilerLanguage.VisualBasic),
-            _ when e.SenderName.IsMatch("Csc") => Compiler.CommandLine.Parse(dir, e.Message, CompilerLanguage.CSharp),
-            _ when e.SenderName.IsMatch("Vbc") => Compiler.CommandLine.Parse(dir, e.Message, CompilerLanguage.VisualBasic),
-            _ when e.SenderName.IsMatch("Fsc") => Compiler.CommandLine.Parse(dir, e.Message, CompilerLanguage.FSharp),
+            TaskCommandLineEventArgs a when a.SenderName.IsMatch("Csc") => Compiler.CommandLine.Parse(dir, a.CommandLine, CompilerLanguage.CSharp),
+            TaskCommandLineEventArgs a when a.SenderName.IsMatch("Vbc") => Compiler.CommandLine.Parse(dir, a.CommandLine, CompilerLanguage.VisualBasic),
+           _ when e.SenderName.IsMatch("Fsc") => Compiler.CommandLine.Parse(dir, e.Message, CompilerLanguage.FSharp),
             _ => null,
         };
 
@@ -93,11 +91,6 @@ public sealed class BuildTracer : IDisposable
         {
             Commands.Add(KeyValuePair.Create(e.BuildEventContext, command));
         }
-        else
-        {
-
-        }
-
         Log(e);
     }
 

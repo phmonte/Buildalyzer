@@ -3,14 +3,14 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Buildalyzer.Environment;
 
-internal class ProcessRunner : IDisposable
+internal sealed class ProcessRunner : IDisposable
 {
     private readonly ILogger Logger;
-
-    public List<string> Output { get; } = new List<string>();
-    public List<string> Error { get; } = new List<string>();
+    private readonly ProcessDataCollector Collector;
 
     public int ExitCode => Process.ExitCode;
+
+    public ProcessData Data => Collector.Data;
 
     private Process Process { get; }
 
@@ -35,7 +35,10 @@ internal class ProcessRunner : IDisposable
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
-            }
+            },
+
+            // Raises Process.Exited immediately instead of when checked via .WaitForExit() or .HasExited
+            EnableRaisingEvents = true,
         };
 
         // Copy over environment variables
@@ -48,25 +51,11 @@ internal class ProcessRunner : IDisposable
             }
         }
 
-        Process.EnableRaisingEvents = true;  // Raises Process.Exited immediately instead of when checked via .WaitForExit() or .HasExited
-        Process.Exited += ProcessExited;
+        Process.OutputDataReceived += OutputDataReceived;
+        Process.ErrorDataReceived += ErrorDataReceived;
+        Process.Exited += OnExit;
 
-        Process.OutputDataReceived += (_, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                Output.Add(e.Data);
-                Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
-            }
-        };
-        Process.ErrorDataReceived += (_, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                Error.Add(e.Data);
-                Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
-            }
-        };
+        Collector = new(Process);
     }
 
     public ProcessRunner Start()
@@ -81,16 +70,6 @@ internal class ProcessRunner : IDisposable
             Process.StartInfo.Arguments,
             System.Environment.NewLine);
         return this;
-    }
-
-    private void ProcessExited(object? sender, EventArgs e)
-    {
-        Exited?.Invoke();
-        Logger.LogDebug(
-            "Process {Id} exited with code {ExitCode}{NewLine}",
-            Process.Id,
-            Process.ExitCode,
-            System.Environment.NewLine);
     }
 
     public void WaitForExit() => Process.WaitForExit();
@@ -108,9 +87,40 @@ internal class ProcessRunner : IDisposable
         return exited;
     }
 
+    private void OutputDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.Data))
+        {
+            Logger.LogDebug("{Data}{NewLine}", e.Data, NewLine);
+        }
+    }
+
+    private void ErrorDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.Data))
+        {
+            Logger.LogError("{Data}{NewLine}", e.Data, NewLine);
+        }
+    }
+
+    private void OnExit(object? sender, EventArgs e)
+    {
+        Exited?.Invoke();
+        Logger.LogDebug(
+            "Process {Id} exited with code {ExitCode}{NewLine}",
+            Process.Id,
+            Process.ExitCode,
+            NewLine);
+    }
+
     public void Dispose()
     {
-        Process.Exited -= ProcessExited;
+        Process.OutputDataReceived -= OutputDataReceived;
+        Process.ErrorDataReceived -= ErrorDataReceived;
+        Process.Exited -= OnExit;
         Process.Close();
+        Collector.Dispose();
     }
+
+    private static string NewLine => System.Environment.NewLine;
 }

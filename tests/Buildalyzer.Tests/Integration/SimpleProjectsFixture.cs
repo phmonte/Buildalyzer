@@ -225,6 +225,29 @@ public class SimpleProjectsFixture
     }
 
     [Test]
+    [Platform("win")]
+    public void AzureFunctionSourceFiles()
+    {
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"AzureFunctionProject\AzureFunctionProject.csproj", log);
+
+        // When
+        IAnalyzerResults results = analyzer.Build();
+
+        // Then
+        IReadOnlyList<string> sourceFiles = results.SingleOrDefault()?.SourceFiles;
+        sourceFiles.ShouldNotBeNull(log.ToString());
+        new[]
+        {
+            "Program",
+            "TestFunction",
+            "AssemblyAttributes",
+            "AssemblyInfo"
+        }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
+    }
+
+    [Test]
     public void MultiTargetingBuildAllTargetFrameworksGetsSourceFiles()
     {
         // Given

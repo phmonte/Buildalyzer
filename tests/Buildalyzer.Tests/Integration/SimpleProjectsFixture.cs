@@ -39,6 +39,7 @@ public class SimpleProjectsFixture
         @"SdkNet6SelfContained\SdkNet6SelfContained.csproj",
         @"SdkNet6ImplicitUsings\SdkNet6ImplicitUsings.csproj",
         @"SdkNet7Project\SdkNet7Project.csproj",
+        @"SdkNet8CS12FeaturesProject\SdkNet8CS12FeaturesProject.csproj",
         @"SdkNetCore2ProjectImport\SdkNetCore2ProjectImport.csproj",
         @"SdkNetCore2ProjectWithReference\SdkNetCore2ProjectWithReference.csproj",
         @"SdkNetCore2ProjectWithImportedProps\SdkNetCore2ProjectWithImportedProps.csproj",

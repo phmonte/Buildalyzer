@@ -39,12 +39,14 @@ public class AnalyzerManager : IAnalyzerManager
 
     public SolutionFile SolutionFile { get; }
 
+    public List<ICompilerOptionsParser> CompilerOptionsParsers { get; }
+
     public AnalyzerManager(AnalyzerManagerOptions options = null)
         : this(null, options)
     {
     }
 
-    public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions options = null)
+    public AnalyzerManager(string solutionFilePath, AnalyzerManagerOptions? options = null)
     {
         options ??= new AnalyzerManagerOptions();
         LoggerFactory = options.LoggerFactory;
@@ -58,13 +60,15 @@ public class AnalyzerManager : IAnalyzerManager
             foreach (ProjectInSolution projectInSolution in SolutionFile.ProjectsInOrder)
             {
                 if (!SupportedProjectTypes.Contains(projectInSolution.ProjectType)
-                    || (options?.ProjectFilter != null && !options.ProjectFilter(projectInSolution)))
+                    || (options.ProjectFilter != null && !options.ProjectFilter(projectInSolution)))
                 {
                     continue;
                 }
                 GetProject(projectInSolution.AbsolutePath, projectInSolution);
             }
         }
+
+        CompilerOptionsParsers = options.CompilerOptionsParsers;
     }
 
     public void SetGlobalProperty(string key, string value)

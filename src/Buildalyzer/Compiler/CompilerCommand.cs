@@ -10,7 +10,7 @@ namespace Buildalyzer;
 public abstract record CompilerCommand
 {
     /// <summary>The compiler lanuague.</summary>
-    public abstract CompilerLanguage Language { get; }
+    public abstract string Language { get; }
 
     /// <summary>The original text of the compiler command.</summary>
     public string Text { get; init; } = string.Empty;

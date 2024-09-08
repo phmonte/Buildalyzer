@@ -29,4 +29,9 @@ public class AnalyzerManagerOptions
             LoggerFactory.AddProvider(new TextWriterLoggerProvider(value));
         }
     }
+
+    public List<ICompilerOptionsParser> CompilerOptionsParsers { get; set; } = [
+        CscOptionsParser.Instance,
+        VbcOptionsParser.Instance,
+        FscOptionsParser.Instance];
 }

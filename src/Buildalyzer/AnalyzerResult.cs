@@ -11,7 +11,7 @@ public class AnalyzerResult : IAnalyzerResult
     private readonly Dictionary<string, IProjectItem[]> _items = new Dictionary<string, IProjectItem[]>(StringComparer.OrdinalIgnoreCase);
     private readonly Guid _projectGuid;
 
-    public CompilerCommand CompilerCommand { get; private set; }
+    public CompilerCommand CompilerCommand { get; internal set; }
 
     internal AnalyzerResult(string projectFilePath, AnalyzerManager manager, ProjectAnalyzer analyzer)
     {
@@ -140,26 +140,6 @@ public class AnalyzerResult : IAnalyzerResult
         {
             _items[items.Key] = items.Values.Select(task => new ProjectItem(task)).ToArray();
         }
-    }
-
-    internal void ProcessCscCommandLine(string commandLine, bool coreCompile)
-    {
-        // Some projects can have multiple Csc calls (see #92) so if this is the one inside CoreCompile use it, otherwise use the first
-        if (string.IsNullOrWhiteSpace(commandLine) || (CompilerCommand != null && !coreCompile))
-        {
-            return;
-        }
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.CSharp);
-    }
-
-    internal void ProcessVbcCommandLine(string commandLine)
-    {
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.VisualBasic);
-    }
-
-    internal void ProcessFscCommandLine(string commandLine)
-    {
-        CompilerCommand = Compiler.CommandLine.Parse(new FileInfo(ProjectFilePath).Directory, commandLine, CompilerLanguage.FSharp);
     }
 
     private class ProjectItemItemSpecEqualityComparer : IEqualityComparer<IProjectItem>

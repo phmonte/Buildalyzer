@@ -139,7 +139,7 @@ public class SimpleProjectsFixture
     [Test]
     public void GetsReferences(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
-        [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
+        [ValueSource(nameof(ProjectFiles))][NotNull] string projectFile)
     {
         // Given
         StringWriter log = new StringWriter();
@@ -708,6 +708,24 @@ public class SimpleProjectsFixture
         // When + then
         analyzer.Build().First().AdditionalFiles.Select(Path.GetFileName)
             .Should().BeEquivalentTo("message.txt");
+    }
+
+    [Test]
+    public void GetsProjectFileAsAdditionalFile()
+    {
+        // Given
+        using var log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"ProjectFileAsAdditionalFile\ProjectFileAsAdditionalFile.csproj", log);
+
+        // When
+        var builds = analyzer.Build();
+
+        // Then
+        var v6_0 = builds.Single(b => b.TargetFramework == "net6.0");
+        var v5_0 = builds.Single(b => b.TargetFramework == "net5.0");
+
+        v6_0.AdditionalFiles.Select(Path.GetFileName).Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
+        v5_0.AdditionalFiles.Select(Path.GetFileName).Should().BeEquivalentTo("ProjectFileAsAdditionalFile.csproj");
     }
 
     [Test]

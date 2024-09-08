@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ProductName>Test project</ProductName>
+  </PropertyGroup>
+ 
+
+  <PropertyGroup Condition="'1' == '1'">
+    <ProductName>Test project</ProductName>
+  </PropertyGroup>
+ 
+  <ItemGroup>
+    <AdditionalFiles Include="*.??proj" Visible="false" />
+  </ItemGroup>
+
+</Project>

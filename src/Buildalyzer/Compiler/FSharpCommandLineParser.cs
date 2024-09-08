@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using System;
+
 namespace Buildalyzer;
 
 internal static class FSharpCommandLineParser
@@ -52,8 +54,8 @@ internal static class FSharpCommandLineParser
 
     [Pure]
     public static bool NotCompilerLocation(string s)
-        => !s.EndsWith("fsc.dll", StringComparison.OrdinalIgnoreCase)
-        && !s.EndsWith("fsc.exe", StringComparison.OrdinalIgnoreCase);
+        => !s.IsMatchEnd("fsc.dll")
+        && !s.IsMatchEnd("fsc.exe");
 
     private static readonly char[] Splitters = ['\r', '\n'];
 }

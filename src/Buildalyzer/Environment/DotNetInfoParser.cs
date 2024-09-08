@@ -1,13 +1,12 @@
 ﻿#nullable enable
 
+using System;
 using System.IO;
 
 namespace Buildalyzer.Environment;
 
 internal static class DotNetInfoParser
 {
-    private const StringComparison IgnoreCase = StringComparison.OrdinalIgnoreCase;
-
     [Pure]
     public static DotNetInfo Parse(IEnumerable<string> lines)
     {
@@ -94,20 +93,20 @@ internal static class DotNetInfoParser
 
     [Pure]
     private static Version? Version(string prefix, string line)
-            => line.StartsWith(prefix, IgnoreCase) && System.Version.TryParse(line[prefix.Length..].Trim(), out var parsed)
+            => line.IsMatchStart(prefix) && System.Version.TryParse(line[prefix.Length..].Trim(), out var parsed)
                 ? parsed
                 : null;
 
     [Pure]
     private static string? Label(string prefix, string line)
-        => line.StartsWith(prefix, IgnoreCase) && line[prefix.Length..].Trim() is { Length: > 0 } label
+        => line.IsMatchStart(prefix) && line[prefix.Length..].Trim() is { Length: > 0 } label
             ? label
             : null;
 
     [Pure]
     private static string? BasePath(string line)
     {
-        if (line.StartsWith("Base Path:", IgnoreCase))
+        if (line.IsMatchStart("Base Path:"))
         {
             var path = line[10..].Trim();
 
@@ -142,8 +141,7 @@ internal static class DotNetInfoParser
     private static string UnifyPath(string path) => path.Replace('\\', '/').TrimEnd('/');
 
     [Pure]
-    private static string? GlobalJson(string line)
-        => line.Equals("Not found", IgnoreCase) ? null : line;
+    private static string? GlobalJson(string line) => line.IsMatch("Not found") ? null : line;
 
     private static readonly HashSet<string> Headers = new(StringComparer.InvariantCultureIgnoreCase)
     {

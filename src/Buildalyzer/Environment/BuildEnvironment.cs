@@ -13,7 +13,7 @@ public sealed class BuildEnvironment
         !System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
             .Replace(" ", string.Empty)
             .Trim()
-            .StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase);
+            .IsMatchStart(".NETFramework");
 
     private readonly Dictionary<string, string> _globalProperties;
     private readonly Dictionary<string, string> _environmentVariables;

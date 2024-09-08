@@ -242,9 +242,11 @@ public class SimpleProjectsFixture
         sourceFiles.ShouldNotBeNull(log.ToString());
         new[]
         {
-            "Program.cs",
-            "Function1.cs",
-        }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x)), log.ToString());
+            "Program",
+            "TestFunction",
+            "AssemblyAttributes",
+            "AssemblyInfo"
+        }.ShouldBeSubsetOf(sourceFiles.Select(x => Path.GetFileName(x).Split('.').TakeLast(2).First()), log.ToString());
     }
 
     [Test]

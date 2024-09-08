@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Buildalyzer.TestTools;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using Shouldly;
@@ -12,19 +14,14 @@ namespace Buildalyzer.Workspaces.Tests;
 public class ProjectAnalyzerExtensionsFixture
 {
     [Test]
-    public void LoadsWorkspace()
+    public void Loads_Workspace()
     {
-        // Given
-        SafeStringWriter log = new SafeStringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNetStandardProject\SdkNetStandardProject.csproj", log);
+        using var ctx = Context.ForProject(@"SdkNetStandardProject\SdkNetStandardProject.csproj");
 
-        // When
-        Workspace workspace = analyzer.GetWorkspace();
+        var workspace = ctx.Analyzer.GetWorkspace();
 
-        // Then
-        string logged = log.ToString();
-        logged.ShouldNotContain("Workspace failed");
-        workspace.CurrentSolution.Projects.First().Documents.ShouldContain(x => x.Name == "Class1.cs", log.ToString());
+        ctx.Log.ToString().Should().NotContain("Workspace failed");
+        workspace.CurrentSolution.Projects.First().Documents.First().Should().BeEquivalentTo(new { Name = "Class1.cs" });
     }
 
     [Test]

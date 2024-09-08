@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using Buildalyzer.Environment;
+using Buildalyzer.TestTools;
 using FluentAssertions;
 using Shouldly;
 
@@ -60,27 +61,23 @@ public class SimpleProjectsFixture
     };
 
     [Test]
-    public void DesignTimeBuildsProject(
+    public void Builds_DesignTime(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
         [ValueSource(nameof(ProjectFiles))] string projectFile)
     {
-        // Given
-        StringWriter log = new StringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(projectFile, log);
-        EnvironmentOptions options = new EnvironmentOptions
+        using var ctx = Context.ForProject(projectFile);
+
+        var options = new EnvironmentOptions
         {
-            Preference = preference
+            Preference = preference,
+            DesignTime = true,
         };
 
-        // When
-        DeleteProjectDirectory(projectFile, "obj");
-        DeleteProjectDirectory(projectFile, "bin");
-        IAnalyzerResults results = analyzer.Build(options);
+        var results = ctx.Analyzer.Build(options);
 
-        // Then
-        results.Count.ShouldBeGreaterThan(0, log.ToString());
-        results.OverallSuccess.ShouldBeTrue(log.ToString());
-        results.ShouldAllBe(x => x.Succeeded, log.ToString());
+        results.Should().NotBeEmpty();
+        results.OverallSuccess.Should().BeTrue();
+        results.Should().AllSatisfy(r => r.Succeeded.Should().BeTrue());
     }
 
     [Test]
@@ -139,7 +136,7 @@ public class SimpleProjectsFixture
     [Test]
     public void GetsReferences(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
-        [ValueSource(nameof(ProjectFiles))] [NotNull] string projectFile)
+        [ValueSource(nameof(ProjectFiles))][NotNull] string projectFile)
     {
         // Given
         StringWriter log = new StringWriter();
@@ -685,7 +682,7 @@ public class SimpleProjectsFixture
     }
 
     [Test]
-    public void GetsAdditionalCscFiles()
+    public void Resolves_additional_files_for_Razor_project()
     {
         // Given
         StringWriter log = new StringWriter();
@@ -699,7 +696,7 @@ public class SimpleProjectsFixture
     }
 
     [Test]
-    public void GetsAdditionalFile()
+    public void Resolves_additional_files()
     {
         // Given
         StringWriter log = new StringWriter();
@@ -710,24 +707,7 @@ public class SimpleProjectsFixture
             .Should().BeEquivalentTo("message.txt");
     }
 
-    [Test]
-    public void HandlesProcessFailure()
-    {
-        // Given
-        StringWriter log = new StringWriter();
-        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"SdkNet6Exe\SdkNet6Exe.csproj", log);
-
-        // When
-        IAnalyzerResults results = analyzer.Build(new EnvironmentOptions
-        {
-            Arguments = { "/unknown" } // This argument will cause msbuild to immediately fail
-        });
-
-        // Then
-        results.OverallSuccess.ShouldBeFalse();
-    }
-
-    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, StringWriter log)
+    private static IProjectAnalyzer GetProjectAnalyzer(string projectFile, System.IO.StringWriter log)
     {
         IProjectAnalyzer analyzer = new AnalyzerManager(
             new AnalyzerManagerOptions

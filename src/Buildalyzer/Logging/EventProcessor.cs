@@ -122,19 +122,9 @@ internal class EventProcessor : IDisposable
         if (AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath)
         {
             AnalyzerResult result = _currentResult.Pop();
-
             if (result != null)
             {
-                var tfmExists = _currentResult.Count(x => x.TargetFramework == result?.TargetFramework);
-
-                if (tfmExists > 0)
-                {
-                    result.Succeeded = e.Succeeded;
-                }
-                else if (tfmExists == 0)
-                {
-                    _currentResult.Push(result);
-                }
+                result.Succeeded = e.Succeeded;
             }
         }
     }
@@ -155,31 +145,29 @@ internal class EventProcessor : IDisposable
 
     private void MessageRaised(object sender, BuildMessageEventArgs e)
     {
-        foreach (var result in _currentResult)
+        AnalyzerResult result = _currentResult.Count == 0 ? null : _currentResult.Peek();
+        if (result is object)
         {
-            if (result is object)
+            // Process the command line arguments for the Fsc task
+            if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
+                && !string.IsNullOrWhiteSpace(e.Message)
+                && _targetStack.Any(x => x.TargetName == "CoreCompile")
+                && result.CompilerCommand is null)
             {
-                // Process the command line arguments for the Fsc task
-                if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
-                    && !string.IsNullOrWhiteSpace(e.Message)
-                    && _targetStack.Any(x => x.TargetName == "CoreCompile")
-                    && result.CompilerCommand is null)
-                {
-                    result.ProcessFscCommandLine(e.Message);
-                }
+                result.ProcessFscCommandLine(e.Message);
+            }
 
-                // Process the command line arguments for the Csc task
-                if (e is TaskCommandLineEventArgs cmd
-                    && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
-                {
-                    result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
-                }
+            // Process the command line arguments for the Csc task
+            if (e is TaskCommandLineEventArgs cmd
+                && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+            {
+                result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
+            }
 
-                if (e is TaskCommandLineEventArgs cmdVbc &&
-                    string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
-                {
-                    result.ProcessVbcCommandLine(cmdVbc.CommandLine);
-                }
+            if (e is TaskCommandLineEventArgs cmdVbc &&
+                string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
+            {
+                result.ProcessVbcCommandLine(cmdVbc.CommandLine);
             }
         }
     }

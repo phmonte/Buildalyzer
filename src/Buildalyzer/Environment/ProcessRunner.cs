@@ -6,11 +6,11 @@ namespace Buildalyzer.Environment;
 internal class ProcessRunner : IDisposable
 {
     private readonly ILogger Logger;
-
-    public List<string> Output { get; } = new List<string>();
-    public List<string> Error { get; } = new List<string>();
+    private readonly ProcessDataCollector Collector;
 
     public int ExitCode => Process.ExitCode;
+
+    public ProcessData Data => Collector.Data;
 
     private Process Process { get; }
 
@@ -55,7 +55,6 @@ internal class ProcessRunner : IDisposable
         {
             if (!string.IsNullOrEmpty(e.Data))
             {
-                Output.Add(e.Data);
                 Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
             }
         };
@@ -63,10 +62,11 @@ internal class ProcessRunner : IDisposable
         {
             if (!string.IsNullOrEmpty(e.Data))
             {
-                Error.Add(e.Data);
-                Logger.LogDebug("{Data}{NewLine}", e.Data, System.Environment.NewLine);
+                Logger.LogError("{Data}{NewLine}", e.Data, System.Environment.NewLine);
             }
         };
+
+        Collector = new(Process);
     }
 
     public ProcessRunner Start()
@@ -112,5 +112,6 @@ internal class ProcessRunner : IDisposable
     {
         Process.Exited -= ProcessExited;
         Process.Close();
+        Collector.Dispose();
     }
 }

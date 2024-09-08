@@ -216,7 +216,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
         string initialArguments = string.Empty;
         bool isDotNet = false; // false=MSBuild.exe, true=dotnet.exe
         if (string.IsNullOrWhiteSpace(buildEnvironment.MsBuildExePath)
-            || Path.GetExtension(buildEnvironment.MsBuildExePath).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            || Path.GetExtension(buildEnvironment.MsBuildExePath).IsMatch(".dll"))
         {
             // in case of no MSBuild path or a path to the MSBuild dll, run dotnet
             fileName = buildEnvironment.DotnetExePath;
@@ -256,7 +256,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
             // Setting the TargetFramework MSBuild property tells MSBuild which target framework to use for the outer build
             effectiveGlobalProperties[MsBuildProperties.TargetFramework] = targetFramework;
         }
-        if (Path.GetExtension(ProjectFile.Path).Equals(".fsproj", StringComparison.OrdinalIgnoreCase)
+        if (Path.GetExtension(ProjectFile.Path).IsMatch(".fsproj")
             && effectiveGlobalProperties.ContainsKey(MsBuildProperties.SkipCompilerExecution))
         {
             // We can't skip the compiler for design-time builds in F# (it causes strange errors regarding file copying)

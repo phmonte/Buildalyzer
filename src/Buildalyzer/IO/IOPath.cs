@@ -50,7 +50,9 @@ public readonly struct IOPath : IEquatable<IOPath>, IFormattable
     /// <inheritdoc />
     [Pure]
     public bool Equals(IOPath other, bool caseSensitive)
-        => string.Equals(_path, other._path, caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        => caseSensitive
+        ? _path == other._path
+        : _path.IsMatch(other._path);
 
     /// <inheritdoc />
     [Pure]

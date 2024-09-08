@@ -8,6 +8,10 @@
     <PackageValidationBaselineVersion>7.0.1</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
+      <![CDATA[
+ToBeReleased
+- Drop Buildalyzer.EmptyDisposable. (BREAKING)
+]]>
     </PackageReleaseNotes>
   </PropertyGroup>
 

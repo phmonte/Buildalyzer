@@ -152,7 +152,7 @@ internal class EventProcessor : IDisposable
         }
 
         // Process the command line arguments for the Fsc task
-        if (e.SenderName?.Equals("Fsc", StringComparison.OrdinalIgnoreCase) == true
+        if (e.SenderName.IsMatch("Fsc")
             && !string.IsNullOrWhiteSpace(e.Message)
             && _targetStack.Any(x => x.TargetName == "CoreCompile")
             && result.CompilerCommand is null)
@@ -161,14 +161,12 @@ internal class EventProcessor : IDisposable
         }
 
         // Process the command line arguments for the Csc task
-        if (e is TaskCommandLineEventArgs cmd
-            && string.Equals(cmd.TaskName, "Csc", StringComparison.OrdinalIgnoreCase))
+        if (e is TaskCommandLineEventArgs cmd && cmd.TaskName.IsMatch("Csc"))
         {
             result.ProcessCscCommandLine(cmd.CommandLine, _targetStack.Any(x => x.TargetName == "CoreCompile"));
         }
 
-        if (e is TaskCommandLineEventArgs cmdVbc &&
-            string.Equals(cmdVbc.TaskName, "Vbc", StringComparison.OrdinalIgnoreCase))
+        if (e is TaskCommandLineEventArgs cmdVbc && cmdVbc.TaskName.IsMatch("Vbc"))
         {
             result.ProcessVbcCommandLine(cmdVbc.CommandLine);
         }

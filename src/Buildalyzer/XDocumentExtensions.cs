@@ -5,13 +5,13 @@ namespace Buildalyzer;
 internal static class XDocumentExtensions
 {
     public static IEnumerable<XElement> GetDescendants(this XDocument document, string name) =>
-        document.Descendants().Where(x => string.Equals(x.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
+        document.Descendants().Where(x => x.Name.LocalName.IsMatch(name));
 
     public static IEnumerable<XElement> GetDescendants(this XElement element, string name) =>
-        element.Descendants().Where(x => string.Equals(x.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
+        element.Descendants().Where(x => x.Name.LocalName.IsMatch(name));
 
-    public static string GetAttributeValue(this XElement element, string name) =>
-        element.Attributes().FirstOrDefault(x => string.Equals(x.Name.LocalName, name, StringComparison.OrdinalIgnoreCase))?.Value;
+    public static string? GetAttributeValue(this XElement element, string name) =>
+        element.Attributes().FirstOrDefault(x => x.Name.LocalName.IsMatch(name))?.Value;
 
     // Adds a child element with the same namespace as the parent
     public static void AddChildElement(this XElement element, string name, string value) =>

@@ -6,9 +6,9 @@ namespace Buildalyzer;
 
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(Diagnostics.CollectionDebugView<BuildEventArgs>))]
-internal sealed class BuildEventCollector : IReadOnlyCollection<BuildEventArgs>, IDisposable
+internal sealed class BuildEventArgsCollector : IReadOnlyCollection<BuildEventArgs>, IDisposable
 {
-    public BuildEventCollector(EventArgsDispatcher server)
+    public BuildEventArgsCollector(EventArgsDispatcher server)
     {
         Server = server;
         Server.AnyEventRaised += EventRaised;

@@ -161,8 +161,6 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
             pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
 
-            using var collector = new BuildEventCollector(pipeLogger);
-
             using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
             // Run MSBuild
@@ -205,8 +203,6 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
             // Collect the results
             results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
-
-            var events = collector.ToImmutableArray();
         }
         return results;
     }

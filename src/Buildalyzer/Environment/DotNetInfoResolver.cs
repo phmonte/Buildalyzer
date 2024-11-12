@@ -42,7 +42,7 @@ internal sealed class DotNetInfoResolver(ILoggerFactory? factory)
         processRunner.Start();
         processRunner.WaitForExit(GetWaitTime());
 
-        var info = DotNetInfo.Parse(processRunner.Output);
+        var info = DotNetInfo.Parse(processRunner.Data.Output);
         Cache[projectPath] = info;
         return info;
     }

@@ -159,6 +159,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
             }
 
             pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
+
             using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
 
             // Run MSBuild
@@ -169,6 +170,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
                 targetsToBuild,
                 pipeLogger.GetClientHandle(),
                 out string arguments);
+
             using (ProcessRunner processRunner = new ProcessRunner(
                 fileName,
                 arguments,

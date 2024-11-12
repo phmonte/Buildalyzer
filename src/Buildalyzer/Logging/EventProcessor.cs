@@ -174,7 +174,6 @@ internal class EventProcessor : IDisposable
         }
 
         bool IsRelevant() => string.IsNullOrEmpty(result.Command) || AnalyzerManager.NormalizePath(e.ProjectFile) == _projectFilePath;
-        
     }
 
     private void BuildFinished(object sender, BuildFinishedEventArgs e)

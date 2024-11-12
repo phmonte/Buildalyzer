@@ -198,6 +198,25 @@ public class ProjectAnalyzerExtensionsFixture
         diagnostics.ShouldBeEmpty();
     }
 
+
+    [Test(Description = "Test Reference Alias support")]
+
+    public async Task SupportAssemblyAliases()
+    {
+        // Given
+        StringWriter log = new StringWriter();
+        IProjectAnalyzer analyzer = GetProjectAnalyzer(@"projects\SdkNet8Alias\SdkNet8Alias.csproj", log);
+        AdhocWorkspace workspace = analyzer.GetWorkspace();
+        Project project = workspace.CurrentSolution.Projects.Single();
+
+        // When
+        Compilation compilation = await project.GetCompilationAsync();
+
+        Diagnostic[] diagnostics = compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).ToArray();
+
+        diagnostics.ShouldBeEmpty();
+    }
+
 #if Is_Windows
     [Test]
     public void HandlesWpfCustomControlLibrary()

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Xml.Linq;
 
 namespace Buildalyzer.Construction;
@@ -59,8 +60,8 @@ public class ProjectFile : IProjectFile
 
     /// <inheritdoc />
     public bool RequiresNetFramework =>
-        _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => ImportsThatRequireNetFramework.Exists(i => x.GetAttributeValue(ProjectFileNames.Project)?.EndsWith(i, StringComparison.OrdinalIgnoreCase) ?? false))
-        || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Exists(i => x.Value.EndsWith(i, StringComparison.OrdinalIgnoreCase)))
+        _projectElement.GetDescendants(ProjectFileNames.Import).Any(x => ImportsThatRequireNetFramework.Exists(i => x.GetAttributeValue(ProjectFileNames.Project)?.IsMatchEnd(i) ?? false))
+        || _projectElement.GetDescendants(ProjectFileNames.LanguageTargets).Any(x => ImportsThatRequireNetFramework.Exists(i => x.Value.IsMatchEnd(i)))
         || ToolsVersion != null;
 
     /// <inheritdoc />

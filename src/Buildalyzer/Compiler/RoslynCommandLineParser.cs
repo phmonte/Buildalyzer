@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using Microsoft.CodeAnalysis;
 
 namespace Buildalyzer;
@@ -17,7 +18,7 @@ internal static class RoslynCommandLineParser
         {
             for (var i = 0; i < args.Length - 1; i++)
             {
-                if (args[i].EndsWith(exec, StringComparison.OrdinalIgnoreCase))
+                if (args[i].IsMatchEnd(exec))
                 {
                     return args[i..];
                 }

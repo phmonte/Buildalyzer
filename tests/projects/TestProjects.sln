@@ -60,6 +60,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet7Project", "SdkNet7Pr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkNet8CS12FeaturesProject", "SdkNet8CS12FeaturesProject\SdkNet8CS12FeaturesProject.csproj", "{6DDD74AB-8821-4267-8DC2-8864A3BB5871}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkNet8Alias", "SdkNet8Alias\SdkNet8Alias.csproj", "{1646FB0E-BAF2-45D0-9CD5-19EF7310FFC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureFunctionProject", "AzureFunctionProject\AzureFunctionProject.csproj", "{A6411BE0-55A6-4D44-9F1C-FA6B674B832A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -178,6 +182,14 @@ Global
 		{6DDD74AB-8821-4267-8DC2-8864A3BB5871}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DDD74AB-8821-4267-8DC2-8864A3BB5871}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DDD74AB-8821-4267-8DC2-8864A3BB5871}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1646FB0E-BAF2-45D0-9CD5-19EF7310FFC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1646FB0E-BAF2-45D0-9CD5-19EF7310FFC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1646FB0E-BAF2-45D0-9CD5-19EF7310FFC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1646FB0E-BAF2-45D0-9CD5-19EF7310FFC8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6411BE0-55A6-4D44-9F1C-FA6B674B832A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6411BE0-55A6-4D44-9F1C-FA6B674B832A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6411BE0-55A6-4D44-9F1C-FA6B674B832A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6411BE0-55A6-4D44-9F1C-FA6B674B832A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

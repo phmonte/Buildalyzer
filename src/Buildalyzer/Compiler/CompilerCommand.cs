@@ -45,6 +45,11 @@ public abstract record CompilerCommand
     /// <inheritdoc  cref="CommandLineArguments.MetadataReferences" />
     public ImmutableArray<string> MetadataReferences { get; init; }
 
+    /// <summary>
+    /// The aliases used in the command line arguments.
+    /// </summary>
+    public ImmutableDictionary<string, ImmutableArray<string>> Aliases { get; init; }
+
     /// <inheritdoc />
     [Pure]
     public override string ToString() => Text ?? string.Empty;

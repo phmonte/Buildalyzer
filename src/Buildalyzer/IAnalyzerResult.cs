@@ -38,6 +38,8 @@ public interface IAnalyzerResult
 
     string[] References { get; }
 
+    ImmutableDictionary<string, ImmutableArray<string>> ReferenceAliases {get; }
+
     string[] AnalyzerReferences { get; }
 
     string[] SourceFiles { get; }

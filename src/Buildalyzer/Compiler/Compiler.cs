@@ -102,8 +102,8 @@ public static class Compiler
                 AnalyzerReferences = arguments.AnalyzerReferences.Select(AsIOPath).ToImmutableArray(),
                 AnalyzerConfigPaths = arguments.AnalyzerConfigPaths.Select(IOPath.Parse).ToImmutableArray(),
                 MetadataReferences = arguments.MetadataReferences.Select(m => m.Reference).ToImmutableArray(),
+                Aliases = arguments.MetadataReferences.Where(m => !m.Properties.Aliases.IsEmpty).ToImmutableDictionary(m => m.Reference, m => m.Properties.Aliases),
                 PreprocessorSymbolNames = arguments.ParseOptions.PreprocessorSymbolNames.ToImmutableArray(),
-
                 SourceFiles = arguments.SourceFiles.Select(AsIOPath).ToImmutableArray(),
                 AdditionalFiles = arguments.AdditionalFiles.Select(AsIOPath).ToImmutableArray(),
                 EmbeddedFiles = arguments.EmbeddedFiles.Select(AsIOPath).ToImmutableArray(),

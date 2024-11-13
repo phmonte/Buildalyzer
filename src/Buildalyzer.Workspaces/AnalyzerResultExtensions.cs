@@ -293,7 +293,7 @@ public static class AnalyzerResultExtensions
     private static IEnumerable<MetadataReference> GetMetadataReferences(IAnalyzerResult analyzerResult) =>
         analyzerResult
             .References?.Where(File.Exists)
-            .Select(x => MetadataReference.CreateFromFile(x))
+            .Select(x => MetadataReference.CreateFromFile(x, new MetadataReferenceProperties(aliases: analyzerResult.ReferenceAliases.GetValueOrDefault(x))))
             ?? [];
 
     private static IEnumerable<AnalyzerReference> GetAnalyzerReferences(IAnalyzerResult analyzerResult, Workspace workspace)

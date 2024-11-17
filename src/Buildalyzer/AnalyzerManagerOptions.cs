@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Buildalyzer;

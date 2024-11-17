@@ -151,10 +151,6 @@ public class ProjectAnalyzer : IProjectAnalyzer
         using var cancellation = new CancellationTokenSource();
 
         using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
-        bool receivedAnyEvent = false;
-
-        pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
-
         using var eventCollector = new BuildEventArgsCollector(pipeLogger);
         using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, true);
 
@@ -176,7 +172,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
         {
             void OnProcessRunnerExited()
             {
-                if (!receivedAnyEvent && processRunner.ExitCode != 0)
+                if (eventCollector.None() && processRunner.ExitCode != 0)
                 {
                     pipeLogger.Dispose();
                 }
@@ -202,8 +198,6 @@ public class ProjectAnalyzer : IProjectAnalyzer
         results.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
 
         return results;
-
-        void OnPipeLoggerOnAnyEventRaised(object o, BuildEventArgs buildEventArgs) => receivedAnyEvent = true;
     }
 
     private string GetCommand(

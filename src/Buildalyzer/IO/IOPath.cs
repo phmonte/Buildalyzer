@@ -23,6 +23,9 @@ public readonly struct IOPath : IEquatable<IOPath>, IFormattable
 
     private IOPath(string path) => _path = path;
 
+    /// <summary>Returns true if the path is not empty.</summary>
+    public bool HasValue => _path is { Length: > 0 };
+
     /// <summary>Creates a <see cref="DirectoryInfo"/> based on the path.</summary>
     [Pure]
     public DirectoryInfo Directory() => new(ToString());

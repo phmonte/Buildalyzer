@@ -82,6 +82,16 @@ public class SimpleProjectsFixture
     }
 
     [Test]
+    public void Collects_BuildEventArguments()
+    {
+        using var ctx = Context.ForProject(@"SdkNet6Project\SdkNet6Project.csproj");
+
+        var results = ctx.Analyzer.Build(new EnvironmentOptions());
+
+        results.BuildEventArguments.Should().HaveCount(18);
+    }
+
+    [Test]
     public void BuildsProject(
         [ValueSource(nameof(Preferences))] EnvironmentPreference preference,
         [ValueSource(nameof(ProjectFiles))] string projectFile)

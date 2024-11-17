@@ -148,61 +148,55 @@ public class ProjectAnalyzer : IProjectAnalyzer
     private IAnalyzerResults BuildTargets(
         BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
     {
-        using (CancellationTokenSource cancellation = new CancellationTokenSource())
+        using var cancellation = new CancellationTokenSource();
+
+        using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
+        using var eventCollector = new BuildEventArgsCollector(pipeLogger);
+        using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, true);
+
+        // Run MSBuild
+        int exitCode;
+        string fileName = GetCommand(
+            buildEnvironment,
+            targetFramework,
+            targetsToBuild,
+            pipeLogger.GetClientHandle(),
+            out string arguments);
+
+        using (ProcessRunner processRunner = new ProcessRunner(
+            fileName,
+            arguments,
+            buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path)!,
+            GetEffectiveEnvironmentVariables(buildEnvironment)!,
+            Manager.LoggerFactory))
         {
-            using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
-            bool receivedAnyEvent = false;
-
-            void OnPipeLoggerOnAnyEventRaised(object o, BuildEventArgs buildEventArgs)
+            void OnProcessRunnerExited()
             {
-                receivedAnyEvent = true;
+                if (eventCollector.None() && processRunner.ExitCode != 0)
+                {
+                    pipeLogger.Dispose();
+                }
             }
 
-            pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
-
-            using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
-
-            // Run MSBuild
-            int exitCode;
-            string fileName = GetCommand(
-                buildEnvironment,
-                targetFramework,
-                targetsToBuild,
-                pipeLogger.GetClientHandle(),
-                out string arguments);
-
-            using (ProcessRunner processRunner = new ProcessRunner(
-                fileName,
-                arguments,
-                buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
-                GetEffectiveEnvironmentVariables(buildEnvironment),
-                Manager.LoggerFactory))
+            processRunner.Exited += OnProcessRunnerExited;
+            processRunner.Start();
+            try
             {
-                void OnProcessRunnerExited()
-                {
-                    if (!receivedAnyEvent && processRunner.ExitCode != 0)
-                    {
-                        pipeLogger.Dispose();
-                    }
-                }
-
-                processRunner.Exited += OnProcessRunnerExited;
-                processRunner.Start();
-                try
-                {
-                    pipeLogger.ReadAll();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Ignore
-                }
-                processRunner.WaitForExit();
-                exitCode = processRunner.ExitCode;
+                pipeLogger.ReadAll();
             }
-
-            // Collect the results
-            results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+            catch (ObjectDisposedException)
+            {
+                // Ignore
+            }
+            processRunner.WaitForExit();
+            exitCode = processRunner.ExitCode;
         }
+
+        results.BuildEventArguments = [.. eventCollector];
+
+        // Collect the results
+        results.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+
         return results;
     }
 

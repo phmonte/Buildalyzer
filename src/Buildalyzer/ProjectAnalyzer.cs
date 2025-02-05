@@ -6,7 +6,6 @@ using Buildalyzer.Environment;
 using Buildalyzer.Logger;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
 using Microsoft.Extensions.Logging;
 using MsBuildPipeLogger;
@@ -163,35 +162,33 @@ public class ProjectAnalyzer : IProjectAnalyzer
             pipeLogger.GetClientHandle(),
             out string arguments);
 
-        using (ProcessRunner processRunner = new ProcessRunner(
+        using var processRunner = new ProcessRunner(
             fileName,
             arguments,
             buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path)!,
             GetEffectiveEnvironmentVariables(buildEnvironment)!,
-            Manager.LoggerFactory))
-        {
-            void OnProcessRunnerExited()
-            {
-                if (eventCollector.IsEmpty && processRunner.ExitCode != 0)
-                {
-                    pipeLogger.Dispose();
-                }
-            }
+            Manager.LoggerFactory);
 
-            processRunner.Exited += OnProcessRunnerExited;
-            processRunner.Start();
-            try
+        void OnProcessRunnerExited()
+        {
+            if (eventCollector.IsEmpty && processRunner.ExitCode != 0)
             {
-                pipeLogger.ReadAll();
+                pipeLogger.Dispose();
             }
-            catch (ObjectDisposedException)
-            {
-                // Ignore
-            }
-            processRunner.WaitForExit();
-            exitCode = processRunner.ExitCode;
         }
 
+        processRunner.Exited += OnProcessRunnerExited;
+        processRunner.Start();
+        try
+        {
+            pipeLogger.ReadAll();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Ignore
+        }
+        processRunner.WaitForExit();
+        exitCode = processRunner.ExitCode;
         results.BuildEventArguments = [.. eventCollector];
 
         // Collect the results

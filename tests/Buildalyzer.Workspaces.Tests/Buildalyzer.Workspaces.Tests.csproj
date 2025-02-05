@@ -30,10 +30,6 @@
     <ProjectReference Include="../Buildalyzer.Tests/Buildalyzer.Tests.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Additional files">
-    <AdditionalFiles Include="*.csproj" Visible="false" />
-  </ItemGroup>
-
   <PropertyGroup Condition=" $([MSBuild]::IsOsPlatform('Windows')) ">
     <DefineConstants>Is_Windows</DefineConstants>
   </PropertyGroup>

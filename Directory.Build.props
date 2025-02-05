@@ -66,4 +66,8 @@
     <PackageReference Include="StyleCop.Analyzers" Version="*-*" PrivateAssets="all"/>
   </ItemGroup>
 
+  <ItemGroup Label="Additional files">
+    <AdditionalFiles Include="*.csproj" Visible="false" />
+  </ItemGroup>
+
 </Project>

@@ -29,8 +29,4 @@ ToBeReleased
     <ProjectReference Include="../Buildalyzer/Buildalyzer.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Additional files">
-    <AdditionalFiles Include="*.csproj" Visible="false" />
-  </ItemGroup>
-  
 </Project>

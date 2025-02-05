@@ -39,8 +39,4 @@ ToBeReleased
     <ProjectReference Include="../Buildalyzer.Logger/Buildalyzer.Logger.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="Additional files">
-    <AdditionalFiles Include="*.csproj" Visible="false" />
-  </ItemGroup>
-
 </Project>

@@ -1,19 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../package.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <Description>The MSBuild logger for Buildalyzer. Not intended to be used directly.</Description>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
     <PackageId>Buildalyzer.Logger</PackageId>
-    <IsPackable>true</IsPackable>
-    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
       <![CDATA[
 ToBeReleased
 - Target .NET 8.0. #252
+- Publish SBOM.
       ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

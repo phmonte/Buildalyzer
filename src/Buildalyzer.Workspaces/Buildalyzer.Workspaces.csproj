@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../package.props" />
+
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <Description>
@@ -8,14 +10,13 @@
       for creating a Roslyn workspace from Buildalyzer.
     </Description>
     <PackageId>Buildalyzer.Workspaces</PackageId>
-    <IsPackable>true</IsPackable>
-    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
       <![CDATA[
 ToBeReleased
 - Target .NET 8.0. #252
+- Publish SBOM.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>

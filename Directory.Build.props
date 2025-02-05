@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package information">
+    <ProductName>Buildalyzer</ProductName>
     <Description>
       A little utility to perform design-time builds of .NET projects without
       having to think too hard about it. Should work with any project type on

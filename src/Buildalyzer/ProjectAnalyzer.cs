@@ -172,7 +172,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
         {
             void OnProcessRunnerExited()
             {
-                if (eventCollector.None() && processRunner.ExitCode != 0)
+                if (eventCollector.IsEmpty && processRunner.ExitCode != 0)
                 {
                     pipeLogger.Dispose();
                 }

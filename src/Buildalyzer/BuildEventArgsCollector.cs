@@ -18,8 +18,7 @@ internal sealed class BuildEventArgsCollector : IReadOnlyCollection<BuildEventAr
     public int Count => Bag.Count;
 
     /// <summary>Indicates that no events has been collected.</summary>
-    [Pure]
-    public bool None() => Count == 0;
+    public bool IsEmpty => Count == 0;
 
     /// <inheritdoc />
     public IEnumerator<BuildEventArgs> GetEnumerator() => Bag.GetEnumerator();

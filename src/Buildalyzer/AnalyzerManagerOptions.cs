@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
 using Microsoft.Extensions.Logging;

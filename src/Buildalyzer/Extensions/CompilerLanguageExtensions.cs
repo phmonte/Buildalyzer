@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer;
+namespace Buildalyzer;
 
 internal static class CompilerLanguageExtensions
 {

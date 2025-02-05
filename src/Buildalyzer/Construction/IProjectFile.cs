@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer.Construction;
+namespace Buildalyzer.Construction;
 
 public interface IProjectFile
 {

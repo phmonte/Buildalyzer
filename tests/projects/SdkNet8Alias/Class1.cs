@@ -1,4 +1,4 @@
-﻿extern alias Alias;
+extern alias Alias;
 
 using Alias::Xunit;
 

@@ -1,4 +1,4 @@
-﻿using Buildalyzer.Environment;
+using Buildalyzer.Environment;
 using FluentAssertions;
 
 namespace Buildalyzer.Tests.Environment;

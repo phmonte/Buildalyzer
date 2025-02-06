@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-14]
+        os: [windows-latest, ubuntu-latest, macos-13]
     env:
       # https://github.com/NuGet/Home/issues/11548
       # https://twitter.com/xoofx/status/1488617114940452872?s=20&t=BKSN4j9rP6fOyg8l7aW0eg

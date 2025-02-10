@@ -1,4 +1,4 @@
-﻿namespace SdkNet7Project;
+namespace SdkNet7Project;
 
 public class Class1
 {

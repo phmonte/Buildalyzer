@@ -1,4 +1,4 @@
-﻿using Buildalyzer.Environment;
+using Buildalyzer.Environment;
 using Shouldly;
 
 namespace Buildalyzer.Tests.Environment;

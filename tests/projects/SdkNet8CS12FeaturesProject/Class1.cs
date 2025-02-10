@@ -1,4 +1,4 @@
-﻿namespace SdkNet8CS12FeaturesProject
+namespace SdkNet8CS12FeaturesProject
 {
     // LangVersion12 Features https://github.com/phmonte/Buildalyzer/issues/281
     public class Class1

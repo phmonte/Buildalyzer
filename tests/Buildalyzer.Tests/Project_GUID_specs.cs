@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Buildalyzer;
 using FluentAssertions;

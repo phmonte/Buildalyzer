@@ -1,4 +1,4 @@
-﻿extern alias StructuredLogger;
+extern alias StructuredLogger;
 using System.Collections.Concurrent;
 using System.IO;
 using Buildalyzer.Logging;

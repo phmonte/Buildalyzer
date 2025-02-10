@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Buildalyzer.IO;
 using FluentAssertions;
 using FSharp.Compiler.CodeAnalysis;

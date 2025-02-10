@@ -31,7 +31,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
 
     public string SolutionDirectory { get; }
 
-    public ProjectInSolution ProjectInSolution { get; }
+    public ProjectInSolution? ProjectInSolution { get; }
 
     /// <inheritdoc/>
     public Guid ProjectGuid { get; }
@@ -50,7 +50,7 @@ public class ProjectAnalyzer : IProjectAnalyzer
     public bool IgnoreFaultyImports { get; set; } = true;
 
     // The project file path should already be normalized
-    internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, ProjectInSolution projectInSolution)
+    internal ProjectAnalyzer(AnalyzerManager manager, string projectFilePath, ProjectInSolution? projectInSolution)
     {
         Manager = manager;
         Logger = Manager.LoggerFactory?.CreateLogger<ProjectAnalyzer>();

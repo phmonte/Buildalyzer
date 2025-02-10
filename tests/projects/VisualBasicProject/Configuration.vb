@@ -1,4 +1,4 @@
-﻿Public Class Configuration
+Public Class Configuration
     Public Property InvokeUrl As String
     Public Property ServiceName As String
     Public Property MaxBufferCapacity As Integer

@@ -1,4 +1,4 @@
-﻿namespace NullabilityEnabled;
+namespace NullabilityEnabled;
 
 public class SimpleModel
 {

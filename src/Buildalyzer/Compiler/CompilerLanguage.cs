@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer;
+namespace Buildalyzer;
 
 /// <summary>The compiler language.</summary>
 public enum CompilerLanguage

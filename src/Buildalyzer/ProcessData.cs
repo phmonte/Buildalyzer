@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer;
+namespace Buildalyzer;
 
 /// <summary>The data received during a <see cref="Process" />.</summary>
 [DebuggerDisplay("Output = {Output.Length}, Error = {Error.Length}")]

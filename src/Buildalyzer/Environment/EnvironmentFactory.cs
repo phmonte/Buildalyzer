@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Runtime.InteropServices;
 using Buildalyzer.Construction;
 using Microsoft.Build.Utilities;

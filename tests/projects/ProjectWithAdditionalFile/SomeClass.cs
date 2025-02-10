@@ -1,3 +1,3 @@
-﻿namespace ProjectWithAdditionalFile;
+namespace ProjectWithAdditionalFile;
 
 public class SomeClass { }

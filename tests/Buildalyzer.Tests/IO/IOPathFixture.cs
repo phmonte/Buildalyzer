@@ -1,4 +1,4 @@
-﻿using Buildalyzer.IO;
+using Buildalyzer.IO;
 using FluentAssertions;
 
 namespace Buildalyzer.Tests.IO;

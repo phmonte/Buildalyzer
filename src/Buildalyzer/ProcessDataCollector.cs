@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer;
+namespace Buildalyzer;
 
 /// <summary>Collects the <see cref="ProcessData"/> durring a <see cref="System.Diagnostics.Process"/>.</summary>
 [DebuggerDisplay("ExitCode = {Process.ExitCode}, Output = {Process.Output.Length}, Error = {Process.Error.Length}")]

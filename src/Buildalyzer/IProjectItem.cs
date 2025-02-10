@@ -1,4 +1,4 @@
-﻿namespace Buildalyzer;
+namespace Buildalyzer;
 
 public interface IProjectItem
 {

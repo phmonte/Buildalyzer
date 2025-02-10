@@ -1,28 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../package.props" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <Description>The MSBuild logger for Buildalyzer. Not intended to be used directly.</Description>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);PackLogger</TargetsForTfmSpecificBuildOutput>
     <PackageId>Buildalyzer.Logger</PackageId>
-    <IsPackable>true</IsPackable>
-    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselineVersion>6.0.0</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
+      <![CDATA[
 ToBeReleased
 - Target .NET 8.0. #252
+- Publish SBOM.
+      ]]>
     </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" PrivateAssets="all" />
     <PackageReference Include="MsBuildPipeLogger.Logger" Version="1.1.6" PrivateAssets="all" IsLogger="true" />
-  </ItemGroup>
-
-  <ItemGroup Label="Additional files">
-    <AdditionalFiles Include="*.csproj" Visible="false" />
   </ItemGroup>
 
   <!-- Get the logger files for later use -->

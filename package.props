@@ -1,0 +1,17 @@
+<Project>
+
+  <PropertyGroup>
+    <EnablePackageValidation>true</EnablePackageValidation>
+  </PropertyGroup>
+ 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateSBOM>true</GenerateSBOM>
+  </PropertyGroup>
+
+  <ItemGroup Label="Build extensions">
+    <PackageReference Include="Microsoft.Sbom.Targets" Version="3.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

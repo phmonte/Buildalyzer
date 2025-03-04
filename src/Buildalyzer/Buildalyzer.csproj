@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="../../package.props" />
+  
   <PropertyGroup>
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <PackageId>Buildalyzer</PackageId>
-    <IsPackable>true</IsPackable>
-    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselineVersion>7.0.1</PackageValidationBaselineVersion>
     <OutputType>library</OutputType>
     <PackageReleaseNotes>
       <![CDATA[
 ToBeReleased
 - Drop Buildalyzer.EmptyDisposable. (BREAKING)
+- Publish SBOM.
 ]]>
     </PackageReleaseNotes>
   </PropertyGroup>
@@ -37,10 +38,6 @@ ToBeReleased
 
   <ItemGroup>
     <ProjectReference Include="../Buildalyzer.Logger/Buildalyzer.Logger.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Label="Additional files">
-    <AdditionalFiles Include="*.csproj" Visible="false" />
   </ItemGroup>
 
 </Project>

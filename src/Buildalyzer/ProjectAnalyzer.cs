@@ -6,7 +6,6 @@ using Buildalyzer.Environment;
 using Buildalyzer.Logger;
 using Buildalyzer.Logging;
 using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
 using Microsoft.Extensions.Logging;
 using MsBuildPipeLogger;
@@ -148,61 +147,53 @@ public class ProjectAnalyzer : IProjectAnalyzer
     private IAnalyzerResults BuildTargets(
         BuildEnvironment buildEnvironment, string targetFramework, string[] targetsToBuild, AnalyzerResults results)
     {
-        using (CancellationTokenSource cancellation = new CancellationTokenSource())
+        using var cancellation = new CancellationTokenSource();
+
+        using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
+        using var eventCollector = new BuildEventArgsCollector(pipeLogger);
+        using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, true);
+
+        // Run MSBuild
+        int exitCode;
+        string fileName = GetCommand(
+            buildEnvironment,
+            targetFramework,
+            targetsToBuild,
+            pipeLogger.GetClientHandle(),
+            out string arguments);
+
+        using var processRunner = new ProcessRunner(
+            fileName,
+            arguments,
+            buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path)!,
+            GetEffectiveEnvironmentVariables(buildEnvironment)!,
+            Manager.LoggerFactory);
+
+        void OnProcessRunnerExited()
         {
-            using var pipeLogger = new AnonymousPipeLoggerServer(cancellation.Token);
-            bool receivedAnyEvent = false;
-
-            void OnPipeLoggerOnAnyEventRaised(object o, BuildEventArgs buildEventArgs)
+            if (eventCollector.IsEmpty && processRunner.ExitCode != 0)
             {
-                receivedAnyEvent = true;
+                pipeLogger.Dispose();
             }
-
-            pipeLogger.AnyEventRaised += OnPipeLoggerOnAnyEventRaised;
-
-            using var eventProcessor = new EventProcessor(Manager, this, BuildLoggers, pipeLogger, results != null);
-
-            // Run MSBuild
-            int exitCode;
-            string fileName = GetCommand(
-                buildEnvironment,
-                targetFramework,
-                targetsToBuild,
-                pipeLogger.GetClientHandle(),
-                out string arguments);
-
-            using (ProcessRunner processRunner = new ProcessRunner(
-                fileName,
-                arguments,
-                buildEnvironment.WorkingDirectory ?? Path.GetDirectoryName(ProjectFile.Path),
-                GetEffectiveEnvironmentVariables(buildEnvironment),
-                Manager.LoggerFactory))
-            {
-                void OnProcessRunnerExited()
-                {
-                    if (!receivedAnyEvent && processRunner.ExitCode != 0)
-                    {
-                        pipeLogger.Dispose();
-                    }
-                }
-
-                processRunner.Exited += OnProcessRunnerExited;
-                processRunner.Start();
-                try
-                {
-                    pipeLogger.ReadAll();
-                }
-                catch (ObjectDisposedException)
-                {
-                    // Ignore
-                }
-                processRunner.WaitForExit();
-                exitCode = processRunner.ExitCode;
-            }
-
-            // Collect the results
-            results?.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
         }
+
+        processRunner.Exited += OnProcessRunnerExited;
+        processRunner.Start();
+        try
+        {
+            pipeLogger.ReadAll();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Ignore
+        }
+        processRunner.WaitForExit();
+        exitCode = processRunner.ExitCode;
+        results.BuildEventArguments = [.. eventCollector];
+
+        // Collect the results
+        results.Add(eventProcessor.Results, exitCode == 0 && eventProcessor.OverallSuccess);
+
         return results;
     }
 

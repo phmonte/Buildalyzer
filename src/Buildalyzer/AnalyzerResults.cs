@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Build.Framework;
 
 namespace Buildalyzer;
 
@@ -18,6 +19,9 @@ public class AnalyzerResults : IAnalyzerResults
         }
         _overallSuccess = _overallSuccess.HasValue ? _overallSuccess.Value && overallSuccess : overallSuccess;
     }
+
+    /// <inheritdoc />
+    public ImmutableArray<BuildEventArgs> BuildEventArguments { get; set; } = [];
 
     public IAnalyzerResult this[string targetFramework] => _results[targetFramework];
 
